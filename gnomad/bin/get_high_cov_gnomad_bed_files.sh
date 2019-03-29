@@ -58,3 +58,6 @@ done
 i='X'
 cat $out_dir/gnomad.chr${i}.high_cov.bed >> $out_all_chrom_bed_file
 # -----------------------------------------------------------------------------
+
+# ---- Calculate total coverage ----
+cat $out_all_chrom_bed_file | awk '{sum+=$3-$2} END {print sum}' > $out_dir/Total_coverage.min_depth${min_depth}.txt
