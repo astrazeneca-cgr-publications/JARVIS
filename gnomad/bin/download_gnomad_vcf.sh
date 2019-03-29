@@ -6,8 +6,8 @@
 #SBATCH --mem-per-cpu=4G
 #SBATCH --time=24:00:00 
 
-
-mkdir -p vcf; cd vcf
+out_dir="../vcf" 
+mkdir -p $out_dir; cd $out_dir
 
 for i in `seq 1 22`;
 do
