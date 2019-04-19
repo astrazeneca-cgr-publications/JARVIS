@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -J 10_get_high_cov_bed_mindepth
-#SBATCH -o out.get_high_cov_bed_mindepth_10
-#SBATCH -e err.get_high_cov_bed_mindepth_10
+#SBATCH -J 0_get_high_cov_bed_mindepth
+#SBATCH -o out.get_high_cov_bed_mindepth_0
+#SBATCH -e err.get_high_cov_bed_mindepth_0
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=8G
 #SBATCH --time=24:00:00
@@ -19,7 +19,7 @@ min_depth=$1	# 20%-percentile for gnomad mean coverage is 29.87, so suggested de
 
 
 # ------------ Define output dirs & files ---------------
-cov_file_dir="../coverage-files"
+cov_file_dir="../../coverage-files"
 out_dir="${cov_file_dir}/high_cov_bed_files-min_depth$min_depth"
 mkdir -p $out_dir
 

@@ -2,10 +2,10 @@
 #SBATCH -o out.run_wgs_cov_qc.txt
 #SBATCH -e err.run_wgs_cov_qc.txt
 #SBATCH --cpus-per-task=4
-#SBATCH --mem-per-cpu=16G 
+#SBATCH --mem-per-cpu=32G 
 #SBATCH --time=24:00:00
 
-out_dir="../coverage-files"
+out_dir="../../coverage-files"
 out_file="$out_dir/All_mean_depths.gnomad.WGS_coverage.txt"
 
 function concat_all_files {
@@ -26,6 +26,7 @@ concat_all_files
 
 # > Sort file with mean depths per nt across all chromosomes -- Reuqired only to extract percentile metrics, e.g. median
 sort -n --parallel=8 $out_file > ${out_file}.sorted
+
 # > Calculate median depth across all chromosomes
 median=`cat ${out_file}.sorted | awk '{vals[NR] = $1} END{if (NR % 2) {print vals[(NR + 1) / 2]} else { print(vals[(NR / 2)] + vals[(NR / 2) + 1]) / 2.0}}'`
 
