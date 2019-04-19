@@ -5,8 +5,8 @@ Overview:
 	- This script calls get_chr_table.sh for each chromosome
 	- It then calls expand_variant_entries.pl to split multiallelic sites into separate lines (keeping the fields AC, AF, AN and DP from the INFO column)
 
-2. Then run: `keep_gwrvis_high_confidence_regions.sh`
-	- SCP job submission: `sbatch keep_gwrvis_high_confidence_regions.sh gnomad 1`
+2. Then run: `keep_gwrvis_high_conf_regions.sh`
+	- SCP job submission: `sbatch keep_gwrvis_high_conf_regions.sh [gnomad|topmed] [input_filtered_dir]`
 
 
 
@@ -33,38 +33,14 @@ Overview:
 
 ```
 
-## Getting started
-- Run `keep_gwrvis_high_confidence_regions.sh`:
+## 2. Keep filtered variant tables with variants within high confidence genomic regions
+- Run `keep_gwrvis_high_conf_regions.sh`:
 ```
-[sbatch] keep_gwrvis_high_confidence_regions.sh [dataset: gnomad|topmed] [FILTERED_FLAG: 1|0)
-
-# e.g.
-sbatch keep_gwrvis_high_confidence_regions.sh gnomad 1
+[sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir]
 ```
 
 
-
-
-
-## 2. Retain those with coverage over a threshold
-```
-# Define input dir:
-# 	to choose between all collapsed variant tables --> collapsed_variant_tables 
-# 	or collapsed variant tables after filtering variants based on PASS flag and segdup/lcr annotations --> collapsed_variant_tables-FILTERED
-#	or VCFs from a particular population (e.g. FIN, ASJ) --> collapsed_variant_tables-FIN-FILTERED
-# [ segdup: segment duplication, lcr: low complexity region]
-
-# Default filtering script:
-
-./keep_gnomad_sufficient_coverage_regions.sh [min_depth (e.g. 20)] [FILTER: 1|0] [population (e.g. all, FIN, ASJ)]
-
-> Run:
-./keep_gnomad_sufficient_coverage_regions.sh 20 1 FIN
-./keep_gnomad_sufficient_coverage_regions.sh 20 1 ASJ
-
-```
-```
-# ** For getting all data _EXCEPT_ those also existent in a specified population **
+### ** For getting all data _EXCEPT_ those also existent in a specified population **
 ./complement_keep_gnomad_sufficient_coverage_regions.sh 20 1 FIN
 ```
 
