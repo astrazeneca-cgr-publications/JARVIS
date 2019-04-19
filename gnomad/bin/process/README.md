@@ -30,7 +30,6 @@ Overview:
 - To get all data _EXCEPT_ those also existent in a specified population
 ```
 [sbatch] ./complement_process_all_chr.sh vcf 1 FIN     # --> Ouput: vcf-NON_FIN
-
 ```
 
 ## 2. Keep filtered variant tables with variants within high confidence genomic regions
@@ -40,7 +39,8 @@ Overview:
 ```
 
 
-### ** For getting all data _EXCEPT_ those also existent in a specified population **
+### For getting all data _EXCEPT_ those also existent in a specified population
+```
 ./complement_keep_gnomad_sufficient_coverage_regions.sh 20 1 FIN
 ```
 
