@@ -8,7 +8,7 @@
 
 
 # check input arguments
-if [ $# -lt 5 ]; then
+if [ $# -lt 4 ]; then
 	echo "[Error]: incorrect number of input arguments."
 	echo ">> Expected call format: ./process_all_chr.sh [input_dir_with_vcf_files] [KEEP_PASS_ONLY: 0|1] [FILTER_SEGDUP: 0|1] [FILTER_LCR: 0|1] [population (optional): leave blank to consider all populations (otherwise: e.g. FIN, ASJ)]"
 	exit
