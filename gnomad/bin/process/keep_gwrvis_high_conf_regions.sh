@@ -17,7 +17,7 @@ dataset=$1
 input_filtered_dir=$2  #"filtered_variant_tables-[all]-[filter_annot]"
 
 # BED file with high confidence genomic regions
-include_file=../../../genome-high-confidence-regions/high_conf_genomic_regions.bed.gz
+include_file=../../../genomic-high-confidence-regions/high_conf_genomic_regions.bed.gz
 #include_file=../../coverage-files/high_cov_bed_files-min_depth20/gnomad.whole_genome.high_cov.min_depth20.bed
 
 
