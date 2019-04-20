@@ -2,9 +2,9 @@
 #SBATCH -J process_all_chr  # Set name for current job 
 #SBATCH -o out.process_all_chr  # Set job output log 
 #SBATCH -e err.process_all_chr  # Set job error log 
-#SBATCH --cpus-per-task=10         # Request 10 CPUs (cores) on a single node 
+#SBATCH --cpus-per-task=25         # Request 10 CPUs (cores) on a single node 
 #SBATCH --mem=4G          # Request amount of memory 
-#SBATCH -t 12:0:0            # Request 12 hours runtime
+#SBATCH -t 24:0:0            # Request 12 hours runtime
 
 
 # check input arguments
@@ -19,6 +19,10 @@ KEEP_PASS_ONLY=$2
 FILTER_SEGDUP=$3
 FILTER_LCR=$4
 population=$5
+
+base_out_dir="../../out"
+mkdir -p $base_out_dir
+out_dir=$base_out_dir/filtered_variant_tables
 
 
 filter_by_subpopulation()
@@ -55,7 +59,6 @@ filter_by_subpopulation()
 }
 
 # Filter by subpopulation (if applicable) and create respective output dir
-out_dir=filtered_variant_tables
 if [ -n "$population" ]; then
 
 	echo "Filtering VCF by population: $population"
@@ -97,14 +100,14 @@ do
         echo Processing chr: $i
 	./get_chr_table.sh $vcf_dir $i $KEEP_PASS_ONLY $FILTER_SEGDUP $FILTER_LCR $out_dir $population &
 
-	if [ $cnt = 9 ]; then     
+	if [ $cnt = 25 ]; then     
 	         wait
                  cnt=1
         fi         
 	cnt=$((cnt + 1))
 done
 
-i=X
-echo Processing chr: $i
-./get_chr_table.sh $vcf_dir $i $KEEP_PASS_ONLY $FILTER_SEGDUP $FILTER_LCR $out_dir $population &
+#i=X # Not available in r2.1.1
+#echo Processing chr: $i
+#./get_chr_table.sh $vcf_dir $i $KEEP_PASS_ONLY $FILTER_SEGDUP $FILTER_LCR $out_dir $population &
 wait

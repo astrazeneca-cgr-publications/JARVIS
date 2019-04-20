@@ -40,10 +40,10 @@ zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut 
 
 
 echo "chr${chr} (2/5) Retrieving AC, AF, AN (Allele Count, Frequency, Number) and DP (Depth of informative coverage for each sample) ..."
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f1 > $tmp_dir/chr${chr}_gnomad_ac.${population}.txt
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f2 > $tmp_dir/chr${chr}_gnomad_af.${population}.txt
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f3 > $tmp_dir/chr${chr}_gnomad_an.${population}.txt
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | sed 's/.*DP=/DP=/' | sed 's/;.*//' > $tmp_dir/chr${chr}_gnomad_dp.${population}.txt
+zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f1 | sed 's/INFO/AC/' > $tmp_dir/chr${chr}_gnomad_ac.${population}.txt
+zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f2 | sed 's/INFO/AF/' > $tmp_dir/chr${chr}_gnomad_af.${population}.txt
+zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f3 | sed 's/INFO/AN/' > $tmp_dir/chr${chr}_gnomad_an.${population}.txt
+zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | sed 's/.*DP=/DP=/' | sed 's/;.*//' | sed 's/INFO/DP/' > $tmp_dir/chr${chr}_gnomad_dp.${population}.txt
 
 
 echo "chr${chr} (3/5) Combinining all tables ..."
@@ -56,4 +56,4 @@ echo "./expand_variant_entries.pl $tmp_dir/chr${chr}_gnomad_table.${population}.
 
 
 echo "chr${chr} (5/5) Cleaning up temporary files ..."
-rm -rf $tmp_dir
+rm -f $tmp_dir/chr${chr}_*
