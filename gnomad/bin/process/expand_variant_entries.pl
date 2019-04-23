@@ -15,15 +15,12 @@ print "out_dir: $out_dir\n";
 open(OUT, ">$out_dir/$file.filtered");
 
 
-# 48119868        T       A,TAG   15118.34        AF=8.52273e-03,1.42045e-03
-# 48119869        G       A,C     203198.33       AF=0.00000e+00,0.00000e+00
-# 48119872        T       G       162596.74       AF=0.00000e+00
 my $cnt = 0;
 while(my $line = <FH>){
 	
 	if($cnt == 0){	
-		if($line ne "POS\tREF\tALT\tQUAL\tINFO\tINFO\tINFO\tINFO\n"){
-			die "[Error]: incorrect header in input file '$file'.\n    >> Please make sure the 1st line of your input file is:\n    POS     REF     ALT     QUAL    INFO	INFO	INFO	INFO\n    (tab-separated)\n";
+		if($line ne "POS\tREF\tALT\tQUAL\tAC\tAF\tAN\tDP\n"){
+			die "[Error]: incorrect header in input file '$file'.\n    >> Please make sure the 1st line of your input file is:\n    POS     REF     ALT     QUAL    AC	AF	AN	DP\n    (tab-separated)\n";
 		}
 		print OUT $line;
 		$cnt++;	
@@ -38,8 +35,8 @@ while(my $line = <FH>){
 	my $alt = $vals[2];
 	my $qual = $vals[3];
 	my $ac = $vals[4];
-	my $an = $vals[5];
-	my $af = $vals[6];
+	my $af = $vals[5];
+	my $an = $vals[6];
 	my $dp = $vals[7];
 	
 	my @alt_vals = split(',', $alt);
@@ -47,7 +44,7 @@ while(my $line = <FH>){
 	
 	$ac =~ s/AC=//;
 	my @ac_vals = split(',', $ac);
-
+	
 	$af =~ s/AF=//;
 	my @af_vals = split(',', $af);
 

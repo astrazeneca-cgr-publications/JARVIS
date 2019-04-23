@@ -12,18 +12,18 @@ Overview:
 
 ## 1. Get filtered VCF tables  
 ```
-./process_all_chr.sh [input_dir_with_vcf_files] [KEEP_PASS_ONLY: 0|1] [FILTER_SEGDUP: 0|1] [FILTER_LCR: 0|1] \
+./process_all_chr.sh [dataset: gnomad|topmed] [vcf_dir: input dir with VCF files] [KEEP_PASS_ONLY: 0|1] [FILTER_SEGDUP: 0|1] [FILTER_LCR: 0|1] \
 		     [population (optional): leave blank to consider all populations (otherwise: e.g. FIN, ASJ)]
 ```
 #### Examples
 ```
 - All populations and no filters
-[sbatch] ./process_all_chr.sh ../../vcf 0 0 0
+[sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0
 
 - Finnish population (and no filters)
-[sbatch] ./process_all_chr.sh ../../vcf 0 0 0  FIN
+[sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0  FIN
 - Askenzi population (and no filters)
-[sbatch] ./process_all_chr.sh ../../vcf 0 0 0  ASJ
+[sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0  ASJ
 ```
 
 
@@ -31,4 +31,7 @@ Overview:
 - Run `keep_gwrvis_high_conf_regions.sh`:
 ```
 [sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir]
+
+e.g.
+sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all
 ```
