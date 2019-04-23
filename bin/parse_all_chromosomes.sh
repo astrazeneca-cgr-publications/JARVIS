@@ -13,7 +13,7 @@ cnt=0
 for i in `seq 21 21`;
 do
 	echo Running parse-job for chr: $i
-	python collapsed_chr_parser.py $i $config_log #&
+	python filtered_chr_parser.py $i $config_log #&
 
 	if [ $cnt = 8 ]; then
 		wait
@@ -24,5 +24,5 @@ done
 
 #i=X
 #echo Running parse-job for chr: $i
-#python full_genome_collapsed_chr_parser.py $i $config_log
+#python full_genome_filtered_chr_parser.py $i $config_log
 wait

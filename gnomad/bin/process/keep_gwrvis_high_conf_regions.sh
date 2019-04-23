@@ -3,18 +3,19 @@
 #SBATCH -o out.keep_gwrvis_high_conf  # Set job output log
 #SBATCH -e err.keep_gwrvis_high_conf  # Set job error log
 #SBATCH --cpus-per-task=4         # Request 3 CPUs (cores) on a single node
-#SBATCH --mem=20G          # Request amount of memory
+#SBATCH --mem=8G          # Request amount of memory
 #SBATCH -t 24:0:0           # Request 24 hours runtime
 
 
-if [ $# -ne 2 ]
+if [ $# -ne 3 ]
 then
-	printf "\n>> Expected call format: [sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir] \n"
+	printf "\n>> Expected call format: [sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir] [population]\n"
 	exit
 fi
 
 dataset=$1
 input_filtered_dir=$2  #"gnomad-filtered_variant_tables-[all]-[filter_annot]"
+population=$3
 
 # BED file with high confidence genomic regions
 include_file=../../../genomic-high-confidence-regions/high_conf_genomic_regions.bed.gz
@@ -44,7 +45,7 @@ function filter {
 
 	cat $out/tmp4_chr${i}.txt | cut --complement -f1,2 > $out/tmp5_chr${i}.txt
 
-	cat $out/tmp0_chr${i}.txt $out/tmp5_chr${i}.txt > $out/chr${i}_${dataset}_table.txt.filtered
+	cat $out/tmp0_chr${i}.txt $out/tmp5_chr${i}.txt > $out/chr${i}_${dataset}_table.${population}.txt.filtered
 }
 
 cnt=0

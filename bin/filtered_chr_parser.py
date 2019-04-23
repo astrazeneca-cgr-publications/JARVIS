@@ -8,7 +8,7 @@ from datetime import datetime
 import sys
 import os
 from subprocess import call
-from custom_utils import create_out_dir, get_run_parameters
+from custom_utils import create_out_dir, get_config_params
 from random import shuffle
 import subprocess
 from pathlib import Path
@@ -17,57 +17,46 @@ from pathlib import Path
 startTime = datetime.now()
 
 args = sys.argv
-if len(args) != 3:
-	print("[Error]: insufficient input arguments. Expected command call:\n> python full_genome_collapsed_chr_parser.py [chr] [config_file]")
-	sys.exit()
- 
 chr = args[1]
 config_file = args[2] #'config.log'
 
-# read run parameters from config file and store into a dictionary
-run_params = get_run_parameters(config_file)
-print(run_params)
+
+# Read run parameters from config file and store into a dictionary
+config_params = get_config_params(config_file)
+print(config_params)
 
 
-dataset = run_params['dataset']		# e.g. 'gnomad'
-win_len = run_params['win_len']		# e.g. 250 (window length in nt)
-all_variants_upper_thres = run_params['all_variants_upper_thres']	# e.g. 200 (filter out windows with more than 200 variants before fitting regression)
-MAF_thres = run_params['MAF_thres']	# e.g. 0.0001 (Minor Allele Frequency)
-filter_outliers_before_regression = run_params['filter_outliers_before_regression'] 	# e.g. True
-generate_intermediate_plots = run_params['generate_intermediate_plots']		# e.g. False
-variants_table_dir = run_params['variants_table_dir']
+dataset = config_params['dataset']		# e.g. 'gnomad'
+population = config_params['population']	# e.g. 'all', 'FIN', etc.
+win_len = config_params['win_len']		# e.g. 250 (window length in nt)
+all_variants_upper_thres = config_params['all_variants_upper_thres']	# e.g. 200 (filter out windows with more than 200 variants before fitting regression)
+MAF_thres = config_params['MAF_thres']	        # e.g. 0.0001 (Minor Allele Frequency)
+filter_outliers_before_regression = config_params['filter_outliers_before_regression'] 	# e.g. True
+generate_intermediate_plots = config_params['generate_intermediate_plots']		# e.g. False
+variants_table_dir = config_params['variants_table_dir']
 
-
-rscript_path = 'Rscript'
-cluster_rscript_path = '/users/kclc950/packages/R-devel/bin/Rscript'
-if os.path.exists(cluster_rscript_path):
-	rscript_path = cluster_rscript_path
 
 human_ref_genome_2bit = '../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
+# ====
+data_dir = '../' + dataset + '/out/' + variants_table_dir
+print('> data_dir: ' + data_dir)
+
+filtered_vcf = data_dir + '/chr' + chr + '_' + dataset + '_table.' + population + '.txt.filtered'
 
 
 
-# =========================================
-
-data_dir = '../' + dataset + '/' + variants_table_dir
-print('data_dir: *' + data_dir + '*')
-
-
-simplified_vcf_file = data_dir + '/chr' + chr + '_' + dataset + '_table.txt.collapsed'
-
-
-# create out_MAF{threshold} dir to store output results (plots and gwRVIS csv files)
+# Create out_MAF{threshold} dir to store output results (plots and gwRVIS csv files)
 out_dir = create_out_dir(config_file)
-print(out_dir)
+print('> out_dir: ' + out_dir)
 
 
 var_ratios_dir = out_dir + '/var_ratios'
 if not os.path.exists(var_ratios_dir):     
 	os.makedirs(var_ratios_dir, exist_ok=True)
 
-rvis_dir = out_dir + '/rvis_scores'
-if not os.path.exists(rvis_dir):     
-	os.makedirs(rvis_dir, exist_ok=True)
+gwrvis_dir = out_dir + '/gwrvis_scores'
+if not os.path.exists(gwrvis_dir):     
+	os.makedirs(gwrvis_dir, exist_ok=True)
 
 plots_dir = out_dir + '/plots_per_chrom'
 if not os.path.exists(plots_dir):     
@@ -88,7 +77,7 @@ if not os.path.exists(scatter_dir):
 kmer = 7 # or 3
 
 # k-mer = 3
-mut_3mer_matrix_file = '../mutability_matrices/mutation_rate_by_trinucleotide_matrix.txt'
+mut_3mer_matrix_file = '../ext_datasets/mutability_matrices/mutation_rate_by_trinucleotide_matrix.txt'
 mut_3mer_matrix = pd.read_csv(mut_3mer_matrix_file, sep='\t', header=0, index_col=False)
 
 mut_3mer_matrix['sum'] = mut_3mer_matrix.loc[:, 'A'] + mut_3mer_matrix.loc[:, 'T'] + mut_3mer_matrix.loc[:, 'C'] + mut_3mer_matrix.loc[:, 'G']
@@ -98,7 +87,7 @@ mut_3mer_matrix_dict = dict(zip(mut_3mer_matrix['trint'], mut_3mer_matrix['sum']
 
 
 # k-mer = 7
-mut_7mer_matrix_file = '../mutability_matrices/heptamer_mutability_rates.processed_sums.txt'
+mut_7mer_matrix_file = '../ext_datasets/mutability_matrices/heptamer_mutability_rates.processed_sums.txt'
 mut_7mer_matrix = pd.read_csv(mut_7mer_matrix_file, sep=',', header=0, index_col=False)
 #print(mut_7mer_matrix.head())
 mut_7mer_weighted_sum_dict = dict(zip( mut_7mer_matrix['ref_seq'], mut_7mer_matrix['weighted_sum']))
@@ -111,46 +100,35 @@ if kmer == 7:
 	mut_rate_dict = mut_7mer_weighted_sum_dict
 elif kmer == 3:
 	mut_rate_dict = mut_3mer_matrix_dict
-
-
-
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
-df = pd.read_table(simplified_vcf_file, low_memory=False)
-df.columns = ['POS', 'REF', 'ALT', 'QUAL', 'AC', 'AF', 'AN', 'GQ']
-
-# => NEW: filter variants with median Genotype Quality < 20
-print('Filtering variants with median GQ < 20 ...')
-print(df.shape)
-df = df.loc[ df['GQ'] >= 20, :]
-print(df.shape)
-print(df.head())
+df = pd.read_table(filtered_vcf, low_memory=False)
+df.columns = ['POS', 'REF', 'ALT', 'QUAL', 'AC', 'AF', 'AN', 'DP']
 
 
 
-# >> VCF Table Pre-Processing
+# ===============  VCF Table Pre-Processing  ===============
 df['LEN_DIFF'] = df['REF'].str.len() - df['ALT'].str.len()
-
 # > Keep only SNVs - Filter out indels
 print(df.shape)
 df = df.loc[ df['LEN_DIFF'] == 0, :]
 print(df.shape)
 
 
-df = df[['POS', 'ALT', 'AC', 'AF', 'AN']]
+df = df[['POS', 'REF', 'ALT', 'AC', 'AF', 'AN']]
 print(df.info())
 
 
-# cleanup rows with missing AF values (if any)
+# Flag rows with missing AF values (if any)
 print(df.shape)
-df.loc[ df.AF.astype(str) == '.', 'AF'] = -1
+#TO-DO: why do I replace with -1? I should replace with 0 probably!
+df.loc[ df.AF.astype(str) == '.', 'AF'] = -1 
 print(df.shape)
-
 df['AF'] = df['AF'].astype(float)
 
-# => NEW: remove variants with AF=0
+# Clenaup rows with AF=0
 df = df.loc[ df.AF != 0]
 print(df.shape)
 
@@ -161,12 +139,13 @@ end_idx = df['POS'].iloc[-1]
 
 chr_range = end_idx - start_idx + 1
 
-# >> New code to allow for comparison of respective windows
+# >> Window index calculation (0-based) to allow comparison of respective windows from different datasets (e.g. gnomad vs topmed)
 chr_first_window_idx = int(start_idx / win_len)
 first_win_offset = start_idx - (chr_first_window_idx * win_len)
 
 
-total_num_windows = int(chr_range / win_len) + 1 # DEBUG: added '+ 1' --> to be tested: seems to be correct
+# Calculate all full 'win_len' windows and add another 2 for the flanking windows at the start and end
+total_num_windows = (int(end_idx / win_len) * win_len - ((chr_first_window_idx + 1) * win_len)) / win_len + 2
 
 print('Start index:', start_idx, ' | End index:', end_idx)
 print('Chromosome range:', chr_range)
@@ -174,7 +153,6 @@ print('Num. of rows:', str(df.shape[0]))
 print('First window index:', str(chr_first_window_idx))
 print('First window offset:', str(first_win_offset) + ' nt')
 print('Total genomic windows to scan:', total_num_windows)
-
 
 
 # record start coordinate of first variant (exlcuding indels) at each chromosome
@@ -194,10 +172,9 @@ print('--------------------')
 df['WIN'] = (df['POS'] / win_len).astype(int)
 
 
-# Expected to be lower than 'total_num_windows' due to lack of variants or coverage inadequacies in some genomic regions - CHECKED OK
+# Expected to be lower than 'total_num_windows' due to lack of variants or insufficient coverage in some genomic regions
 print('len(df[WIN].unique): ' + str(len(df['WIN'].unique())))
 print(df.head(20))
-
 
 
 placeholder_val = -1
@@ -391,8 +368,8 @@ def get_expected_mutability_by_trimer_per_window(df, placeholder_val):
 		raise ValueError('agg_mut_rates_per_window_df.index != gc_content_per_window_df.index')
 		sys.exit()
 
-	overall_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df], axis=1)
-	print(overall_features_df.head())
+	additional_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df], axis=1)
+	print(additional_features_df.head())
 
 
 	# make start-window-index: 0
@@ -413,7 +390,7 @@ def get_expected_mutability_by_trimer_per_window(df, placeholder_val):
 	print(zero_variants_df.tail())
 
 
-	concat_df = pd.concat([overall_features_df, zero_variants_df])
+	concat_df = pd.concat([additional_features_df, zero_variants_df])
 	concat_df = concat_df.sort_index()
 	print(concat_df.head(30))
 	print(concat_df.tail(30))
@@ -431,20 +408,20 @@ def split_seq_into_same_size_susbseq(seq, size):
 
 
 # Skip mutability rate calculations per window if they have already been calculated
-overall_features_df_file = tmp_dir + '/chr' + chr + '.overall_features_df.csv'
-overall_features_df = None
+additional_features_df_file = tmp_dir + '/chr' + chr + '.additional_features_df.csv'
+additional_features_df = None
 
 
 
-if Path(overall_features_df_file).exists():
+if Path(additional_features_df_file).exists():
 	print("\n>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<\n")
-	print("overall_features_df_file exists!")
+	print("additional_features_df_file exists!")
 	print("\n>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<\n")
 
-	overall_features_df = pd.read_csv(overall_features_df_file, index_col=0)
+	additional_features_df = pd.read_csv(additional_features_df_file, index_col=0)
 else:
-	overall_features_df = get_expected_mutability_by_trimer_per_window(df, placeholder_val)
-	overall_features_df.to_csv(overall_features_df_file)
+	additional_features_df = get_expected_mutability_by_trimer_per_window(df, placeholder_val)
+	additional_features_df.to_csv(additional_features_df_file)
 
 
 sys.exit()
@@ -487,12 +464,12 @@ print(common_variants_df.tail())
 
 
 
-rvis_score_quotients = common_variants_df['count'] / all_variants_df['count']
-rvis_score_quotients = rvis_score_quotients.fillna(-1)
-rvis_score_quotients.columns = ['ratio']
-print(rvis_score_quotients.head())
+gwrvis_score_quotients = common_variants_df['count'] / all_variants_df['count']
+gwrvis_score_quotients = gwrvis_score_quotients.fillna(-1)
+gwrvis_score_quotients.columns = ['ratio']
+print(gwrvis_score_quotients.head())
 
-rvis_score_quotients.to_csv(var_ratios_dir + '/common_all_var_ratios_chr' + chr + '.csv')
+gwrvis_score_quotients.to_csv(var_ratios_dir + '/common_all_var_ratios_chr' + chr + '.csv')
 
 
 # Create linear regression object 
@@ -517,11 +494,11 @@ idx = list(all_variants_df.index)
 
 #tmp_df = pd.DataFrame({'idx':idx, 'X': X, 'y':y})
 #tmp_df = pd.DataFrame({'idx': idx, 'y': common_variants, 'all_variants': all_variants, 'all_ac': all_ac, 'all_af': all_af})
-tmp_df = pd.DataFrame({'idx': idx, 'y': common_variants, 'common_div_by_all_var_ratio': rvis_score_quotients})
+tmp_df = pd.DataFrame({'idx': idx, 'y': common_variants, 'common_div_by_all_var_ratio': gwrvis_score_quotients})
 tmp_df = pd.concat([tmp_df, all_variants_df], axis=1)
 tmp_df = tmp_df.rename(columns = {'count': 'all_variants'})
 
-tmp_df = pd.concat([tmp_df, overall_features_df], axis=1)
+tmp_df = pd.concat([tmp_df, additional_features_df], axis=1)
 print(tmp_df.head())
 print(tmp_df.tail())
 
@@ -540,32 +517,32 @@ tmp_df.to_csv(xy_file, index=False, line_terminator='\r\n')
 
 ## --deprecated
 if generate_intermediate_plots:
-	rvis_scores_arr = np.array(rvis_scores)
-	print(min(rvis_scores_arr))
-	print(max(rvis_scores_arr))
+	gwrvis_scores_arr = np.array(gwrvis_scores)
+	print(min(gwrvis_scores_arr))
+	print(max(gwrvis_scores_arr))
 
 	# Plot RVIS scores for current chromosome
 	f1 = plt.figure()
-	plt.plot(rvis_scores_arr, linewidth=0.1)
+	plt.plot(gwrvis_scores_arr, linewidth=0.1)
 	f1.suptitle('gwRVIS values across chromosome ' + chr, fontsize=12) 
 	plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
 	plt.ylabel('gwRVIS score', fontsize=10)
 	#plt.show()
 
-	rvis_score_quotients = np.array(rvis_score_quotients)
+	gwrvis_score_quotients = np.array(gwrvis_score_quotients)
 	f1a = plt.figure()
-	plt.plot(rvis_score_quotients, linewidth=0.1)
+	plt.plot(gwrvis_score_quotients, linewidth=0.1)
 	f1a.suptitle('common / all variants ratios across chromosome ' + chr, fontsize=12) 
 	plt.xlabel('chr window index (genomic coordinate)', fontsize=12) 
 	plt.ylabel('common / all variants ratio', fontsize=10)
 	plt.ylim((-1.2, 1.2))
 
 	binwidth = 0.001
-	print(len(rvis_scores_arr))
-	rvis_scores_arr = rvis_scores_arr[~np.isnan(rvis_scores_arr) ]
-	print(len(rvis_scores_arr))
+	print(len(gwrvis_scores_arr))
+	gwrvis_scores_arr = gwrvis_scores_arr[~np.isnan(gwrvis_scores_arr) ]
+	print(len(gwrvis_scores_arr))
 	f2 = plt.figure()
-	plt.hist(rvis_scores_arr, bins=np.arange(min(rvis_scores_arr), max(rvis_scores_arr) + binwidth, binwidth))
+	plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth))
 	f2.suptitle('Histogram of gwRVIS values across chromosome ' + chr +'\n (excluding regions with no variation data)', fontsize=12) 
 	plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
 	plt.ylabel('Count', fontsize=10)
@@ -573,13 +550,13 @@ if generate_intermediate_plots:
 
 	# CDF plot 
 	f3 = plt.figure()
-	rvis_scores_arr = rvis_scores_arr[ rvis_scores_arr != 0 ]
-	plt.hist(rvis_scores_arr, bins=np.arange(min(rvis_scores_arr), max(rvis_scores_arr) + binwidth, binwidth), cumulative=True, normed=True, histtype='step', alpha=0.55, color='purple')
+	gwrvis_scores_arr = gwrvis_scores_arr[ gwrvis_scores_arr != 0 ]
+	plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth), cumulative=True, normed=True, histtype='step', alpha=0.55, color='purple')
 	f3.suptitle('CDF of gwRVIS values across chromosome ' + chr + '\n (excluding regions with no variation data)', fontsize=12) 
 	plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
 	plt.ylabel('Count', fontsize=10)
 
-	pp = PdfPages(plots_dir + "/rvis_chr" + chr + ".pdf")
+	pp = PdfPages(plots_dir + "/gwrvis_chr" + chr + ".pdf")
 	pp.savefig(f1)
 	pp.savefig(f1a)
 	pp.savefig(f2)

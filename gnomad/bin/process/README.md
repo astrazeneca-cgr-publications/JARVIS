@@ -30,8 +30,8 @@ Overview:
 ## 2. Keep filtered variant tables with variants within high confidence genomic regions
 - Run `keep_gwrvis_high_conf_regions.sh`:
 ```
-[sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir]
+[sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir] [population]
 
 e.g.
-sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all
+sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all all
 ```
