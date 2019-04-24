@@ -33,11 +33,11 @@ function filter {
 	i=$1
 	echo Chr $i;
 	
-	cat $input_filtered_dir/chr${i}_${dataset}_table.all.txt.filtered | head -1 > $out/tmp0_chr${i}.txt
+	cat $input_filtered_dir/chr${i}_${dataset}_table.${population}.txt.filtered | head -1 > $out/tmp0_chr${i}.txt
 	# convert coordinates from VCF to 0-based for use with BED file
-	cat $input_filtered_dir/chr${i}_${dataset}_table.all.txt.filtered | cut -f1 | awk '{print $1-1}' > $out/tmp1_chr${i}.txt
+	cat $input_filtered_dir/chr${i}_${dataset}_table.${population}.txt.filtered | cut -f1 | awk '{print $1-1}' > $out/tmp1_chr${i}.txt
 
-	paste $out/tmp1_chr${i}.txt $input_filtered_dir/chr${i}_${dataset}_table.all.txt.filtered | tail -n+2 > $out/tmp2_chr${i}.txt
+	paste $out/tmp1_chr${i}.txt $input_filtered_dir/chr${i}_${dataset}_table.${population}.txt.filtered | tail -n+2 > $out/tmp2_chr${i}.txt
 
 	sed "s/^/${i}\t/g" $out/tmp2_chr${i}.txt > $out/tmp3_chr${i}.txt
 
