@@ -331,7 +331,7 @@ def get_collapsed_counts(df, placeholder_val=-1):
 	return concat_variant_cnt_df
 
 
-def get_variant_counts_for_regression(df):
+def get_common_and_all_variants(df):
 
 	# > Get all variants across all windows
 	print('> Getting all variants ...')
@@ -362,51 +362,41 @@ def get_variant_counts_for_regression(df):
 	gwrvis_score_quotients.to_csv(var_ratios_dir + '/common_vs_all_variant_ratios.chr' + chr + '.csv')
 
 
+	return common_variants_df, all_variants_df, gwrvis_score_quotients
+
+
+def prepare_data_for_regression(common_variants_df, all_variants_df, gwrvis_score_quotients, additional_features_df):
+
+	print(common_variants_df.head())
+	print(all_variants_df.head())
+
+	# Create linear regression object 
+	#all_variants = list(all_variants_df['count'])  # X in regression: passed on with the entire all_variants_df data frame
+
+	allv_mean_ac = list(all_variants_df['mean_ac'])
+	allv_mean_af = list(all_variants_df['mean_af'])
+
+
+	idx = list(all_variants_df.index)
+	common_variants = list(common_variants_df['count'])  # y in regression
+	gwrvis_ratios = list(gwrvis_score_quotients['common_vs_all_variants_ratio'])
+
+
+	tmp_df = pd.DataFrame({'idx': idx, 'y': common_variants, 'common_vs_all_variants_ratio': gwrvis_ratios})
+	tmp_df = pd.concat([tmp_df, all_variants_df], axis=1)
+	tmp_df = tmp_df.rename(columns = {'count': 'all_variants'})
+
+	tmp_df = pd.concat([tmp_df, additional_features_df], axis=1)
+	print(tmp_df.head())
+	print(tmp_df.tail())
+
+	xy_file = tmp_dir + '/Xy.chr' + chr + '.txt'
+	tmp_df.to_csv(xy_file, index=False, line_terminator='\r\n')
+
+
+
 
 """
-# Create linear regression object 
-#X = list(all_variants_df['count'])
-all_variants = list(all_variants_df['count'])
-all_ac = list(all_variants_df['ac'])
-all_af = list(all_variants_df['af'])
-
-
-### >>>>>> BETA: shuffle Xy <<<<<<<<
-#shuffle(X)
-### >>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<
-
-
-common_variants = list(common_variants_df['count'])  # <-- y in regression
-
-### >>>>>> BETA: shuffle Xy <<<<<<<<
-#shuffle(y)
-### >>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<
-
-idx = list(all_variants_df.index)
-
-#tmp_df = pd.DataFrame({'idx':idx, 'X': X, 'y':y})
-#tmp_df = pd.DataFrame({'idx': idx, 'y': common_variants, 'all_variants': all_variants, 'all_ac': all_ac, 'all_af': all_af})
-tmp_df = pd.DataFrame({'idx': idx, 'y': common_variants, 'common_div_by_all_var_ratio': gwrvis_score_quotients})
-tmp_df = pd.concat([tmp_df, all_variants_df], axis=1)
-tmp_df = tmp_df.rename(columns = {'count': 'all_variants'})
-
-tmp_df = pd.concat([tmp_df, additional_features_df], axis=1)
-print(tmp_df.head())
-print(tmp_df.tail())
-
-#tmp_df = tmp_df[ ['idx', 'X', 'y'] ]
-#print(len(tmp_df))
-#print(tmp_df.head(20))
-#print(tmp_df.tail(20))
-
-
-
-xy_file = tmp_dir + '/Xy.chr' + chr + '.txt'
-tmp_df.to_csv(xy_file, index=False, line_terminator='\r\n')
-
-
-
-
 ## --deprecated
 if generate_intermediate_plots:
 	gwrvis_scores_arr = np.array(gwrvis_scores)
@@ -467,9 +457,6 @@ if __name__ == '__main__':
 	chr = args[1]
 	config_file = args[2] #'config.log'
 
-	# Other parameters (consider adding them to config.yaml)
-	variant_filter = 'snv'
-	kmer = 7
 
 
 	# Read run parameters from config file and store into a dictionary
@@ -481,6 +468,8 @@ if __name__ == '__main__':
 	dataset = config_params['dataset']		# e.g. 'gnomad'
 	population = config_params['population']	# e.g. 'all', 'FIN', etc.
 	win_len = config_params['win_len']		# e.g. 250 (window length in nt)
+	variant_filter = config_params['variant_filter']
+	kmer = config_params['kmer']
 	all_variants_upper_thres = config_params['all_variants_upper_thres']	# e.g. 200 (filter out windows with more than 200 variants before fitting regression)
 	MAF_thres = config_params['MAF_thres']	        # e.g. 0.0001 (Minor Allele Frequency)
 	filter_outliers_before_regression = config_params['filter_outliers_before_regression'] 	# e.g. True
@@ -529,8 +518,10 @@ if __name__ == '__main__':
 	print(df.head())
 
 	mut_rate_dict = get_mutability_rates(kmer=kmer)
-	get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict)
+	additional_features_df = get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict)
 
-	get_variant_counts_for_regression(df)
+	common_variants_df, all_variants_df, gwrvis_score_quotients = get_common_and_all_variants(df)
+
+	prepare_data_for_regression(common_variants_df, all_variants_df, gwrvis_score_quotients, additional_features_df)
 
 	print('Elapsed time (hh:mm:ss):', datetime.now() - startTime)

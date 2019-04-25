@@ -2,6 +2,8 @@ run:
         dataset: gnomad    # e.g. gnomad, topmed
         variants_table_dir: gnomad-high_conf_regions-filtered_variant_tables-all # other: latest-gnomad-orion_full_genomic_real_estate_variant_tables-FILTERED
         win_len: 3000    # e.g. 500, 3000 (window length in nt)
+        kmer: 7          # mutability rate based on k-mer: 7 or 3
+        variant_filter: snv    # type of variants to use: snv for SNVs, cnv for CNVs, anything else (e.g. all) includes all
         MAF_thres: 0.001  # e.g. 0.0001 (Minor Allele Frequency) 
         population: all    # e.g. all (default), FIN, etc.
         filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
