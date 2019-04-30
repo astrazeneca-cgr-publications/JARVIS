@@ -188,7 +188,7 @@ def get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_n
 		
 		cc += 1
 		if cc % 100 == 0:
-			print('Current window:', cc , 'out of', len(valid_window_indexes))
+			print('Chr' + str(chr) + ' - Current window:', cc , 'out of', len(valid_window_indexes))
 		
 
 
@@ -455,7 +455,7 @@ if __name__ == '__main__':
 
 	args = sys.argv
 	chr = args[1]
-	config_file = args[2] #'config.log'
+	config_file = args[2] #'config.yaml'
 
 
 
@@ -468,13 +468,13 @@ if __name__ == '__main__':
 	dataset = config_params['dataset']		# e.g. 'gnomad'
 	population = config_params['population']	# e.g. 'all', 'FIN', etc.
 	win_len = config_params['win_len']		# e.g. 250 (window length in nt)
-	variant_filter = config_params['variant_filter']
-	kmer = config_params['kmer']
+	variant_filter = config_params['variant_filter']	# 'snv' or 'cnv', anythin else retains all
+	kmer = config_params['kmer']			# 7 or 3
 	all_variants_upper_thres = config_params['all_variants_upper_thres']	# e.g. 200 (filter out windows with more than 200 variants before fitting regression)
 	MAF_thres = config_params['MAF_thres']	        # e.g. 0.0001 (Minor Allele Frequency)
 	filter_outliers_before_regression = config_params['filter_outliers_before_regression'] 	# e.g. True
 	generate_intermediate_plots = config_params['generate_intermediate_plots']		# e.g. False
-	variants_table_dir = config_params['variants_table_dir']
+	variants_table_dir = config_params['variants_table_dir']	# gnomad-filtered_variant_tables-all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions
 	# ----------------------
 
 

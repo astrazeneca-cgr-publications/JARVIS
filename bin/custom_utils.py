@@ -3,6 +3,7 @@ from subprocess import call
 import pandas as pd
 from pathlib import Path
 import yaml
+import re
 
 
 def create_out_dir(config_file):
@@ -24,8 +25,11 @@ def create_out_dir(config_file):
 	dataset = config_params['dataset']
 	run_identifier = config_params['run_identifier']
 	
+	variants_table_dir = config_params['variants_table_dir']
+	variant_and_popul_id = re.sub(".*filtered_variant_tables-", "", variants_table_dir)
+
 	base_out_dir = '../out'
-	out_dir = base_out_dir + '/' + dataset + '-' + run_identifier + '-winlen_' + str(win_len) + '.MAF_' + str(MAF_thres)
+	out_dir = base_out_dir + '/' + dataset + '-' + run_identifier + '-winlen_' + str(win_len) + '.MAF_' + str(MAF_thres) + '.' + variant_and_popul_id
 
 	if not os.path.exists(base_out_dir):
 		os.makedirs(base_out_dir, exist_ok=True)

@@ -24,7 +24,8 @@ include_file=../../../genomic-high-confidence-regions/high_conf_genomic_regions.
 
 filter_annot=`echo $input_filtered_dir | sed 's/.*-//' | sed 's/\///'`
 #echo $filter_annot
-out="../../out/${dataset}-high_conf_regions-filtered_variant_tables-${filter_annot}"
+#out="../../out/${dataset}-high_conf_regions-filtered_variant_tables-${filter_annot}"
+out=${input_filtered_dir}-high_conf_regions
 mkdir -p $out
 
 

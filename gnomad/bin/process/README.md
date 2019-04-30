@@ -17,6 +17,9 @@ Overview:
 ```
 #### Examples
 ```
+- All populations and all filters used (keep PASS only, no segdup, no lcr)
+[sbatch] ./process_all_chr.sh gnomad ../../vcf 1 1 1
+
 - All populations and no filters
 [sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0
 
@@ -33,5 +36,5 @@ Overview:
 [sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir] [population]
 
 e.g.
-sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all all
+sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all-PASS_ONLY-NO_SEGDUP-NO_LCR all
 ```

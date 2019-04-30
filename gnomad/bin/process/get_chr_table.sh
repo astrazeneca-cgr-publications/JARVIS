@@ -19,10 +19,10 @@ tmp_dir=$out_dir/tmp
 mkdir -p $tmp_dir
 
 
-# Define parameters for keeping/filtering certain types of variants based on annotation for PASS, segdup or lcr
-filter_params=''
+# >> Define parameters for keeping/filtering certain types of variants based on annotation for PASS, segdup or lcr
+filter_params="grep -E ';AF=|^#'"   # exclude entries that don't have AF information (i.e. have AC,AN=0); also keep header line (starts with single '#')
 if [ "$KEEP_PASS_ONLY" -eq 1 ]; then
-	filter_params=" | grep -E 'PASS|^#'"
+	filter_params=$filter_params" | grep -E 'PASS|^#'"
 fi
 if [ "$FILTER_SEGDUP" -eq 1 ]; then
 	filter_params=$filter_params" | grep -Ev 'segdup'"
@@ -36,14 +36,14 @@ echo "Filters specified: "$filter_params
 
 # ==================== Main script ====================
 echo "chr${chr} (1/5) Retrieving POS, REF, ALT, QUAL ..."
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f2,4,5,6 > $tmp_dir/chr${chr}_gnomad_subtable.${population}.txt
+eval "zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | $filter_params | cut -f2,4,5,6 > $tmp_dir/chr${chr}_gnomad_subtable.${population}.txt"
 
 
 echo "chr${chr} (2/5) Retrieving AC, AF, AN (Allele Count, Frequency, Number) and DP (Depth of informative coverage for each sample) ..."
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f1 | sed 's/INFO/AC/' > $tmp_dir/chr${chr}_gnomad_ac.${population}.txt
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f2 | sed 's/INFO/AN/' > $tmp_dir/chr${chr}_gnomad_an.${population}.txt
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | cut -d';' -f3 | sed 's/INFO/AF/' > $tmp_dir/chr${chr}_gnomad_af.${population}.txt
-zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | cut -f8 | sed 's/.*DP=/DP=/' | sed 's/;.*//' | sed 's/INFO/DP/' > $tmp_dir/chr${chr}_gnomad_dp.${population}.txt
+eval "zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | $filter_params | cut -f8 | cut -d';' -f1 | sed 's/INFO/AC/' > $tmp_dir/chr${chr}_gnomad_ac.${population}.txt"
+eval "zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | $filter_params | cut -f8 | cut -d';' -f2 | sed 's/INFO/AN/' > $tmp_dir/chr${chr}_gnomad_an.${population}.txt"
+eval "zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | $filter_params | cut -f8 | cut -d';' -f3 | sed 's/INFO/AF/' > $tmp_dir/chr${chr}_gnomad_af.${population}.txt"
+eval "zcat < $vcf_dir/gnomad.genomes.r2.1.1.sites.${chr}.vcf.bgz | grep -v '##' | $filter_params | cut -f8 | sed 's/.*DP=/DP=/' | sed 's/;.*//' | sed 's/INFO/DP/' > $tmp_dir/chr${chr}_gnomad_dp.${population}.txt"
 
 
 echo "chr${chr} (3/5) Combinining all tables ..."

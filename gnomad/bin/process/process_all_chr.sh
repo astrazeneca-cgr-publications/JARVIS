@@ -89,15 +89,9 @@ rm -rf $out_dir; mkdir -p $out_dir
 echo "Created out dir: $out_dir"
 
 
-#for file in $vcf_dir/*.vcf; do
-#	echo "Zipping file: $file ...";
-#	gzip -S ".bgz" $file &
-#done
-#wait
 
 
 cnt=1
-#for i in `seq 24 24`; # For debugging (24: artefactual chr of small size)
 for i in `seq 1 22`;
 do
         echo Processing chr: $i

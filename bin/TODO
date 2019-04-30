@@ -1,3 +1,0 @@
-- Add methylation data for each window. Think about other data types too.
-
-- Make sure mut_rate, cpg etc. are calculated for the very last window too... [DONE]
