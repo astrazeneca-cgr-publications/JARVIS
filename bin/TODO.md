@@ -4,12 +4,19 @@
 	./parse_all_chromosomes.sh $config_log;   
 	python run_full_regression.py $config_log;  
 	python convert_window_indexes_to_genomic_coords.py $config_log;
+	./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
 	
+	python aggregate_gwrvis_scores.py $config_log $input_classes;
+	----> Finish editing of aggregate_scores_into_bed_files() 
 	```
 	# ======== DONE up-to-here ========== ^^ 
-	- Integrate the next 3-4 scripts called below.
+	- Integrate the next 2-3 scripts called below.
 	- Then write a script that selects the most intolerant/tolerant windows across the entire genome (high-conf-regions with variant data)
 
+
+> Run logistic regression between intergenic and ucnes (or other classes) to see if gwRVIS can distinguish them efficiently.
+
+> Try just a few more versions of the logistic regression for gwRVIS calculations, using bins and/or other features (how about negative binomial regression?)
 
 > Add annotation for CpG islands using pre-built Ensembl tracks for hg19.
 
