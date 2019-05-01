@@ -8,7 +8,7 @@
 
 - Read input parameters
 ```
-config_log=config.log;
+config_log=config.yaml;
 input_classes=input_classes.txt;  
 ```
 <br>

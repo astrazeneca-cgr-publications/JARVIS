@@ -6,7 +6,7 @@
 #SBATCH --mem=40000          # Request amount of memory 
 #SBATCH -t 0:30:0            # Request 24 hours runtime
 
-config_log=config.log;
+config_log=config.yaml;
 input_classes=input_classes.txt;
 
 # Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)
