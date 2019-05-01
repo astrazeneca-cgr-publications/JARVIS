@@ -20,6 +20,7 @@ input_classes=input_classes.txt;
 - Perform logistic regression (common ~ all variants) to get gwRVIS scores 
 ```
 python run_full_regression.py $config_log;   
+```
 
 
 - Convert window indexes (0-based) to real genomic coordinates 
