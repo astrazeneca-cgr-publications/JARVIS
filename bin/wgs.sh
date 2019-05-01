@@ -18,8 +18,9 @@ python run_full_regression.py $config_log;
 python convert_window_indexes_to_genomic_coords.py $config_log;
 
 
-# get RVIS distribution by genomic class
-./extract_all_rvis_distribution_by_genomic_class.sh $config_log $input_classes;
+# get gwRVIS distribution by genomic class
+./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
+
 
 
 # post-processing (all)

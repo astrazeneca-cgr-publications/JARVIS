@@ -75,4 +75,4 @@ for chr in chroms:
 
 
 	cur_out_fh = gwrvis_dir + '/gwrvis.chr' + str(chr) + '.genomic_coords.bed'
-	df.to_csv(cur_out_fh, sep='\t')
+	df.to_csv(cur_out_fh, sep='\t', index=False, header=False)
