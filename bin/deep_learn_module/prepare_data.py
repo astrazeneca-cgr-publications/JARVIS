@@ -1,6 +1,9 @@
 import pandas as pd
 import sys, os
 import subprocess
+from numpy import argmax, array
+from sklearn.preprocessing import LabelEncoder 
+from sklearn.preprocessing import OneHotEncoder
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import custom_utils
 
@@ -18,7 +21,22 @@ def read_all_gwrvis_scores(all_gwrvis_bed_file):
 	return all_gwrvis_bed_df
 
 
-def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', top_ratio=0.1):
+def one_hot_encode_genomic_seq(seq):
+	seq = seq.rstrip()
+	seq_array = array(list(seq))
+	
+	label_encoder = LabelEncoder()
+	integer_encoded_seq = label_encoder.fit_transform(seq_array)
+
+	onehot_encoder = OneHotEncoder(sparse=False)
+
+	integer_encoded_seq = integer_encoded_seq.reshape(len(integer_encoded_seq), 1)
+	onehot_encoded_seq = onehot_encoder.fit_transform(integer_encoded_seq)
+
+	return onehot_encoded_seq
+
+
+def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', top_ratio=0.01):
 	
 	
 	# sort by gwRVIS value in ascending (for intolerant) or descending (for tolerant) order
@@ -39,40 +57,61 @@ def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', 
 	out_fh = open(windows_file, 'w')
 	raw_seq_out_file = seq_out_dir + '/most_' + tol_type + '.raw_seqs.out' 
 	#out_fh.write('chr\twin_index\tgwrvis\tseq\n'.encode())
+
+	print(all_gwrvis_bed_df.head())
 	
-
+	
 	seq_list_df = all_gwrvis_bed_df[:top_seqs_set_size]
-	seq_list_df = seq_list_df[['chr', 'start', 'end']]
+	gwrvis_and_index_df = seq_list_df.copy()
+	gwrvis_and_index_df.reset_index(inplace=True)	
+	gwrvis_and_index_df.columns.values[0] = tol_type.replace('rant', 'rance') + '_rank'
+	print(gwrvis_and_index_df.head())
+	gwrvis_and_index_df.to_csv(ml_data_dir + '/most_' + tol_type + '.gwrvis_and_indexes.txt', sep='\t', header=True, index=False)
 
+
+	seq_list_df = seq_list_df[['chr', 'start', 'end']]
 	seq_list_df['chr'] = seq_list_df['chr'].str.replace('chr', '')
+	seq_list_df['end'] += 1 # include right-most part of the interval
+
 	seq_list = seq_list_df['chr'].map(str) + ':' + seq_list_df['start'].astype(str) + '-' + seq_list_df['end'].astype(str)
+
 	out_fh.write("\n".join(seq_list))
 	out_fh.close()	
 
 	
 	awk_fasta_collapser = "awk '/^>/ {printf(\"\\n%s\\n\",$0);next; } { printf(\"%s\",$0);}  END {printf(\"\\n\");}' | tail -n +2"
-	cmd = '../util/twoBitToFa ' + human_ref_genome_2bit + ' -seqList=' + windows_file + " /dev/stdout | " + awk_fasta_collapser + " > " + raw_seq_out_file # | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
+	cmd = '../util/twoBitToFa ' + human_ref_genome_2bit + ' -seqList=' + windows_file + " /dev/stdout | " + awk_fasta_collapser + " | grep -v '>' > " + raw_seq_out_file # | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
 	print('\n' + cmd)
 
 	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout, stderr = p.communicate()
-	print(str(stderr, "utf-8").rstrip())
+	#print(str(stderr, "utf-8").rstrip())
+
+	with open(raw_seq_out_file) as f:
+		seq = f.readline()
+		onehot_seq = one_hot_encode_genomic_seq(seq)
+		print(seq)
+		print(onehot_seq)
+		print(onehot_seq.shape)
 	
-	
+		# TODO: append that to a global numpy array to keep all one-hot encoded raw sequences
+		# Then split into train, test and validation sets
 
 
 
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
-
 	human_ref_genome_2bit = '../../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
 
 	out_dir = custom_utils.create_out_dir(config_file)
 	out_dir = '../' + out_dir
 
 	gwrvis_scores_dir = out_dir + '/gwrvis_scores'
-	seq_out_dir = gwrvis_scores_dir + '/raw_seq'
+	ml_data_dir = gwrvis_scores_dir + '/ml_data'
+	if not os.path.exists(ml_data_dir):
+		os.makedirs(ml_data_dir)
+	seq_out_dir = ml_data_dir + '/raw_seq'
 	if not os.path.exists(seq_out_dir):
 		os.makedirs(seq_out_dir)
 
@@ -83,4 +122,4 @@ if __name__ == '__main__':
 
 	
 	get_most_intol_or_toler_sequences(all_gwrvis_bed_df)
-	get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='tolerant')
+	#get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='tolerant')
