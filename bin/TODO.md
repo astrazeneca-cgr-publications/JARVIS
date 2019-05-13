@@ -5,12 +5,11 @@
 	python run_full_regression.py $config_log;  
 	python convert_window_indexes_to_genomic_coords.py $config_log;
 	./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
-	
 	python aggregate_gwrvis_scores.py $config_log $input_classes;
-	----> Finish editing of aggregate_scores_into_bed_files() 
 	```
+
 	# ======== DONE up-to-here ========== ^^ 
-	- Integrate the next 2-3 scripts called below.
+	- Optional (for inter-classes comparison): Integrate the next 2-3 scripts called below.
 	- Then write a script that selects the most intolerant/tolerant windows across the entire genome (high-conf-regions with variant data)
 
 
@@ -21,6 +20,8 @@
 > Add annotation for CpG islands using pre-built Ensembl tracks for hg19.
 
 > Add methylation data for each window. Think about other data types too.
+
+> Add CNNs and RNNs with Keras functional API
 
 
 -----------------

@@ -153,33 +153,30 @@ def run_mann_whitney_tests():
 def aggregate_scores_into_bed_files():
 
 	print(">> Running aggregate_scores_into_bed_files()...")
-	aggregate_bed_files_dir = full_genome_dir + '/bed'
+	aggregate_bed_files_dir = full_genome_dir + '/BED'
 	if (not os.path.exists(aggregate_bed_files_dir)):
 		os.makedirs(aggregate_bed_files_dir)
 
 	for cl in input_classes:
-		print('>', cl)
+		print('> ' + cl)
 		cur_df = pd.DataFrame()	
 
 		tmp_out_file = aggregate_bed_files_dir + '/full_genome.' + cl + '.bed' 
 		for chr in chroms:
-			print(chr)	
-			tmp_file = tmp_dir + '/rvis_scores_chr' + str(chr) + '.genomic_coords.' + cl + '.bed'
+			tmp_file = bed_dir + '/gwrvis_scores_chr' + str(chr) + '.genomic_coords.' + cl + '.bed'
 			if (not os.path.exists(tmp_file)) or (os.stat(tmp_file).st_size == 0):
-				print('[!] No data for this class at chr:', chr)
+				print('[!] No data for class "' + cl + '" at chr:', chr)
 				continue
 			tmp_df = pd.read_csv(tmp_file, header=None, sep='\t')
 
 			cur_df = pd.concat([cur_df, tmp_df], axis=0)
-		 
 
-		## TEST IT
 		if cur_df.empty:                         
 			continue
 		
 		cur_df.columns = ['chr', 'start', 'end', 'rvis']
-		print(cur_df.head())
-		print(cur_df.tail())
+		cur_df.to_csv(tmp_out_file, sep='\t', header=False, index=False)
+		
 
 		middle_point_df = cur_df[ ['chr', 'start'] ].copy()
 		middle_point_df.loc[:, 'start'] = (cur_df.loc[:, 'end'] + middle_point_df.loc[:, 'start'])/2
@@ -188,12 +185,10 @@ def aggregate_scores_into_bed_files():
 		middle_point_df['rvis'] = cur_df['rvis'].copy()
 
 		# store coordinates from middle points of windows assigned for each class into BED files
-		middle_point_out_file = aggregate_bed_files_dir + '/mid_win_point.' + cl + '.bed'
-		print(middle_point_df.head())
+		middle_point_out_file = aggregate_bed_files_dir + '/mid_window_point.' + cl + '.bed'
 		middle_point_df.to_csv(middle_point_out_file, sep='\t', header=False, index=False)
+	
 
-		cur_df.to_csv(tmp_out_file, sep='\t', header=False, index=False)
-		
 
 
 if __name__ == '__main__':
@@ -241,7 +236,6 @@ if __name__ == '__main__':
 	aggregate_scores_into_csv_per_class()
 
 	run_mann_whitney_tests()
-	sys.exit()
 
 	aggregate_scores_into_bed_files()
 	# ==========================================================-

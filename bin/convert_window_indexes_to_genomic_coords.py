@@ -38,6 +38,7 @@ print(chr_start_coords_multiple_of_winlen)
 
 
 
+full_gwrvis_bed_df = pd.DataFrame()
 
 for chr in chroms:
 	print('Converting window indexes to genomic coordinates for chromosome', chr)
@@ -76,3 +77,14 @@ for chr in chroms:
 
 	cur_out_fh = gwrvis_dir + '/gwrvis.chr' + str(chr) + '.genomic_coords.bed'
 	df.to_csv(cur_out_fh, sep='\t', index=False, header=False)
+
+
+	df.reset_index(inplace=True)
+	df.columns.values[0] = 'win_index'
+
+	# copy BED file from current chromosome to the global df
+	full_gwrvis_bed_df = pd.concat([full_gwrvis_bed_df, df], axis=0)
+	print(full_gwrvis_bed_df.shape)
+
+	full_gwrvis_out_file =  gwrvis_dir + '/full_genome.all_gwrvis.bed'
+	full_gwrvis_bed_df.to_csv(full_gwrvis_out_file, sep='\t', index=False)
