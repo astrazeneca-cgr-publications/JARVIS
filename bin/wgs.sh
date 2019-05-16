@@ -28,20 +28,22 @@ python convert_window_indexes_to_genomic_coords.py $config_log;
 # Aggregate gwRVIS scores from all chromosomes
 python aggregate_gwrvis_scores.py $config_log $input_classes;
 
-# ---------------
 
+
+# ---------------
+## Currently Deprecated
 
 # post-processing: enhancers
 #python process_enhancers_bed_rvis_contents.py config.log input_classes.txt;
 
 
 # Available option: filter out rvis scores from intergenic regions with no variation
-python whole_genome_rvis_distr.py $config_log $input_classes; # 0;
+#python whole_genome_rvis_distr.py $config_log $input_classes; # 0;
 
 
-python make_whole_genome_boxplots.py $config_log;
+#python make_whole_genome_boxplots.py $config_log;
 
 
-python post_process_results.py -c $config_log; 
+#python post_process_results.py -c $config_log; 
 
 
