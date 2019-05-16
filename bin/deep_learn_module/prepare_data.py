@@ -1,3 +1,7 @@
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 import numpy as np
 import subprocess
@@ -187,6 +191,30 @@ def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intol
 	return merged_features_df, filtered_onehot_seqs
 
 
+def check_gwrvis_extremes_distribution(all_merged_df):
+	
+	intol_gwrvis = all_merged_df.loc[ all_merged_df.y ==1, 'gwrvis'].values
+	tol_gwrvis = all_merged_df.loc[ all_merged_df.y == 0, 'gwrvis'].values
+
+	intol_median = np.median(intol_gwrvis)
+	tol_median = np.median(tol_gwrvis)
+
+
+	fig, ax = plt.subplots(figsize=(15, 15))
+	p1 = sns.kdeplot(intol_gwrvis, shade=True, color='r', label='intolerant')
+	p2 = sns.kdeplot(tol_gwrvis, shade=True, color='b', label='tolerant')
+
+	plt.axvline(x=intol_median, linestyle='--', linewidth=1.5, color='r', label='median intol.')
+	plt.axvline(x=tol_median, linestyle='--', linewidth=1.5, color='b', label='median tol.')
+	
+	plt.title('gwRVIS most intolerant/tolerant distribution')
+	plt.xlabel('gwRVIS')
+	plt.ylabel('Density')
+	plt.legend(fontsize=18, markerscale=2)
+
+	fig.savefig(out_dir + '/gwrvis_extremes_distribution.pdf', bbox_inches='tight')
+
+
 
 def split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs, test_size=0.2):
 
@@ -296,6 +324,7 @@ def transform_data(train_dict, validation_dict, test_dict):
 	return train_dict, validation_dict, test_dict
 
 		
+
 def save_data_to_files(train_dict, validation_dict, test_dict):
 
 	top_ratio_str = '.top_' + str(top_ratio)
@@ -359,6 +388,10 @@ if __name__ == '__main__':
 	all_merged_df.reset_index(inplace=True, drop=True)
 	all_merged_df.drop(['tolerance_rank'], axis=1, inplace=True)
 	print(all_merged_df.shape)
+	
+	check_gwrvis_extremes_distribution(all_merged_df)
+
+
 
 	all_filtered_onehot_seqs = np.concatenate((intol_filtered_onehot_seqs, tol_filtered_onehot_seqs), axis=0)
 	print(all_filtered_onehot_seqs.shape)

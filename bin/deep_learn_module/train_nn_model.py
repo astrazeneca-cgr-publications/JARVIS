@@ -27,7 +27,7 @@ def init_dirs(config_file):
 
 
 def read_data():
-	print('> Loading data (top ' + str(100 * top_ratio) + ' %) ...')
+	print('> Loading data (top ' + str(100 * float(top_ratio)) + ' %) ...')
 	top_ratio_str = '.top_' + str(top_ratio)
 
 	print('Reading training data...')
@@ -91,8 +91,12 @@ def test_and_evaluate_model(model):
 	print(test_results)
 	
 	preds = model.predict(test_dict['seqs'])
-	preds[preds >= 0.5] = 1
-	preds[preds < 0.5] = 0
+	decision_thres = 0.5 # for classification
+	if regression:
+		decision_thres = 0 # 0 is the natural border between tolerant and intolerant gwRVIS values
+
+	preds[preds >= decision_thres] = 1
+	preds[preds < decision_thres] = 0
 	
 	preds_flat = preds.flatten()
 	test_flat = test_dict[y].flatten()
