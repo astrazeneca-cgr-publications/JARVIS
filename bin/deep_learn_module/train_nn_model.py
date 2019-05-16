@@ -101,11 +101,11 @@ def test_and_evaluate_model(model):
 	preds_flat = np.argmax(preds, axis=1)
 	test_flat = np.argmax(test_dict[y], axis=1)
 	
-	print(accuracy_score(test_flat, preds_flat))
-	print(confusion_matrix(test_flat, preds_flat))
+	print('> Accuracy:', accuracy_score(test_flat, preds_flat))
+	print('> Confusion matrix:', confusion_matrix(test_flat, preds_flat))
 	
 	roc_auc = roc_auc_score(test_flat, preds_flat)
-	print('ROC AUC:', roc_auc)
+	print('> ROC AUC:', roc_auc)
 
 
 	
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 	config_file = sys.argv[1]
 	top_ratio = sys.argv[2] 	#default: 0.01 -- look at top 1% of intolerant/tolerant windows
 
-	regression=True
+	regression=False
 	if regression:
 		y = 'gwrvis'   # continuous value
 	else:
