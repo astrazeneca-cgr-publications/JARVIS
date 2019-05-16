@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
-import sys, os
 import subprocess
 from sklearn.preprocessing import LabelEncoder 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
+import keras
+import pickle
+from scipy.io import savemat
+import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import custom_utils
 
@@ -23,7 +26,7 @@ def read_all_gwrvis_scores(all_gwrvis_bed_file):
 
 
 
-def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', top_ratio=0.01):
+def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant'):
 	
 	# Sort by gwRVIS value in ascending (for intolerant) or descending (for tolerant) order
 	ascending = True
@@ -66,7 +69,7 @@ def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', 
 
 	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout, stderr = p.communicate()
-	#print(str(stderr, "utf-8").rstrip())
+	print(str(stderr, "utf-8").rstrip())
 
 	return raw_seq_out_file, gwrvis_and_index_df
 
@@ -185,7 +188,9 @@ def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intol
 
 
 
-def split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs, validation_size=1000, test_size=0.2):
+def split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs, test_size=0.2):
+
+	validation_size = int(all_merged_df.shape[0] * test_size * 0.2)
 
 	print(all_merged_df.head())
 	print(all_merged_df.tail())
@@ -200,12 +205,8 @@ def split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs,
 	validation_indexes = validation_set.global_index.values
 	X_validation = validation_set.loc[:, validation_set.columns != 'y']
 	y_validation = validation_set['y']
-	print(X_validation.head())
-	print(y_validation.head())
 
 	validation_seq_set = all_filtered_onehot_seqs[validation_indexes]
-	print(validation_seq_set.shape)
-	print(validation_seq_set)
 	
 
 	# Remove validation set from the whole dataset
@@ -222,38 +223,106 @@ def split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs,
 	train_seq_set = all_filtered_onehot_seqs[train_indexes]
 	test_seq_set = all_filtered_onehot_seqs[test_indexes]
 
-	print('\n> X_train:', X_train.shape)
-	print(X_train.head())
-	print('\n> y_train:', y_train.shape)
-	print(y_train.head())
-	print(train_seq_set.shape)
 
-	print('\n> X_test:', X_test.shape)
-	print(X_test.head())
-	print('\n> y_test:', y_test.shape)
-	print(y_test.head())
-	print(test_seq_set.shape)
+	# Integrate data into dictionaries
+	train_dict = {'X': X_train, 'y': y_train, 'seqs': train_seq_set}
+	validation_dict = {'X': X_validation, 'y': y_validation, 'seqs': validation_seq_set}
+	test_dict = {'X': X_test, 'y': y_test, 'seqs': test_seq_set}
+	
+	return train_dict, validation_dict, test_dict
+	
+	
 
+def transform_data(train_dict, validation_dict, test_dict):
+
+	# Store 'gwrvis' in separate field in the dictionary
+	train_gwrvis = train_dict['X']['gwrvis'].values
+	train_gwrvis = np.reshape(train_gwrvis, (train_gwrvis.shape[0], 1))
+	train_dict['gwrvis'] = train_gwrvis
+
+	test_gwrvis = test_dict['X']['gwrvis'].values
+	test_gwrvis = np.reshape(test_gwrvis, (test_gwrvis.shape[0], 1))
+	test_dict['gwrvis'] = test_gwrvis
+
+	validation_gwrvis = validation_dict['X']['gwrvis'].values
+	validation_gwrvis = np.reshape(validation_gwrvis, (validation_gwrvis.shape[0], 1))
+	validation_dict['gwrvis'] = validation_gwrvis
+
+	# Store other/additional features in a separate field
+	other_features = ['mut_rate', 'gc_content', 'cpg', 'cpg_islands']
+	cols_to_drop = ['gwrvis'] + other_features
+
+	train_dict['X_other'] = train_dict['X'][other_features].values
+	train_dict['X'].drop(cols_to_drop, axis=1, inplace=True)
+
+	test_dict['X_other'] = test_dict['X'][other_features].values
+	test_dict['X'].drop(cols_to_drop, axis=1, inplace=True)
+
+	validation_dict['X_other'] = validation_dict['X'][other_features].values
+	validation_dict['X'].drop(cols_to_drop, axis=1, inplace=True)
+
+
+	# 'seqs': reshape to (num_of_seqs, seq_length, 4)
+	train_dict['seqs'] = np.transpose(train_dict['seqs'], axes=(0,2,1))
+	test_dict['seqs'] = np.transpose(test_dict['seqs'], axes=(0,2,1))
+	validation_dict['seqs'] = np.transpose(validation_dict['seqs'], axes=(0,2,1))
+
+
+	# 'y': reshape and convert to_categorical
+	train_y = train_dict['y'].values
+	train_y = np.reshape(train_y, (train_y.shape[0], 1))
+	train_dict['y'] = keras.utils.to_categorical(train_y)
+
+	validation_y = validation_dict['y'].values
+	validation_y = np.reshape(validation_y, (validation_y.shape[0], 1))
+	validation_dict['y'] = keras.utils.to_categorical(validation_y)
+
+	test_y = test_dict['y'].values
+	test_y = np.reshape(test_y, (test_y.shape[0], 1))
+	test_dict['y'] = keras.utils.to_categorical(test_y)	
+
+	print('\n> X_train:', train_dict['X'].shape)
+	print('> y_train:', train_dict['y'].shape)
+	print('> train_seqs:', train_dict['seqs'].shape)
+	
+	print('\n> X_test:', test_dict['X'].shape)
+	print('> y_test:', test_dict['y'].shape)
+	print('> test_seqs:', test_dict['seqs'].shape)
+
+	print('\n> X_validation:', validation_dict['X'].shape)
+	print('> y_validation:', validation_dict['y'].shape)
+	print('> validation_seqs:', validation_dict['seqs'].shape)
+	
+	return train_dict, validation_dict, test_dict
+
+		
+def save_data_to_files(train_dict, validation_dict, test_dict):
+
+	top_ratio_str = '.top_' + str(top_ratio)
 
 	# Save data to files
-	X_validation.to_csv(ml_data_dir + '/X_validation.tsv', sep='\t')
-	y_validation.to_csv(ml_data_dir + '/y_validation.tsv', sep='\t')
-	np.savetxt(ml_data_dir + "/validation_seq_set.txt", validation_seq_set)
-
-	X_train.to_csv(ml_data_dir + '/X_train.tsv', sep='\t')
-	y_train.to_csv(ml_data_dir + '/y_train.tsv', sep='\t')
-	np.savetxt(ml_data_dir + "/train_seq_set.txt", train_seq_set)
+	pkl_out = open(ml_data_dir + '/train' + top_ratio_str + '.pkl', 'wb')
+	pickle.dump(train_dict, pkl_out, protocol=4)
+	pkl_out.close()
 	
-	X_test.to_csv(ml_data_dir + '/X_test.tsv', sep='\t')
-	y_test.to_csv(ml_data_dir + '/y_test.tsv', sep='\t')
-	np.savetxt(ml_data_dir + "/test_seq_set.txt", test_seq_set)
+	pkl_out = open(ml_data_dir + '/validation' + top_ratio_str + '.pkl', 'wb')
+	pickle.dump(validation_dict, pkl_out, protocol=4)
+	pkl_out.close()
 
+	pkl_out = open(ml_data_dir + '/test' + top_ratio_str + '.pkl', 'wb')
+	pickle.dump(test_dict, pkl_out, protocol=4)
+	pkl_out.close()
 
-
+	
+	
+	
 
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
+	top_ratio = float(sys.argv[2])
+
+
 	config_params = custom_utils.get_config_params(config_file)
 	win_len = config_params['win_len']
 
@@ -294,4 +363,8 @@ if __name__ == '__main__':
 	all_filtered_onehot_seqs = np.concatenate((intol_filtered_onehot_seqs, tol_filtered_onehot_seqs), axis=0)
 	print(all_filtered_onehot_seqs.shape)
 
-	split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs)
+	train_dict, validation_dict, test_dict = split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs)
+	
+	train_dict, validation_dict, test_dict = transform_data(train_dict, validation_dict, test_dict)
+	
+	save_data_to_files(train_dict, validation_dict, test_dict)
