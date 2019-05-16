@@ -98,8 +98,8 @@ def test_and_evaluate_model(model):
 	preds[preds >= decision_thres] = 1
 	preds[preds < decision_thres] = 0
 	
-	preds_flat = preds.flatten()
-	test_flat = test_dict[y].flatten()
+	preds_flat = np.argmax(preds, axis=1)
+	test_flat = np.argmax(test_dict[y], axis=1)
 	
 	print(accuracy_score(test_flat, preds_flat))
 	print(confusion_matrix(test_flat, preds_flat))
