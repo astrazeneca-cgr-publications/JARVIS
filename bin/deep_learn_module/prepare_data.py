@@ -8,7 +8,7 @@ import subprocess
 from sklearn.preprocessing import LabelEncoder 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
-import keras
+import tensorflow as tf
 import pickle
 from scipy.io import savemat
 import sys, os
@@ -30,28 +30,34 @@ def read_all_gwrvis_scores(all_gwrvis_bed_file):
 
 
 
-def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant'):
+def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', random_seqs=False):
 	
 	# Sort by gwRVIS value in ascending (for intolerant) or descending (for tolerant) order
-	ascending = True
-	if tol_type == 'tolerant':
-		ascending = False
-	all_gwrvis_bed_df.sort_values(by='gwrvis', inplace=True, ascending=ascending)
-	all_gwrvis_bed_df.reset_index(drop=True, inplace=True)
-	print(all_gwrvis_bed_df.head())
-	print(all_gwrvis_bed_df.tail())
-
+	if not random_seqs:
+		ascending = True
+		if tol_type == 'tolerant':
+			ascending = False
+		all_gwrvis_bed_df.sort_values(by='gwrvis', inplace=True, ascending=ascending)
+		all_gwrvis_bed_df.reset_index(drop=True, inplace=True)
+		print(all_gwrvis_bed_df.head())
+		print(all_gwrvis_bed_df.tail())
+	else:
+		tol_type += '.random'
 
 	top_seqs_set_size = int(all_gwrvis_bed_df.shape[0] * top_ratio)
-	print(top_seqs_set_size)
+	print('Sample size by tolerance type:', top_seqs_set_size)
 
 
 	raw_seq_out_file = seq_out_dir + '/most_' + tol_type + '.raw_seqs.out' 
 	windows_file = seq_out_dir + '/most_' + tol_type + '.windows.txt'
 	out_fh = open(windows_file, 'w')	
 
-	
-	seq_list_df = all_gwrvis_bed_df[:top_seqs_set_size]
+	if not random_seqs:	
+		seq_list_df = all_gwrvis_bed_df[:top_seqs_set_size]
+	else:
+		seq_list_df = all_gwrvis_bed_df.sample(top_seqs_set_size)
+		seq_list_df.reset_index(drop=True, inplace=True)
+
 	gwrvis_and_index_df = seq_list_df.copy()
 	gwrvis_and_index_df.reset_index(inplace=True)	
 	gwrvis_and_index_df.columns.values[0] = 'tolerance_rank'
@@ -68,7 +74,7 @@ def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant'):
 
 	# Extract raw sequences from reference genome
 	awk_fasta_collapser = "awk '/^>/ {printf(\"\\n%s\\n\",$0);next; } { printf(\"%s\",$0);}  END {printf(\"\\n\");}' | tail -n +2"
-	cmd = '../util/twoBitToFa ' + human_ref_genome_2bit + ' -seqList=' + windows_file + " /dev/stdout | " + awk_fasta_collapser + " | grep -v '>' > " + raw_seq_out_file # | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
+	cmd = '../../utils/twoBitToFa ' + human_ref_genome_2bit + ' -seqList=' + windows_file + " /dev/stdout | " + awk_fasta_collapser + " | grep -v '>' > " + raw_seq_out_file # | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
 	print('\n' + cmd)
 
 	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -115,6 +121,10 @@ def one_hot_encode_genomic_data(seq_file):
 			else:
 				valid_rank_ids.append(rank_id)
 				
+			# A = [1, 0, 0, 0]
+			# T = [0, 0, 0, 1]
+			# G = [0, 0, 1, 0]
+			# C = [0, 1, 0, 0]
 			onehot_seq = onehot_encoded_seq(seq)
 			all_onehot_seqs[rank_id] = onehot_seq
 
@@ -169,16 +179,18 @@ def integrate_additional_data(gwrvis_and_index_df):
 	
 	
 
-def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intolerant'):
+def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intolerant', random_seqs=False):
 
 	# Get raw sequences and windows indexes of most intolerant/tolerant windows
-	seq_out_file, gwrvis_and_index_df = get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type=tol_type)
+	seq_out_file, gwrvis_and_index_df = get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type=tol_type, random_seqs=random_seqs)
+	print(tol_type, seq_out_file)
 
 	# One-hot encode raw genomic sequences and filter out sequences with 'N's
 	filtered_onehot_seqs, valid_rank_ids = one_hot_encode_genomic_data(seq_out_file)
 
 	# Filter out windows with 'N's in their sequence
 	gwrvis_and_index_df = filter_gwrvis_index_df(gwrvis_and_index_df, valid_rank_ids)
+	print(gwrvis_and_index_df.head())
 	
 	# Add additional features in the compiled table	
 	merged_features_df = integrate_additional_data(gwrvis_and_index_df)
@@ -218,7 +230,7 @@ def check_gwrvis_extremes_distribution(all_merged_df):
 
 def split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs, test_size=0.2):
 
-	validation_size = int(all_merged_df.shape[0] * test_size * 0.2)
+	validation_size = int(all_merged_df.shape[0] * test_size * 0.4)
 
 	print(all_merged_df.head())
 	print(all_merged_df.tail())
@@ -299,15 +311,15 @@ def transform_data(train_dict, validation_dict, test_dict):
 	# 'y': reshape and convert to_categorical
 	train_y = train_dict['y'].values
 	train_y = np.reshape(train_y, (train_y.shape[0], 1))
-	train_dict['y'] = keras.utils.to_categorical(train_y)
+	train_dict['y'] = tf.keras.utils.to_categorical(train_y)
 
 	validation_y = validation_dict['y'].values
 	validation_y = np.reshape(validation_y, (validation_y.shape[0], 1))
-	validation_dict['y'] = keras.utils.to_categorical(validation_y)
+	validation_dict['y'] = tf.keras.utils.to_categorical(validation_y)
 
 	test_y = test_dict['y'].values
 	test_y = np.reshape(test_y, (test_y.shape[0], 1))
-	test_dict['y'] = keras.utils.to_categorical(test_y)	
+	test_dict['y'] = tf.keras.utils.to_categorical(test_y)	
 
 	print('\n> X_train:', train_dict['X'].shape)
 	print('> y_train:', train_dict['y'].shape)
@@ -325,10 +337,13 @@ def transform_data(train_dict, validation_dict, test_dict):
 
 		
 
-def save_data_to_files(train_dict, validation_dict, test_dict):
+def save_data_to_files(train_dict, validation_dict, test_dict, random_seqs=False):
 
 	top_ratio_str = '.top_' + str(top_ratio)
 
+	if random_seqs:
+		top_ratio_str += '.random'
+	
 	# Save data to files
 	pkl_out = open(ml_data_dir + '/train' + top_ratio_str + '.pkl', 'wb')
 	pickle.dump(train_dict, pkl_out, protocol=4)
@@ -350,7 +365,9 @@ if __name__ == '__main__':
 
 	config_file = sys.argv[1]
 	top_ratio = float(sys.argv[2])
+	random_seqs = bool(int(sys.argv[3])) # 1 for True or 0 for False
 
+	print('Random sequences:', random_seqs)
 
 	config_params = custom_utils.get_config_params(config_file)
 	win_len = config_params['win_len']
@@ -376,9 +393,11 @@ if __name__ == '__main__':
 
 	
 	# Get features (including raw sequences) for most *intolerant* windows
-	intol_merged_df, intol_filtered_onehot_seqs = compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intolerant')
+	intol_merged_df, intol_filtered_onehot_seqs = compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intolerant', random_seqs=random_seqs)
+
 	# Get features (including raw sequences) for most *tolerant* windows
-	tol_merged_df, tol_filtered_onehot_seqs = compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='tolerant')
+	tol_merged_df, tol_filtered_onehot_seqs = compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='tolerant', random_seqs=random_seqs)
+
 	
 
 	print('===========================================')
@@ -396,8 +415,10 @@ if __name__ == '__main__':
 	all_filtered_onehot_seqs = np.concatenate((intol_filtered_onehot_seqs, tol_filtered_onehot_seqs), axis=0)
 	print(all_filtered_onehot_seqs.shape)
 
+
 	train_dict, validation_dict, test_dict = split_data_into_train_val_test_sets(all_merged_df, all_filtered_onehot_seqs)
+
 	
 	train_dict, validation_dict, test_dict = transform_data(train_dict, validation_dict, test_dict)
 	
-	save_data_to_files(train_dict, validation_dict, test_dict)
+	save_data_to_files(train_dict, validation_dict, test_dict, random_seqs=random_seqs)

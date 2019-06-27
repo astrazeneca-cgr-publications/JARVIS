@@ -2,14 +2,15 @@
 #SBATCH -J wgs  # Set name for current job 
 #SBATCH -o out.wgs  # Set job output log 
 #SBATCH -e err.wgs  # Set job error log 
-#SBATCH --cpus-per-task=5         # Request 23 CPUs (cores) on a single node 
-#SBATCH --mem=40000          # Request amount of memory 
-#SBATCH -t 0:30:0            # Request 24 hours runtime
+#SBATCH --cpus-per-task=5         # Request 5 CPUs (cores) on a single node 
+#SBATCH --mem=40G          # Request amount of memory 
+#SBATCH -t 12:00:0            # Request 24 hours runtime
 
-config_log=config.yaml;
-input_classes=input_classes.txt;
+config_log=$1 #config.yaml;
+input_classes=input_classes.txt
 
 # Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)
+# (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
 ./parse_all_chromosomes.sh $config_log;
 
 
@@ -29,21 +30,12 @@ python convert_window_indexes_to_genomic_coords.py $config_log;
 python aggregate_gwrvis_scores.py $config_log $input_classes;
 
 
-
-# ---------------
-## Currently Deprecated
-
-# post-processing: enhancers
+# [Deprecated] post-processing: enhancers
 #python process_enhancers_bed_rvis_contents.py config.log input_classes.txt;
 
-
-# Available option: filter out rvis scores from intergenic regions with no variation
-#python whole_genome_rvis_distr.py $config_log $input_classes; # 0;
+python get_whole_genome_rvis_distr.py $config_log $input_classes;
 
 
-#python make_whole_genome_boxplots.py $config_log;
-
-
-#python post_process_results.py -c $config_log; 
+python post_process_results.py -c $config_log; 
 
 

@@ -10,11 +10,10 @@ library(e1071)
 args = commandArgs(trailingOnly=T)
 
 out_dir = args[1]
-filter_outliers_before_regression = toupper(args[2])
-all_variants_upper_thres = as.numeric(args[3])
-win_len = as.numeric(args[4])
-kmer = as.numeric(args[5])
-chr_type = args[6]
+#filter_outliers_before_regression = toupper(args[2])
+all_variants_upper_thres = as.numeric(args[2])
+win_len = as.numeric(args[3])
+chr_type = args[4]
 
 
 gwrvis_dir = paste(out_dir, 'gwrvis_scores', sep='/')
@@ -40,13 +39,14 @@ for(file in files){
 	# process X chromosome separately if input chr_type == autosomal
 	if(chr == 'X' & chr_type == 'autosomal'){ next }
 
+	print(paste('>chr', chr))
 	all_chrs = c(all_chrs, chr)
 	
 	
 	df = read.table(paste(input_path, file, sep='/'), sep=',', header=T)
 	rownames(df) = paste('chr', chr, '_', df$idx, sep='')
 	df$idx = NULL
-	print(head(df, 20))
+	#print(head(df, 20))
 	total_entries_per_chr[chr] = nrow(df)
 
 	if(nrow(total_df) > 0){
@@ -93,7 +93,8 @@ scale_and_center <- function(x){
 
 
 # [Currently flag is False: probably not use it in production too] exclude outliers before fitting regression model
-if(as.logical(filter_outliers_before_regression)){
+#if(as.logical(filter_outliers_before_regression)){
+if(all_variants_upper_thres != -1){
 	print('filtering before regression...')
 	total_df = total_df[ total_df$all_variants <= all_variants_upper_thres, ]
 }
@@ -111,7 +112,6 @@ stud_res = studres(regr_model)
 
 total_df = cbind(total_df, 'stud_res' = as.numeric(stud_res))
 print(head(total_df))
-
 
 
 # ===== BETA ====== 
@@ -199,7 +199,7 @@ print(head(total_df))
 annotate_windows_by_tolerance <- function(final_df){
 
 	final_df['annot'] = 'other'
-	print(head(final_df))
+	#print(head(final_df))
 	inferred_chr = rownames(final_df)[1]
 	inferred_chr = gsub('chr', '', inferred_chr)
 	inferred_chr = gsub('_.*', '', inferred_chr)
@@ -209,7 +209,7 @@ annotate_windows_by_tolerance <- function(final_df){
 	up_prob = 1- bottom_prob
 
 	extremes = quantile(final_df$stud_res, c(bottom_prob, up_prob), na.rm=T)
-	print(extremes)
+	#print(extremes)
 
 	#print(nrow(final_df[ final_df$stud_res <= extremes[1], ]))
 	#print(nrow(final_df[ final_df$stud_res > extremes[1] & final_df$stud_res < extremes[2], ]))
@@ -254,19 +254,19 @@ unfold_studres_from_each_chr <- function(final_df){
 	
 		print('---------')
 		df = final_df[ grepl(chr_idx, rownames(final_df)), ]
-		print(head(df))
+		#print(head(df))
 
 		df$row_names = rownames(df)
 		df$row_names = gsub(chr_idx, '', df$row_names)
-		print(head(df))	
+		#print(head(df))	
 
 		df = df[ order(as.numeric(df$row_names)), ]
-		print(head(df, 10))
-		print(tail(df, 10))
+		#print(head(df, 10))
+		#print(tail(df, 10))
 
 		stud_res = as.numeric(df$stud_res)
 		names(stud_res) = df$row_names
-		print(head(stud_res))
+		#print(head(stud_res))
 
 
 
@@ -291,8 +291,8 @@ unfold_studres_from_each_chr <- function(final_df){
 			merged_scores = c(merged_scores, tmp_zeros_vec)
 			merged_scores = merged_scores[ order(as.numeric(names(merged_scores))) ]
 			#print( tail( head(merged_scores, 17176), 5 ))
-			print(head(merged_scores, 10))
-			print(tail(merged_scores, 10))
+			#print(head(merged_scores, 10))
+			#print(tail(merged_scores, 10))
 		}
 		# ====================================================================
 

@@ -18,7 +18,7 @@ from pathlib import Path
 
 def pre_process_vcf_table(filtered_vcf, variant_filter=''):
 
-	df = pd.read_table(filtered_vcf, low_memory=False)
+	df = pd.read_csv(filtered_vcf, low_memory=False, sep='\t')
 	print(df.shape)
 
 
@@ -26,10 +26,10 @@ def pre_process_vcf_table(filtered_vcf, variant_filter=''):
 	df['LEN_DIFF'] = df['REF'].str.len() - df['ALT'].str.len()
 	# > Keep only SNVs - Filter out indels
 	if variant_filter == 'snv':
-		print('\n- Keepin SNVs only...')
+		print('\n- Keeping SNVs only...')
 		df = df.loc[ df['LEN_DIFF'] == 0, :]
-	elif variant_filter == 'cnv':
-		print('\n- Keepin CNVs only...')
+	elif variant_filter == 'indels':
+		print('\n- Keeping INDELs only...')
 		df = df.loc[ df['LEN_DIFF'] != 0, :]
 	print(df.shape)
 
@@ -149,7 +149,7 @@ def get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_n
 
 		#print('Seq start:', seq_start, ' Seq end:', seq_end)
 
-		cmd = './util/twoBitToFa ' + human_ref_genome_2bit + ':' + chr + ':' + str(seq_start) + '-' + str(seq_end) + " /dev/stdout | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
+		cmd = '../utils/twoBitToFa ' + human_ref_genome_2bit + ':' + chr + ':' + str(seq_start) + '-' + str(seq_end) + " /dev/stdout | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
 		#print(cmd)
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -398,52 +398,53 @@ def prepare_data_for_regression(common_variants_df, all_variants_df, gwrvis_scor
 
 """
 ## --deprecated
-if generate_intermediate_plots:
-	gwrvis_scores_arr = np.array(gwrvis_scores)
-	print(min(gwrvis_scores_arr))
-	print(max(gwrvis_scores_arr))
 
-	# Plot RVIS scores for current chromosome
-	f1 = plt.figure()
-	plt.plot(gwrvis_scores_arr, linewidth=0.1)
-	f1.suptitle('gwRVIS values across chromosome ' + chr, fontsize=12) 
-	plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
-	plt.ylabel('gwRVIS score', fontsize=10)
-	#plt.show()
+gwrvis_scores_arr = np.array(gwrvis_scores)
+print(min(gwrvis_scores_arr))
+print(max(gwrvis_scores_arr))
 
-	gwrvis_score_quotients = np.array(gwrvis_score_quotients)
-	f1a = plt.figure()
-	plt.plot(gwrvis_score_quotients, linewidth=0.1)
-	f1a.suptitle('common / all variants ratios across chromosome ' + chr, fontsize=12) 
-	plt.xlabel('chr window index (genomic coordinate)', fontsize=12) 
-	plt.ylabel('common / all variants ratio', fontsize=10)
-	plt.ylim((-1.2, 1.2))
+# Plot RVIS scores for current chromosome
+f1 = plt.figure()
+plt.plot(gwrvis_scores_arr, linewidth=0.1)
+f1.suptitle('gwRVIS values across chromosome ' + chr, fontsize=12) 
+plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
+plt.ylabel('gwRVIS score', fontsize=10)
+#plt.show()
 
-	binwidth = 0.001
-	print(len(gwrvis_scores_arr))
-	gwrvis_scores_arr = gwrvis_scores_arr[~np.isnan(gwrvis_scores_arr) ]
-	print(len(gwrvis_scores_arr))
-	f2 = plt.figure()
-	plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth))
-	f2.suptitle('Histogram of gwRVIS values across chromosome ' + chr +'\n (excluding regions with no variation data)', fontsize=12) 
-	plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
-	plt.ylabel('Count', fontsize=10)
+gwrvis_score_quotients = np.array(gwrvis_score_quotients)
+f1a = plt.figure()
+plt.plot(gwrvis_score_quotients, linewidth=0.1)
+f1a.suptitle('common / all variants ratios across chromosome ' + chr, fontsize=12) 
+plt.xlabel('chr window index (genomic coordinate)', fontsize=12) 
+plt.ylabel('common / all variants ratio', fontsize=10)
+plt.ylim((-1.2, 1.2))
+
+binwidth = 0.001
+print(len(gwrvis_scores_arr))
+gwrvis_scores_arr = gwrvis_scores_arr[~np.isnan(gwrvis_scores_arr) ]
+print(len(gwrvis_scores_arr))
+f2 = plt.figure()
+plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth))
+f2.suptitle('Histogram of gwRVIS values across chromosome ' + chr +'\n (excluding regions with no variation data)', fontsize=12) 
+plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
+plt.ylabel('Count', fontsize=10)
 
 
-	# CDF plot 
-	f3 = plt.figure()
-	gwrvis_scores_arr = gwrvis_scores_arr[ gwrvis_scores_arr != 0 ]
-	plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth), cumulative=True, normed=True, histtype='step', alpha=0.55, color='purple')
-	f3.suptitle('CDF of gwRVIS values across chromosome ' + chr + '\n (excluding regions with no variation data)', fontsize=12) 
-	plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
-	plt.ylabel('Count', fontsize=10)
+# CDF plot 
+f3 = plt.figure()
+gwrvis_scores_arr = gwrvis_scores_arr[ gwrvis_scores_arr != 0 ]
+plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth), cumulative=True, normed=True, histtype='step', alpha=0.55, color='purple')
+f3.suptitle('CDF of gwRVIS values across chromosome ' + chr + '\n (excluding regions with no variation data)', fontsize=12) 
+plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
+plt.ylabel('Count', fontsize=10)
 
-	pp = PdfPages(plots_dir + "/gwrvis_chr" + chr + ".pdf")
-	pp.savefig(f1)
-	pp.savefig(f1a)
-	pp.savefig(f2)
-	pp.savefig(f3)
-	pp.close()
+pp = PdfPages(plots_dir + "/gwrvis_chr" + chr + ".pdf")
+pp.savefig(f1)
+pp.savefig(f1a)
+pp.savefig(f2)
+pp.savefig(f3)
+pp.close()
+
 """
 
 
@@ -472,8 +473,6 @@ if __name__ == '__main__':
 	kmer = config_params['kmer']			# 7 or 3
 	all_variants_upper_thres = config_params['all_variants_upper_thres']	# e.g. 200 (filter out windows with more than 200 variants before fitting regression)
 	MAF_thres = config_params['MAF_thres']	        # e.g. 0.0001 (Minor Allele Frequency)
-	filter_outliers_before_regression = config_params['filter_outliers_before_regression'] 	# e.g. True
-	generate_intermediate_plots = config_params['generate_intermediate_plots']		# e.g. False
 	variants_table_dir = config_params['variants_table_dir']	# gnomad-filtered_variant_tables-all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions
 	# ----------------------
 

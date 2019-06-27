@@ -13,9 +13,8 @@ out_dir = create_out_dir(config_file)
 print(out_dir)
 
 win_len = config_params['win_len']
-kmer = config_params['kmer']
 all_variants_upper_thres = config_params['all_variants_upper_thres']       
-filter_outliers_before_regression = config_params['filter_outliers_before_regression']  
+#filter_outliers_before_regression = config_params['filter_outliers_before_regression']  
 
 # Select R PATH installation on a different system, e.g. a cluster
 #local_rscript_path = '/usr/bin/Rscript' 
@@ -27,8 +26,8 @@ filter_outliers_before_regression = config_params['filter_outliers_before_regres
 # fit linear regression for all autocomal chromosomes
 chr_type = 'autosomal'
 print("Fitting linear regression for autosomal chromosomes only")
-print('Rscript', 'full_genome_r_studres_glm.R', out_dir, filter_outliers_before_regression, all_variants_upper_thres, win_len, kmer, chr_type)
-call(['Rscript', 'full_genome_r_studres_glm.R', out_dir, str(filter_outliers_before_regression), str(all_variants_upper_thres), str(win_len), str(kmer), chr_type])
+print('Rscript', 'full_genome_r_studres_glm.R', out_dir, all_variants_upper_thres, win_len, chr_type)
+call(['Rscript', 'full_genome_r_studres_glm.R', out_dir, str(all_variants_upper_thres), str(win_len), chr_type])
 
 # fit linear regression for sex chromosomes (only X in that case) separately
 #chr_type = 'sex'

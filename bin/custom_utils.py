@@ -22,15 +22,23 @@ def create_out_dir(config_file):
 	config_params = get_config_params(config_file)
 	win_len = config_params['win_len']
 	MAF_thres = config_params['MAF_thres']
-	filter_outliers_before_regression = config_params['filter_outliers_before_regression']
 	dataset = config_params['dataset']
 	run_identifier = config_params['run_identifier']
+	all_variants_upper_thres = config_params['all_variants_upper_thres']
+	variant_filter = config_params['variant_filter']
 	
 	variants_table_dir = config_params['variants_table_dir']
 	variant_and_popul_id = re.sub(".*filtered_variant_tables-", "", variants_table_dir)
+	
+
+	if all_variants_upper_thres != -1:
+		filter_positive_sel_wins_str = '.allVar_upper_thres_' + str(all_variants_upper_thres)
+	else:
+		filter_positive_sel_wins_str = ''
+
 
 	base_out_dir = '../out'
-	out_dir = base_out_dir + '/' + dataset + '-' + run_identifier + '-winlen_' + str(win_len) + '.MAF_' + str(MAF_thres) + '.' + variant_and_popul_id
+	out_dir = base_out_dir + '/' + dataset + '-' + run_identifier + '-winlen_' + str(win_len) + '.MAF_' + str(MAF_thres) + str(filter_positive_sel_wins_str) + '.varType_' + variant_filter + '.Pop_' + variant_and_popul_id
 
 	if not os.path.exists(base_out_dir):
 		os.makedirs(base_out_dir, exist_ok=True)
@@ -38,7 +46,7 @@ def create_out_dir(config_file):
 		os.makedirs(out_dir, exist_ok=True)
 
 	if not os.path.exists(out_dir + '/' + config_file):
-		call(['cp', config_file, out_dir])
+		call(['cp', '-f', config_file, out_dir])
 
 	return out_dir
 
@@ -58,7 +66,7 @@ def get_config_params(config_file):
 	config_file = Path(config_file)
 	
 	with open(config_file, 'r') as yml_file:
-		conf = yaml.load(yml_file)
+		conf = yaml.load(yml_file, Loader=yaml.FullLoader)
 		
 	for group, _ in conf.items():
 		for param, val in conf[group].items():
@@ -157,6 +165,7 @@ def is_outlier(points, thresh=3.5):
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
+	create_out_dir(config_file)
 	config_params = get_config_params(config_file)
 	print(config_params)
 	

@@ -184,7 +184,7 @@ def filter_out_gwrvis_nan(sorted_genomic_classes, gwrvis_lists):
 		#cur_gwrvis = cur_gwrvis[ ~is_outlier(cur_gwrvis, z_thres) ]
 
 		# Save gwRVIS values for current genomic class to a file
-		cur_gwrvis.to_csv(gwrvis_data_dir + '/chr' + chr + '.' + name + '.csv')
+		cur_gwrvis.to_csv(gwrvis_data_dir + '/chr' + chr + '.' + name + '.csv', header=False)
 
 
 
