@@ -4,6 +4,12 @@
 ./wgs.sh config.yaml input_classes.txt
 ```
 
+### Run `wgs.sh` for multiple values of MAF, win_len and variant type (SNVs, INDELs or both):
+```
+./submit_all.sh
+```
+
+
 ### More analytically:
 
 - Read input parameters:
@@ -44,3 +50,15 @@ python convert_window_indexes_to_genomic_coords.py $config_log;
 python aggregate_gwrvis_scores.py $config_log $input_classes;
 ```
 <br>
+
+
+- Get gwRVIS distribution per genomic class across the entire genome:
+```
+python get_whole_genome_rvis_distr.py $config_log $input_classes;
+```
+<br>
+
+- Make refined density plots and boxplots for gwRVIS distribution per genomic class with `ggrdiges`:
+```
+python post_process_results.py -c $config_log;
+```
