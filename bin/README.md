@@ -4,7 +4,7 @@
 ./wgs.sh config.yaml input_classes.txt
 ```
 
-### Run `wgs.sh` for multiple values of MAF, win_len and variant type (SNVs, INDELs or both):
+#### Run `wgs.sh` for multiple values of MAF, win_len and variant type (SNVs, INDELs or both):
 ```
 ./submit_all.sh
 ```
