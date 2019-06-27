@@ -6,7 +6,7 @@
 
 #### Run `wgs.sh` for multiple values of MAF, win_len and variant type (SNVs, INDELs or both):
 ```
-./submit_all.sh
+./submit_all_jobs.sh
 ```
 
 
