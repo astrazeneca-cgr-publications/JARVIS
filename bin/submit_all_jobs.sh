@@ -5,11 +5,11 @@ declare -a win_lengths=(3000 1000)
 mkdir -p logs
 
 
-for win_len in "$win_lengths[@]"; do
+for win_len in "${win_lengths[@]}"; do
 
 	echo "Win len: $win_len"
 	conf_dir="conf/win_len_$win_len"
-
+	
 	# SNVs
 	sbatch -J "W${win_len}_MAF0.01_snv" -o "logs/W${win_len}_MAF0.01_snv.out" -e "logs/W${win_len}_MAF0.01_snv.err" ./wgs.sh $conf_dir/config_MAF0.01_snv.yaml input_classes.txt
 	sbatch -J "W${win_len}_MAF0.001_snv" -o "logs/W${win_len}_MAF0.001_snv.out" -e "logs/W${win_len}_MAF0.001_snv.err" ./wgs.sh $conf_dir/config_MAF0.001_snv.yaml input_classes.txt
