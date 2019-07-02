@@ -70,7 +70,7 @@ def pre_process_vcf_table(filtered_vcf, variant_filter=''):
 	# Record start coordinate of first variant (exlcuding indels) at each chromosome
 	chr_start_coords_file = out_dir +'/chr_start_coords.txt'
 	tmp_fh = open(chr_start_coords_file, 'a')
-	tmp_fh.write(chr + '\t' + str(start_idx) + '\t' + str(chr_first_window_idx) + '\n')
+	tmp_fh.write(chrom + '\t' + str(start_idx) + '\t' + str(chr_first_window_idx) + '\n')
 	tmp_fh.close()
 
 
@@ -115,14 +115,14 @@ def get_mutability_rates(kmer=7):
 
 
 
-def get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict, placeholder_val=-1):
+def extract_additional_features_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict, placeholder_val=-1):
 	"""
 		Calculate aggreagate or average mutability rate, GC-content and CpG dinucleotides for each window
 		and return a series with all window indexes and the calculated mut. rate, GC and GpG counts.
 	"""
 	
 	# Skip mutability rate calculations per window if they have already been calculated
-	additional_features_df_file = tmp_dir + '/chr' + chr + '.additional_features_df.csv'
+	additional_features_df_file = tmp_dir + '/chr' + chrom + '.additional_features_df.csv'
 
 	if Path(additional_features_df_file).exists():
 		print(">> additional_features_df_file already exists. Reading file...")
@@ -147,9 +147,9 @@ def get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_n
 		seq_start = win * win_len
 		seq_end = seq_start + win_len - 1
 
-		#print('Seq start:', seq_start, ' Seq end:', seq_end)
+		#print(chrom + ':' + str(seq_start) + '-' + str(seq_end))
 
-		cmd = '../utils/twoBitToFa ' + human_ref_genome_2bit + ':' + chr + ':' + str(seq_start) + '-' + str(seq_end) + " /dev/stdout | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
+		cmd = '../utils/twoBitToFa ' + human_ref_genome_2bit + ':' + chrom + ':' + str(seq_start) + '-' + str(seq_end) + " /dev/stdout | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
 		#print(cmd)
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -188,7 +188,7 @@ def get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_n
 		
 		cc += 1
 		if cc % 100 == 0:
-			print('Chr' + str(chr) + ' - Current window:', cc , 'out of', len(valid_window_indexes))
+			print('Chr' + str(chrom) + ' - Current window:', cc , 'out of', len(valid_window_indexes))
 		
 
 
@@ -359,7 +359,7 @@ def get_common_and_all_variants(df):
 	gwrvis_score_quotients.columns = ['common_vs_all_variants_ratio']
 	print(gwrvis_score_quotients.head())
 	print(type(gwrvis_score_quotients))
-	gwrvis_score_quotients.to_csv(var_ratios_dir + '/common_vs_all_variant_ratios.chr' + chr + '.csv')
+	gwrvis_score_quotients.to_csv(var_ratios_dir + '/common_vs_all_variant_ratios.chr' + chrom + '.csv')
 
 
 	return common_variants_df, all_variants_df, gwrvis_score_quotients
@@ -390,7 +390,7 @@ def prepare_data_for_regression(common_variants_df, all_variants_df, gwrvis_scor
 	print(tmp_df.head())
 	print(tmp_df.tail())
 
-	xy_file = tmp_dir + '/Xy.chr' + chr + '.txt'
+	xy_file = tmp_dir + '/Xy.chr' + chrom + '.txt'
 	tmp_df.to_csv(xy_file, index=False, line_terminator='\r\n')
 
 
@@ -406,7 +406,7 @@ print(max(gwrvis_scores_arr))
 # Plot RVIS scores for current chromosome
 f1 = plt.figure()
 plt.plot(gwrvis_scores_arr, linewidth=0.1)
-f1.suptitle('gwRVIS values across chromosome ' + chr, fontsize=12) 
+f1.suptitle('gwRVIS values across chromosome ' + chrom, fontsize=12) 
 plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
 plt.ylabel('gwRVIS score', fontsize=10)
 #plt.show()
@@ -414,7 +414,7 @@ plt.ylabel('gwRVIS score', fontsize=10)
 gwrvis_score_quotients = np.array(gwrvis_score_quotients)
 f1a = plt.figure()
 plt.plot(gwrvis_score_quotients, linewidth=0.1)
-f1a.suptitle('common / all variants ratios across chromosome ' + chr, fontsize=12) 
+f1a.suptitle('common / all variants ratios across chromosome ' + chrom, fontsize=12) 
 plt.xlabel('chr window index (genomic coordinate)', fontsize=12) 
 plt.ylabel('common / all variants ratio', fontsize=10)
 plt.ylim((-1.2, 1.2))
@@ -425,7 +425,7 @@ gwrvis_scores_arr = gwrvis_scores_arr[~np.isnan(gwrvis_scores_arr) ]
 print(len(gwrvis_scores_arr))
 f2 = plt.figure()
 plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth))
-f2.suptitle('Histogram of gwRVIS values across chromosome ' + chr +'\n (excluding regions with no variation data)', fontsize=12) 
+f2.suptitle('Histogram of gwRVIS values across chromosome ' + chrom +'\n (excluding regions with no variation data)', fontsize=12) 
 plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
 plt.ylabel('Count', fontsize=10)
 
@@ -434,11 +434,11 @@ plt.ylabel('Count', fontsize=10)
 f3 = plt.figure()
 gwrvis_scores_arr = gwrvis_scores_arr[ gwrvis_scores_arr != 0 ]
 plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth), cumulative=True, normed=True, histtype='step', alpha=0.55, color='purple')
-f3.suptitle('CDF of gwRVIS values across chromosome ' + chr + '\n (excluding regions with no variation data)', fontsize=12) 
+f3.suptitle('CDF of gwRVIS values across chromosome ' + chrom + '\n (excluding regions with no variation data)', fontsize=12) 
 plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
 plt.ylabel('Count', fontsize=10)
 
-pp = PdfPages(plots_dir + "/gwrvis_chr" + chr + ".pdf")
+pp = PdfPages(plots_dir + "/gwrvis_chr" + chrom + ".pdf")
 pp.savefig(f1)
 pp.savefig(f1a)
 pp.savefig(f2)
@@ -455,7 +455,7 @@ if __name__ == '__main__':
 	startTime = datetime.now()
 
 	args = sys.argv
-	chr = args[1]
+	chrom = args[1]
 	config_file = args[2] #'config.yaml'
 
 
@@ -480,7 +480,7 @@ if __name__ == '__main__':
 	human_ref_genome_2bit = '../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
 	data_dir = '../' + dataset + '/out/' + variants_table_dir
 	print('> data_dir: ' + data_dir)
-	filtered_vcf = data_dir + '/chr' + chr + '_' + dataset + '_table.' + population + '.txt.filtered'
+	filtered_vcf = data_dir + '/chr' + chrom + '_' + dataset + '_table.' + population + '.txt.filtered'
 	# ----------------------
 
 
@@ -517,7 +517,7 @@ if __name__ == '__main__':
 	print(df.head())
 
 	mut_rate_dict = get_mutability_rates(kmer=kmer)
-	additional_features_df = get_expected_mutability_by_kmer_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict)
+	additional_features_df = extract_additional_features_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict)
 
 	common_variants_df, all_variants_df, gwrvis_score_quotients = get_common_and_all_variants(df)
 

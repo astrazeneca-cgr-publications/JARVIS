@@ -47,6 +47,8 @@ def create_out_dir(config_file):
 
 	if not os.path.exists(out_dir + '/' + config_file):
 		call(['cp', '-f', config_file, out_dir])
+		# BETA
+		#call(['yes | cp', '-f', config_file, out_dir])
 
 	return out_dir
 

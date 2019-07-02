@@ -4,7 +4,7 @@
 #SBATCH -e err.wgs  # Set job error log 
 #SBATCH --cpus-per-task=5         # Request 5 CPUs (cores) on a single node 
 #SBATCH --mem=40G          # Request amount of memory 
-#SBATCH -t 12:00:0            # Request 24 hours runtime
+#SBATCH -t 24:00:0            # Request 24 hours runtime
 
 config_log=$1 #config.yaml;
 input_classes=input_classes.txt
@@ -12,7 +12,7 @@ input_classes=input_classes.txt
 # Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
 ./parse_all_chromosomes.sh $config_log;
-
+exit
 
 # Perform logistic regression (common ~ all variants) to get gwRVIS scores
 python run_full_regression.py $config_log;

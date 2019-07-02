@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -a win_lengths=(3000 1000)
+declare -a win_lengths=(1000 3000 5000 10000) #(3000 better than 1000)
 
 mkdir -p logs
 

@@ -7,64 +7,6 @@ library(pROC)
 library(e1071)
 
 
-args = commandArgs(trailingOnly=T)
-
-out_dir = args[1]
-#filter_outliers_before_regression = toupper(args[2])
-all_variants_upper_thres = as.numeric(args[2])
-win_len = as.numeric(args[3])
-chr_type = args[4]
-
-
-gwrvis_dir = paste(out_dir, 'gwrvis_scores', sep='/')
-input_path = paste(out_dir, "/tmp/", sep='')
-files = NULL
-if( chr_type == 'autosomal'){
-	files = list.files(path = input_path, pattern = "^Xy.")
-} else if( chr_type == 'sex'){
-	files = list.files(path = input_path, pattern = "^Xy.chrX")
-}
-print(files)
-
-total_entries_per_chr = list()
-total_df = data.frame()
-all_chrs = vector()
-
-for(file in files){
-
-	chr = file
-	chr = gsub("Xy.chr", '', chr)
-	chr = gsub(".txt", '', chr)
-
-	# process X chromosome separately if input chr_type == autosomal
-	if(chr == 'X' & chr_type == 'autosomal'){ next }
-
-	print(paste('>chr', chr))
-	all_chrs = c(all_chrs, chr)
-	
-	
-	df = read.table(paste(input_path, file, sep='/'), sep=',', header=T)
-	rownames(df) = paste('chr', chr, '_', df$idx, sep='')
-	df$idx = NULL
-	#print(head(df, 20))
-	total_entries_per_chr[chr] = nrow(df)
-
-	if(nrow(total_df) > 0){
-		total_df = rbind(total_df, df)
-	} else{
-		total_df = df
-	}
-	
-	print(nrow(total_df))
-}
-
-
-# Remove windows that had no variant data in the original VCF file
-placeholder_val = -1
-total_df = total_df[ total_df$mut_rate != placeholder_val, ]
-print(nrow(total_df))
-
-
 # ========== Auxiliary functions ==========
 is_outlier <- function(vec, z_thres=3.5){          
 	#vec = vec[ !is.nan(vec) ]         
@@ -92,14 +34,94 @@ scale_and_center <- function(x){
 
 
 
-# [Currently flag is False: probably not use it in production too] exclude outliers before fitting regression model
-#if(as.logical(filter_outliers_before_regression)){
+args = commandArgs(trailingOnly=T)
+
+out_dir = args[1]
+all_variants_upper_thres = as.numeric(args[2])
+win_len = as.numeric(args[3])
+chr_type = args[4]
+
+
+gwrvis_dir = paste(out_dir, 'gwrvis_scores', sep='/')
+input_path = paste(out_dir, "/tmp/", sep='')
+files = NULL
+if( chr_type == 'autosomal'){
+	files = list.files(path = input_path, pattern = "^Xy.")
+} else if( chr_type == 'sex'){
+	files = list.files(path = input_path, pattern = "^Xy.chrX")
+}
+print(files)
+
+total_entries_per_chr = list()
+total_df = data.frame()
+all_chrs = vector()
+
+
+total_df_file = paste(input_path, 'total_df.Xy.tsv', sep='/')
+
+if(!file.exists(total_df_file)){
+	for(file in files){
+
+		chr = file
+		chr = gsub("Xy.chr", '', chr)
+		chr = gsub(".txt", '', chr)
+
+		# process X chromosome separately if input chr_type == autosomal
+		if(chr == 'X' & chr_type == 'autosomal'){ next }
+
+		print(paste('>chr', chr))
+		all_chrs = c(all_chrs, chr)
+		
+		
+		df = read.table(paste(input_path, file, sep='/'), sep=',', header=T)
+		rownames(df) = paste('chr', chr, '_', df$idx, sep='')
+		df$idx = NULL
+		print(head(df, 20))
+		print(tail(df, 20))
+		print(tail(head(df, 2000)))
+		total_entries_per_chr[chr] = nrow(df)
+
+		if(nrow(total_df) > 0){
+			total_df = rbind(total_df, df)
+		} else{
+			total_df = df
+		}
+		
+		print(nrow(total_df))
+	}
+
+	write.table(total_df, file=total_df_file, quote=F)
+	print(paste("Saved total_df to file:", total_df_file))
+} else{
+	print("[Warning]: Reading pre-compiled total_df.Xy.tsv file")
+	total_df = read.table(total_df_file, header=T)
+	print(head(total_df))
+}
+stop()
+
+
+# Remove windows that had no variant data in the original VCF file
+placeholder_val = -1
+print(nrow(total_df))
+total_df = total_df[ total_df$mut_rate != placeholder_val, ]
+print(nrow(total_df))
+
+
+
+
+
+# [Not used in production]: excludes windows with number of variants over a threshold
 if(all_variants_upper_thres != -1){
 	print('filtering before regression...')
 	total_df = total_df[ total_df$all_variants <= all_variants_upper_thres, ]
 }
 
+
+
+
+
 ## ---------------------------- Original ----------------------------
+# y: common variants
 regr_model = glm(formula = y ~ all_variants, data=total_df) 
 
 # Get RMSE (Root Mean Square Error)
@@ -199,7 +221,7 @@ print(head(total_df))
 annotate_windows_by_tolerance <- function(final_df){
 
 	final_df['annot'] = 'other'
-	#print(head(final_df))
+	print(head(final_df))
 	inferred_chr = rownames(final_df)[1]
 	inferred_chr = gsub('chr', '', inferred_chr)
 	inferred_chr = gsub('_.*', '', inferred_chr)
@@ -237,7 +259,7 @@ annotate_windows_by_tolerance <- function(final_df){
 		dev.off()
 	}
 }
-#annotate_windows_by_tolerance(total_df)
+annotate_windows_by_tolerance(total_df)
 
 
 # Unfold studentised residuals for each chromosome
@@ -279,7 +301,6 @@ unfold_studres_from_each_chr <- function(final_df){
 			print(paste('[last_idx != nrow(df)] - now filling missing values at chr:', chr)) 
 			print(paste('last_idx:', last_idx, 'nrow(df)-1', nrow(df)-1))
 			print(paste('total_entries:', total_entries))
-			print(paste('typeof - total_entries:', str(total_entries)))
 			
 			zero_win_indexes = setdiff(seq(0, total_entries - 1), df$row_names)
 			#print(zero_win_indexes)

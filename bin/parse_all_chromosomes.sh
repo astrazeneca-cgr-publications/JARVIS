@@ -12,7 +12,7 @@ cnt=0
 for i in `seq 1 22`;
 do
 	echo Running parse-job for chr: $i
-	python -u filtered_chr_parser.py $i $config_log &
+	python -u filtered_chr_feature_extractor.py $i $config_log &
 
 	if [ $cnt = 7 ]; then
 		wait

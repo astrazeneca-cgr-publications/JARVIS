@@ -17,7 +17,11 @@ import matplotlib.patches as mpatches
 from custom_utils import create_out_dir, get_config_params
 from copy import deepcopy
 from pathlib import Path
+import math
 
+
+def sigmoid(x):
+	return 1 / (1 + math.exp(-0.5*x))
 
 
 def parse_input_classes(input_classes_file):
@@ -188,12 +192,15 @@ def plot_cdfs(gwrvis_lists, sorted_genomic_classes):
 	cdf_fig, ax = plt.subplots()
 	for name in sorted_genomic_classes[::-1]:
 		cur_rvis = gwrvis_lists[name]
+
+		#cur_rvis = [sigmoid(x) for x in cur_rvis]
 		
 		bins = np.arange(min(cur_rvis), max(cur_rvis) + binwidth, binwidth)
 		plt.hist(cur_rvis, bins, cumulative=True, density=True, histtype='step', alpha=1.0, linewidth=0.8, label=name, color=genomic_colors[name])
 
 	plt.legend(loc='upper left', frameon=True, facecolor='inherit', fontsize=8)
 	ax.set_xlim([x_axis_lim_left, x_axis_lim_right])
+	#ax.set_xlim([0, 1])
 	plt.show()
 
 	return cdf_fig
