@@ -60,5 +60,5 @@ python get_whole_genome_rvis_distr.py $config_log $input_classes;
 
 - Make refined density plots and boxplots for gwRVIS distribution per genomic class with `ggrdiges`:
 ```
-python post_process_results.py -c $config_log;
+python make_ggridges_plots.py -c $config_log;
 ```
