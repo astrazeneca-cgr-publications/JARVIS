@@ -6,7 +6,10 @@
 #SBATCH --mem=40G          # Request amount of memory 
 #SBATCH -t 24:00:0            # Request 24 hours runtime
 
-config_log=$1 #config.yaml;
+module load libpng/1.6.23-foss-2017a
+
+
+config_log=$1 
 input_classes=input_classes.txt
 
 # Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)

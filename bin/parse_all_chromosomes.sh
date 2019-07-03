@@ -6,6 +6,8 @@
 #SBATCH --mem=14G          # Request amount of memory 
 #SBATCH -t 24:0:0            # Request 24 hours runtime
 
+module load libpng/1.6.23-foss-2017a
+
 config_log=$1
 
 cnt=0
