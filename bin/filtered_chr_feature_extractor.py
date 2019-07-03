@@ -8,11 +8,13 @@ from datetime import datetime
 import sys
 import os
 import re
+import ntpath
 from subprocess import call
 from custom_utils import create_out_dir, get_config_params
 from random import shuffle
 import subprocess
 from pathlib import Path
+import multiprocessing 
 
 
 
@@ -114,6 +116,50 @@ def get_mutability_rates(kmer=7):
 
 
 
+def get_regulatory_features_per_window(chrom, seq_start, seq_end):
+	
+	manager = multiprocessing.Manager()
+	regul_features = manager.dict()
+
+	tmp_bed_file = scratch_dir + '/' + str(chrom) + '.' + str(seq_start) + '_' + str(seq_end) + '.bed'
+	with open(tmp_bed_file, 'w') as fh:
+		fh.write(str(chrom) + '\t' + str(seq_start) + '\t' + str(seq_end) + '\n')
+
+
+	def call_intersect_bed(ensembl_regul_file, regul_features):
+
+		cmd = 'cat ' + tmp_bed_file + ' | intersectBed -a stdin -b ' + ensembl_regul_file
+		#print(cmd)
+		
+		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		stdout, stderr = p.communicate()
+		res = str(stdout, "utf-8").rstrip()
+
+		# Also taking care of intersectBed results with > 1 overlaps in the results
+		tmp_interval = 0
+		for line in res.split('\n'):
+			if line == '':
+				continue
+			#print(line)
+			chrom, start, end = line.split('\t')
+			tmp_interval += int(end) - int(start) + 1
+
+		cur_feature = tmp_interval / win_len
+		regul_elem = ntpath.basename(ensembl_regul_file).replace('.bed', '')
+		regul_features[regul_elem] = cur_feature
+
+	processes = []
+	for ensembl_regul_file in ensembl_regulatory_files:
+		p = multiprocessing.Process(target=call_intersect_bed, args=(ensembl_regul_file, regul_features))
+		processes.append(p)
+		p.start()	
+	
+	for p in processes:
+		p.join()
+
+	return dict(regul_features)
+
+
 
 def extract_additional_features_per_window(df, chr_first_window_idx, total_num_windows, mut_rate_dict, placeholder_val=-1):
 	"""
@@ -124,16 +170,18 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 	# Skip mutability rate calculations per window if they have already been calculated
 	additional_features_df_file = tmp_dir + '/chr' + chrom + '.additional_features_df.csv'
 
-	if Path(additional_features_df_file).exists():
-		print(">> additional_features_df_file already exists. Reading file...")
-		additional_features_df = pd.read_csv(additional_features_df_file, index_col=0)
-		return additional_features_df
+	# TEMP: comment next 4 lines for DEBUG
+	#if Path(additional_features_df_file).exists():
+	#	print(">> additional_features_df_file already exists. Reading file...")
+	#	additional_features_df = pd.read_csv(additional_features_df_file, index_col=0)
+	#	return additional_features_df
 
 
 	agg_mut_rates_per_window = dict()
 	gc_content_per_window = dict()
 	cpg_per_window = dict()
 	cpg_islands_per_window = dict()
+	regul_features_per_window = dict()
 
 	print('win_len:', win_len)
 
@@ -149,6 +197,10 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 
 		#print(chrom + ':' + str(seq_start) + '-' + str(seq_end))
 
+		# Get regulatory features (open chromatin, CTCF, TG binding, etc.) for current window
+		regul_features = get_regulatory_features_per_window(chrom, seq_start, seq_end)
+		#print(regul_features)
+
 		cmd = '../utils/twoBitToFa ' + human_ref_genome_2bit + ':' + chrom + ':' + str(seq_start) + '-' + str(seq_end) + " /dev/stdout | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
 		#print(cmd)
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -156,6 +208,9 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 		stdout, stderr = p.communicate()
 		seq = str(stdout, "utf-8").rstrip()
 		#print('Seq:', seq)
+		stderr_str = str(stderr, "utf-8").rstrip()
+		if stderr_str != '':
+			print(stderr_str)
 
 
 		# Mutability rate
@@ -185,12 +240,14 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 		cpg_per_window[ win_idx ] = cpg
 		cpg_islands_per_window[ win_idx ] = cpg_islands
 		gc_content_per_window[ win_idx ] = gc_content
-		
+		regul_features_per_window[ win_idx ] = regul_features
+
 		cc += 1
-		if cc % 100 == 0:
+		#if cc % 100 == 0:
+		if cc % 10 == 0:
+			#break
 			print('Chr' + str(chrom) + ' - Current window:', cc , 'out of', len(valid_window_indexes))
 		
-
 
 	# Mutability-rate
 	agg_mut_rates_per_window_df = pd.DataFrame.from_dict(agg_mut_rates_per_window, orient='index')
@@ -212,37 +269,40 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 	gc_content_per_window_df.columns = ['gc_content']
 	print(gc_content_per_window_df.head(10))
 
+	# Regulatory features
+	regul_features_df = pd.DataFrame(regul_features_per_window).T
+	print(regul_features_df.head(10))
 
 
-	additional_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df, cpg_islands_per_window_df], axis=1)
+	additional_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df, cpg_islands_per_window_df, regul_features_df], axis=1)
 	print(additional_features_df.head())
-
+	print(additional_features_df.tail())
 
 	# make start-window-index: 0
 	offset_valid_window_indexes = np.array(valid_window_indexes) - chr_first_window_idx
 
 
 	all_window_indexes = np.arange(total_num_windows)
-	print('all_window_indexes:', len(all_window_indexes))
+	#print('all_window_indexes:', len(all_window_indexes))
 	zero_window_indexes = np.setdiff1d(all_window_indexes, offset_valid_window_indexes)
-	print('zero_window_indexes:', len(zero_window_indexes))
-	print('zero_window_indexes:', zero_window_indexes[:10], '...')
-	print('valid_window_indexes:', offset_valid_window_indexes[:10], '...')	
+	#print('zero_window_indexes:', len(zero_window_indexes))
+	#print('zero_window_indexes:', zero_window_indexes[:10], '...')
+	#print('valid_window_indexes:', offset_valid_window_indexes[:10], '...')	
 
 
 
 	zero_variants_df = pd.DataFrame(placeholder_val, index=zero_window_indexes, columns=additional_features_df.columns.values)
-	print(zero_variants_df.head())
-	print(zero_variants_df.tail())
+	#print(zero_variants_df.head())
+	#print(zero_variants_df.tail())
 
 
 	additional_features_df = pd.concat([additional_features_df, zero_variants_df])
 	additional_features_df = additional_features_df.sort_index()
 	print(additional_features_df.head(10))
-	print(additional_features_df.tail(30))
-	print(additional_features_df.shape)
+	print(additional_features_df.tail(10))
 
 	additional_features_df.to_csv(additional_features_df_file)
+	
 
 		
 	return additional_features_df
@@ -508,6 +568,21 @@ if __name__ == '__main__':
 	scatter_dir = out_dir + "/scatter" 
 	if not os.path.exists(scatter_dir):         
 		os.makedirs(scatter_dir, exist_ok=True)
+
+	# Ensembl regulatory elements for additional features extraction
+	scratch_dir = '../scratch'
+	if not os.path.exists(scratch_dir):
+		os.makedirs(scratch_dir)
+	
+	regulatory_elements = ['CTCF_binding_sites', 'Enhancers',
+				'Open_chromatin', 'TF_binding_sites', 'H3K27ac',
+				'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1',	
+				'H3K4me2', 'H3K4me3', 'H3K36me3']
+	cell_line = 'Monocytes_CD14plus'
+
+	ensembl_regulatory_files = []
+	for elem in regulatory_elements:
+		ensembl_regulatory_files.append('../ensembl/GRCh37-Regulatory_Features/' + cell_line + '.' + elem + '.sorted.bed')
 	# -------------------------------------------------------
 
 
