@@ -1,4 +1,3 @@
-Chromosome/scaffold name	Start (bp)	End (bp)	Feature type
 15	28856408	28857161	TF binding site
 13	57435490	57436002	TF binding site
 8	141159038	141159472	TF binding site

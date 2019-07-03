@@ -1,4 +1,3 @@
-Chromosome/scaffold name	Start (bp)	End (bp)	Feature type	Feature type class
 GL000191.1	49149	50915	H3K27ac	Histone
 GL000191.1	28025	30989	H3K27ac	Histone
 GL000192.1	482038	483036	H3K27ac	Histone
