@@ -167,7 +167,5 @@ def is_outlier(points, thresh=3.5):
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
-	create_out_dir(config_file)
-	config_params = get_config_params(config_file)
-	print(config_params)
+	print(create_out_dir(config_file))
 	

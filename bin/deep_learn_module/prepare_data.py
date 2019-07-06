@@ -175,6 +175,8 @@ def integrate_additional_data(gwrvis_and_index_df):
 	print(merged_features_df.tail())
 	print(merged_features_df.shape)
 
+	sys.exit()
+
 	return merged_features_df
 	
 	

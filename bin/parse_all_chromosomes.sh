@@ -2,7 +2,7 @@
 #SBATCH -J parse_all_chromosomes	# Set name for current job 
 #SBATCH -o out.parse_all_chromosomes	# Set job output log 
 #SBATCH -e err.parse_all_chromosomes	# Set job error log 
-#SBATCH --cpus-per-task=20 #11         # Request 8 CPUs (cores) on a single node 
+#SBATCH --cpus-per-task=11         # Request 8 CPUs (cores) on a single node 
 #SBATCH --mem=14G          # Request amount of memory 
 #SBATCH -t 24:0:0            # Request 24 hours runtime
 
@@ -16,11 +16,11 @@ do
 	echo Running parse-job for chr: $i
 	python -u filtered_chr_feature_extractor.py $i $config_log &
 
-	#if [ $cnt = 10 ]; then
-	#	wait
-	#	cnt=0
-	#fi
-	#cnt=$((cnt + 1))
+	if [ $cnt = 10 ]; then
+		wait
+		cnt=0
+	fi
+	cnt=$((cnt + 1))
 
 	sleep 1
 done

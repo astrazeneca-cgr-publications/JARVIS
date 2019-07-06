@@ -342,7 +342,7 @@ if __name__ == '__main__':
 
 	filter_out_gwrvis_nan(sorted_genomic_classes, gwrvis_lists)
 
-
-	make_plots(sorted_genomic_classes, gwrvis_lists, length_per_class)
+	# TEMP - DEBUG: temporarily commented to speed up total run time of wgs.sh
+	#make_plots(sorted_genomic_classes, gwrvis_lists, length_per_class)
 
 	print('[INFO]: Run for chr ' + chr + ' - complete.')

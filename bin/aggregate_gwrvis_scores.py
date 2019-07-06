@@ -146,16 +146,17 @@ def run_mann_whitney_tests():
 
 		
 
-## TO-DO:
 # Concatenate values across all chromosomes for each of the functional classes into separate BED files. [DONE]
 # ...to be used for comparison with Orion, CADD and CDTS.
-
 def aggregate_scores_into_bed_files():
 
 	print(">> Running aggregate_scores_into_bed_files()...")
 	aggregate_bed_files_dir = full_genome_dir + '/BED'
 	if (not os.path.exists(aggregate_bed_files_dir)):
 		os.makedirs(aggregate_bed_files_dir)
+
+	all_classes_df = pd.DataFrame()
+	all_classes_midpoint_df = pd.DataFrame()
 
 	for cl in input_classes:
 		print('> ' + cl)
@@ -174,19 +175,34 @@ def aggregate_scores_into_bed_files():
 		if cur_df.empty:                         
 			continue
 		
-		cur_df.columns = ['chr', 'start', 'end', 'rvis']
+		cur_df.columns = ['chr', 'start', 'end', 'gwrvis']
+		cur_df['genomic_class'] = cl
 		cur_df.to_csv(tmp_out_file, sep='\t', header=False, index=False)
-		
+		all_classes_df = pd.concat([all_classes_df, cur_df], axis=0)
+		print(all_classes_df.tail())
+		print(all_classes_df.shape)
+
 
 		middle_point_df = cur_df[ ['chr', 'start'] ].copy()
 		middle_point_df.loc[:, 'start'] = (cur_df.loc[:, 'end'] + middle_point_df.loc[:, 'start'])/2
 		middle_point_df['start'] = middle_point_df['start'].astype(int)
 		middle_point_df['end'] = middle_point_df['start'].copy() + 1
-		middle_point_df['rvis'] = cur_df['rvis'].copy()
+		middle_point_df['gwrvis'] = cur_df['gwrvis'].copy()
+		middle_point_df['genomic_class'] = cur_df['genomic_class'].copy()
 
 		# store coordinates from middle points of windows assigned for each class into BED files
 		middle_point_out_file = aggregate_bed_files_dir + '/mid_window_point.' + cl + '.bed'
 		middle_point_df.to_csv(middle_point_out_file, sep='\t', header=False, index=False)
+		all_classes_midpoint_df = pd.concat([all_classes_midpoint_df, middle_point_df], axis=0)
+
+	# remove rows with NaN gwRVIS
+	print('Shapes:', all_classes_df.shape, all_classes_midpoint_df.shape)
+	all_classes_df.dropna(inplace=True)
+	all_classes_midpoint_df.dropna(inplace=True)
+	print('Non-NaN gwRVIS shapes:', all_classes_df.shape, all_classes_midpoint_df.shape)
+
+	all_classes_df.to_csv(aggregate_bed_files_dir + '/full_genome.All_genomic_classes.bed', sep='\t', header=False, index=False)
+	all_classes_midpoint_df.to_csv(aggregate_bed_files_dir + '/mid_window_point.All_genomic_classes.bed', sep='\t', header=False, index=False)
 	
 
 

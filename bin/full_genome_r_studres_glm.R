@@ -54,12 +54,14 @@ print(files)
 
 total_entries_per_chr = list()
 total_df = data.frame()
-all_chrs = vector()
+all_chrs = seq(1,22)
 
 
 total_df_file = paste(input_path, 'total_df.Xy.tsv', sep='/')
 
 if(!file.exists(total_df_file)){
+	all_chrs = vector()
+
 	for(file in files){
 
 		chr = file
@@ -96,8 +98,12 @@ if(!file.exists(total_df_file)){
 	print("[Warning]: Reading pre-compiled total_df.Xy.tsv file")
 	total_df = read.table(total_df_file, header=T)
 	print(head(total_df))
+
+	for(chr in all_chrs){
+		tmp_df = total_df[ grepl(paste('chr', chr, '_', sep=''), rownames(total_df)), ]
+		total_entries_per_chr[chr] = nrow(tmp_df)
+	}
 }
-stop()
 
 
 # Remove windows that had no variant data in the original VCF file
@@ -123,6 +129,28 @@ if(all_variants_upper_thres != -1){
 ## ---------------------------- Original ----------------------------
 # y: common variants
 regr_model = glm(formula = y ~ all_variants, data=total_df) 
+# <<< Area under the ROC curve : 0.73 / 0.76 (all / without positive windows)
+
+# >>> BETA - 2
+# regr_model = glm(formula = y ~ bin_1, data=total_df)
+# <<< Area under the ROC curve : 0.70 / 0.75 (all / without positive windows)
+
+
+# >>> BETA - 3 
+# regr_model = glm(formula = y ~ bin_1 + bin_2 + bin_3 + bin_4 + bin_5 + bin_6, data=total_df)
+# <<< Area under the ROC curve : 0.51 / 0.61 (all / without positive windows)
+
+# >>> BETA - 4 
+#total_df$weighted_bins_sum = total_df[, 'bin_1'] + (1/5) * total_df[, 'bin_2'] + (1/10) * total_df[, 'bin_3'] + 
+#					(1/50) * total_df[, 'bin_4'] + (1/200) * total_df[, 'bin_5'] + 
+#					(1/1000) * total_df[, 'bin_6']
+#regr_model = glm(formula = y ~ weighted_bins_sum, data=total_df) 
+# <<< Area under the ROC curve : 0.70 / 0.75 (all / without positive windows)
+
+# >>> BETA - 5
+#total_df$all_variants = total_df$all_variants * total_df$mut_rate
+#regr_model = glm(formula = y ~ all_variants, data=total_df) 
+# <<< Area under the ROC curve : 0.60 / 0.66 (all / without positive windows)
 
 # Get RMSE (Root Mean Square Error)
 error = residuals(regr_model)
@@ -131,6 +159,13 @@ print(paste('RMSE:', RMSE))
 
 # Get studentised residuals
 stud_res = studres(regr_model)
+
+# >>> BETA - 1
+# regr_model = glm(formula = y ~ all_variants, data=total_df)
+# stud_res = sign(stud_res) * stud_res^2 
+# <<< Area under the ROC curve : 0.73 / 0.81 (all / without positive windows)
+
+
 
 total_df = cbind(total_df, 'stud_res' = as.numeric(stud_res))
 print(head(total_df))
@@ -222,10 +257,6 @@ annotate_windows_by_tolerance <- function(final_df){
 
 	final_df['annot'] = 'other'
 	print(head(final_df))
-	inferred_chr = rownames(final_df)[1]
-	inferred_chr = gsub('chr', '', inferred_chr)
-	inferred_chr = gsub('_.*', '', inferred_chr)
-	print(inferred_chr)
 
 	bottom_prob = .01
 	up_prob = 1- bottom_prob
@@ -254,7 +285,7 @@ annotate_windows_by_tolerance <- function(final_df){
 	if( chr_type == 'autosomal'){
 		png(paste(out_dir, '/scatter/autosomal-regression_scatterplot.png', sep=''), height = 10, width = 10, units = 'in', res = 600)
 		#plot(final_df$X, final_df$y, xlab='All Variants', ylab='Common variants', pch=16, cex=0.8, col=final_df$annot)
-		plot(final_df$mut_rate, final_df$y, xlab='All Variants', ylab='Common variants', pch=16, cex=0.8, col=final_df$annot)
+		plot(final_df$all_variants, final_df$y, xlab='All Variants', ylab='Common variants', pch=16, cex=0.8, col=final_df$annot)
 		abline(regr_model, col='#31a354', lwd=2)
 		dev.off()
 	}
@@ -266,7 +297,7 @@ annotate_windows_by_tolerance(total_df)
 unfold_studres_from_each_chr <- function(final_df){
 
 	for(chr in all_chrs){
-		print(paste('chr', chr, sep=':'))
+		print(paste('chr:', chr))
 
 		total_entries = as.numeric(total_entries_per_chr[chr])
 		print(total_entries)
@@ -274,7 +305,6 @@ unfold_studres_from_each_chr <- function(final_df){
 		chr_idx = paste('chr', chr, '_', sep='')
 
 	
-		print('---------')
 		df = final_df[ grepl(chr_idx, rownames(final_df)), ]
 		#print(head(df))
 
@@ -297,10 +327,10 @@ unfold_studres_from_each_chr <- function(final_df){
 		last_idx = as.numeric(df[ nrow(df), 'row_names']) 
 
 		if( last_idx != nrow(df)-1 ){ 
-			print("Dealing with chromosomes that have windows with no values...")
-			print(paste('[last_idx != nrow(df)] - now filling missing values at chr:', chr)) 
-			print(paste('last_idx:', last_idx, 'nrow(df)-1', nrow(df)-1))
-			print(paste('total_entries:', total_entries))
+			#print("Dealing with chromosomes that have windows with no values...")
+			#print(paste('[last_idx != nrow(df)] - now filling missing values at chr:', chr)) 
+			#print(paste('last_idx:', last_idx, 'nrow(df)-1', nrow(df)-1))
+			#print(paste('total_entries:', total_entries))
 			
 			zero_win_indexes = setdiff(seq(0, total_entries - 1), df$row_names)
 			#print(zero_win_indexes)
