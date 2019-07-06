@@ -10,7 +10,7 @@ module load libpng/1.6.23-foss-2017a
 
 
 config_log=$1 
-input_classes=input_classes.txt
+input_classes=input_classes_new.txt #input_classes.txt
 
 # Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
@@ -34,7 +34,7 @@ python aggregate_gwrvis_scores.py $config_log $input_classes;
 
 
 # [Deprecated] post-processing: enhancers
-#python process_enhancers_bed_rvis_contents.py config.log input_classes.txt;
+#python process_enhancers_bed_rvis_contents.py $config_log $input_classes;
 
 python get_whole_genome_rvis_distr.py $config_log $input_classes;
 
@@ -47,4 +47,7 @@ python ml_modules/run_gwrvis_logistic_regression.py $config_log 0
 python ml_modules/run_gwrvis_logistic_regression.py $config_log 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
 
 
-out_dir=`python custom_utils.py config.yaml`
+# Benchmarking of gwRVIS against other scores
+cd scores_benchmarking
+python run_score_benchmarking.py $config_log
+python benchmark_gwrvis_vs_original_orion.py $config_log

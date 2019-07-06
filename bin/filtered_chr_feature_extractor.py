@@ -90,7 +90,7 @@ def get_mutability_rates(kmer=7):
 		Read mutability rates by 7- or 3-nt and return them in a dictionary
 	"""
 	# k-mer = 3
-	mut_3mer_matrix_file = '../ext_datasets/mutability_matrices/mutation_rate_by_trinucleotide_matrix.txt'
+	mut_3mer_matrix_file = '../other_datasets/mutability_matrices/mutation_rate_by_trinucleotide_matrix.txt'
 	mut_3mer_matrix = pd.read_csv(mut_3mer_matrix_file, sep='\t', header=0, index_col=False)
 
 	mut_3mer_matrix['sum'] = mut_3mer_matrix.loc[:, 'A'] + mut_3mer_matrix.loc[:, 'T'] + mut_3mer_matrix.loc[:, 'C'] + mut_3mer_matrix.loc[:, 'G']
@@ -98,7 +98,7 @@ def get_mutability_rates(kmer=7):
 
 
 	# k-mer = 7
-	mut_7mer_matrix_file = '../ext_datasets/mutability_matrices/heptamer_mutability_rates.processed_sums.txt'
+	mut_7mer_matrix_file = '../other_datasets/mutability_matrices/heptamer_mutability_rates.processed_sums.txt'
 	mut_7mer_matrix = pd.read_csv(mut_7mer_matrix_file, sep=',', header=0, index_col=False)
 	#print(mut_7mer_matrix.head())
 	mut_7mer_weighted_sum_dict = dict(zip( mut_7mer_matrix['ref_seq'], mut_7mer_matrix['weighted_sum']))

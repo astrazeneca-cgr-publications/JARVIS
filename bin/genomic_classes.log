@@ -22,7 +22,7 @@ mirna_seeds	../hg19/bed/ensembl_v19_mirna_seed_regions.bed	100
 mirna_targets	../hg19/bed/ucsc_targetscan_mirna_targets_3utrs.bed	90
 uce-depr	../UCE_hg_Science_2004/non_exonic_uce_grch37.bed	80
 phastCons	../hg19/bed/ucsc_phastCons46way.bed	70
-ucne	../ext_datasets/UCNE_base/hg19_UCNE_coord.bed	60
+ucne	../other_datasets/UCNE_base/hg19_UCNE_coord.bed	60
 promoter_125nt_each_side	../hg19/bed/gencode_v19_promoters_125nt_each_side.bed	50
 promoter	../hg19/bed/gencode_v19_promoters_250nt_upstream.bed	50
 utr	../hg19/bed/gencode_v19_utrs.merged.bed	40

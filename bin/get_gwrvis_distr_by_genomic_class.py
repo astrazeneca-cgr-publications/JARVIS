@@ -293,7 +293,7 @@ if __name__ == '__main__':
 	fixed_win_len_for_all_genomic_elements = run_params['fixed_win_len_for_all_genomic_elements']
 
 
-	ucne_dir = '../ext_datasets/UCNE_base'
+	ucne_dir = '../other_datasets/UCNE_base'
 
 	print('filter_plot_outliers:', filter_plot_outliers)
 	print(hg_dir)
