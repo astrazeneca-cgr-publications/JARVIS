@@ -1,0 +1,300 @@
+﻿Gene Symbol,Entrez Gene ID,Chromosome,Start,End,OMIM,PubMed,Disorder/Syndrome,Disorder/Syndrome grouped into categories,ID of enclosing SD pair,Distance between SDs (bp)
+TP73,7161,1,3558989,3639716,-,PMID: 11454718,prostate hyperplasia and prostate cancer,cancer/tumorgenesis,DP_1_1_19796,140716054
+DFFB,1677,1,3763705,3791853,-,PMID: 16156899,oligodendroglioma development,cancer/tumorgenesis,DP_1_1_19796,140716054
+KCNAB2,8514,1,5974113,6083840,-,PMID: 11580756,"characteristic craniofacial abnormalities, mental retardation, and epilepsy  with 1p36 deletion syndrome",mental retardation,DP_1_1_19796,140716054
+CHD5,26038,1,6162770,6084440,OMIM,-,monosomy 1p36 syndrome,growth and mental retardation,DP_1_1_19796,140716054
+CAMTA1,23261,1,6767971,7752351,-,PMID: 15709179,tumors development,cancer/tumorgenesis,DP_1_1_20058,10448865
+PINK1,65018,1,20832535,20850590,-,PMID: 15349860, sporadic early-onset parkinsonism,neurological disorders,DP_1_1_21588,4553465
+SAM68,10657,1,32252078,32282059,-,PMID: 17927519,mammary tumor onset and tumor multiplicity,cancer/tumorgenesis,DP_1_1_22009,98510785
+KCNQ4,9132,1,41022271,41076947,OMIM,-,"DEAFNESS, AUTOSOMAL DOMINANT NONSYNDROMIC SENSORINEURAL 2",others,DP_1_1_22009,98510785
+GLUT1,6513,1,43197088,43164102,OMIM,"PMID: 12029447, PMID: 11477212, PMID: 11136715, PMID: 16497725",Facilitated glucose transporter protein type 1 (GLUT1) deficiency syndrome,others,DP_1_1_22009,98510785
+MYH,4595,1,45567501,45578729,-,PMID: 16292541,hepatocellular carcinoma and cholangiocarcinom,cancer/tumorgenesis,DP_1_1_22009,98510785
+FOXE3,2301,1,47654331,47656310,-,PMID: 11980846, anterior segment dysgenesis similar to Peters' anomaly,others,DP_1_1_22009,98510785
+HUD,1996,1,50342169,50442045,-,PMID: 16278682,poor prognosis,others,DP_1_1_22009,98510785
+INK4C,1031,1,51206955,51212897,OMIM,PMID: 16260494,medulloblastoma formation,cancer/tumorgenesis,DP_1_1_22009,98510785
+NFIA,4774,1,61320881,61694624,OMIM,PMID: 17530927,Complex central nervous system (CNS) malformations and urinary tract defects,mental retardation,DP_1_1_22009,98510785
+CCN1,3491,1,85819005,85821947,-,PMID: 17023674,delayed formation of the ventricular septum in the embryo and persistent ostium primum atrial septal defects,others,DP_1_1_22009,98510785
+ABCA4,24,1,94359267,94230981,OMIM,-,"Stargardt disease, retinitis pigmentosa-19, and macular degeneration age-related 2",others,DP_1_1_26776,57064372
+WNT2B,7482,1,112810686,112865428,-,PMID: 17351355,"mental retardation, short stature and colobomata",mental retardation,DP_1_1_26776,57064372
+ADAR,103,1,152821162,152867098,-,PMID: 16536805,dyschromatosis symmetrica hereditaria,others,DP_1_1_30065,56585712
+ATP1A2,477,1,158352172,158380005,OMIM,-,familial hemiplegic migraine type 2,others,DP_1_1_30065,56585712
+MPZ,4359,1,159546377,159541151,OMIM,-,"neurologic diseases, including CHN, DSS, and CMT1B",neurological disorders,DP_1_1_30065,56585712
+MYOC,4653,1,169888396,169871180,OMIM,-,hereditary juvenile-onset open-angle glaucoma,others,DP_1_1_30065,56585712
+HRPT2,79577,1,191357542,191487679,-,PMID: 16458039,Ossifying fibroma (progressive enlargement of the affected jaw),others,DP_1_1_30065,56585712
+LRH-1,2494,1,198263393,198413175,OMIM,"PMID: 17670946, PMID: 15684064",inflammatory bowel disease,others,DP_1_1_30065,56585712
+IRF6,3664,1,208046102,208027885,OMIM,-,van der Woude syndrome and popliteal pterygium syndrome,others,DP_1_1_21587,215987512
+PROX1,5629,1,212228483,212276389,OMIM,-,"Lymphatic vascular defects, adult-onset obesity",others,DP_1_1_21587,215987512
+TP53BP2,7159,1,222100255,222034413,OMIM,-,no suppression of tumor growth,cancer/tumorgenesis,DP_1_1_17594,1464776
+NLRP3,114548,1,245647974,245679033,OMIM,-,CINCA syndrome,others,DP_1_1_19575,19955078
+ID2,3398,2,8736791,8742034,-,PMID: 15569159,Congenital hydronephrosis,others,,
+MYCN,4613,2,15998134,16004580,OMIM,PMID: 15821734,reduced brain size and intestinal atresias in Feingold syndrome,mental retardation,,
+GCKR,2646,2,27573210,27600052,-,PMID: 9570959,one form of maturity onset diabetes of the young,others,,
+SPAST,6683,2,32142184,32236210,OMIM,-,SPASTIC PARAPLEGIA 4,others,,
+MSH6,2956,2,47863790,47887596,OMIM,PMID: 10751599,limitation of mismatch repair,others,DP_2_2_1498,54031040
+FSHR,2492,2,49043156,49235134,-,PMID: 14502087,degenerative changes in the central nervous system,neurological disorders,DP_2_2_1498,54031040
+SPR,6697,2,72968032,72972794,-,PMID: 15241655,dopa-responsive dystonia,neurological disorders,DP_2_2_1498,54031040
+PAX8,7849,2,113752968,113690045,OMIM,-,congenital hypothyroidism,others,DP_2_2_5096,17984350
+SMADIP1,9839,2,144994386,144862053,OMIM,"PMID: 11595972, PMID: 16688751",syndromic Hirschsprung disease,others,DP_2_2_3545,88295340
+RPRM,56475,2,154042098,154043568,-,PMID: 15592418,"tumorigenesis, no suppression of tumor growth",cancer/tumorgenesis,DP_2_2_3545,88295340
+SCN1A,6323,2,166553916,166638395,-,"PMID: 16865694, PMID: 16075041",Severe myoclonic epilepsy of infancy (SMEI) or Dravet syndrome,others,,
+HOXD13,3239,2,176665778,176668046,OMIM,PMID: 12900906,foot malformations,others,,
+COL3A1,1281,2,189547344,189585717,OMIM,-,"Ehlers-Danlos syndrome type IV, and with aortic and arterial aneurysms",others,,
+SLC40A1,30061,2,190153858,190133561,OMIM,PMID: 16135412,ferroportin disease,others,,
+SATB2,23314,2,200033446,199842469,OMIM,-,"craniofacial dysmorphologies, cleft palate ",others,,
+SUMO1,7341,2,202811567,202779148,OMIM,"PMID: 17606301, PMID: 16990542",nonsyndromic cleft lip and palate,others,,
+BMPR2,659,2,202949916,203140719,OMIM,PMID: 11115378,primary pulmonary hypertension,others,,
+XRCC5,7520,2,216682378,216779248,OMIM,PMID: 16325483,"retarded growth, increased radiosensitivity, elevated p53 levels and shortened telomeres",growth retardation,,
+PAX3,5077,2,222871944,222772851,OMIM,"PMID: 12070244, PMID: 9731536",developmental delay and autism,growth retardation/ mental retardation,,
+STK25,10494,2,242083110,242096675,-,PMID: 15521982,mild-to-moderate mental retardation with an Albright hereditary osteodystrophy-like phenotype,mental retardation,,
+CHL1,10752,3,213650,426098,OMIM,-,3p deletion (3p-) syndrome,unknown,,
+SRGAP3,9901,3,9266311,8997278,OMIM,PMID: 12195014,severe mental retardation,mental retardation,,
+VHL,7428,3,10158319,10168744,-,PMID: 16061637,increased lung cancer susceptibility,cancer/tumorgenesis,,
+GHRL,51738,3,10307409,10302434,OMIM,-,GHRELIN POLYMORPHISM,others,,
+PPARG,5468,3,12304359,12450843,OMIM,PMID: 15073042,"susceptibility to mammary, ovarian and skin carcinogenesis",cancer/tumorgenesis,,
+SRG3,6599,3,47602391,47798410,-,PMID: 17255092,proteasomal degradation,others,,
+RASSF1A,11186,3,50342221,50353385,-,PMID: 11585766,"pathogenesis of a variety of cancers, no suppression of tumor growth",cancer/tumorgenesis,,
+TKT,7086,3,53264998,53234704,OMIM,-,reduced adipose tissue and female fertility ,others,,
+MITF,4286,3,69871323,70100177,OMIM,"PMID: 10952390, PMID: 9170159",Waardenburg syndrome type 2,others,,
+FOXP1,27086,3,71715830,71087426,OMIM,-,tumors development,cancer/tumorgenesis,,
+ROBO1,6091,3,79721751,78729080,OMIM,-,predispose to dyslexia,mental retardation,,
+DIRC2,84925,3,123996597,124081451,OMIM,-,onset of tumor growth,cancer/tumorgenesis,,
+ATP2C1,27032,3,132096124,132218246,OMIM,"PMID: 15811312, PMID: 17597066","orthodisease, skin disorder ",others,,
+FOXL2,668,3,140147124,140148254,-,PMID: 11468277,blepharophimosis syndrome associated with ovarian dysfunction,others,,
+ATR,545,3,143780341,143650769,OMIM,PMID: 15282542,mismatch repair-deficient,others,,
+SI,6476,3,166278976,166179380,OMIM,-,"SUCRASE-ISOMALTASE DEFICIENCY, CONGENITAL ",others,,
+TERC,7012,3,170965542,170965092,-,"PMID: 16284252, PMID: 15326392","Autosomal dominant dyskeratosis congenita (AD DC), a rare inherited bone marrow failure syndrome",others,,
+SOX2,6657,3,182912416,182914918,OMIM,"PMID: 16529618, PMID: 15503273",hippocampal malformations and epilepsy,neurological disorderss,,
+OPA1,4976,3,194793806,194898009,OMIM,"PMID: 16735988, PMID: 11017080",optic atrophy,others,,
+TFRC,7037,3,197293338,197260744,OMIM,-,stressed erythropoiesis and neurologic abnormalities ,neurological disorders,,
+FGFR3,2261,4,1764832,1780396,-,PMID: 9199352,"a variety of skeletal dysplasias, including the most common genetic form of dwarfism, achondroplasia",others,,
+LETM1,3954,4,1784558,1827772,-,PMID: 16719275,Wolf Hirshhorn syndrome,mental retardation,,
+SH3BP2,6452,4,2790339,2810712,OMIM,-,Wolf-Hirschhorn syndrome,mental retardation,,
+MSX1,4487,4,4912300,4916564,OMIM,PMID: 14630905,oligodontia,others,,
+RBPJ,3516,4,25930430,26042376,OMIM,-,embryonic lethality and formation of arteriovenous malformations ,others,,
+PHOX2B,8929,4,41445744,41440857,OMIM,-,predispose to Hirschsprung disease,neurological disorders,,
+ENAM,10117,4,71713325,71731405,-,PMID: 15649948,Amelogenesis imperfecta (inherited defects of dental enamel formation),others,,
+MAPK10,5602,4,87593307,87156656,OMIM,-,epileptic encephalopathy of the Lennox-Gaustaut type,neurological disorders,,
+PKD2,5311,4,89147844,89217953,OMIM,"PMID: 16720597, PMID: 10615132",Autosomal dominant polycystic kidney disease,others,,
+SNCA,6622,4,90865728,90978489,-,PMID: 12477695,familial Parkinson's disease,neurological disorders,,
+RIEG,5308,4,111758031,111782611,-,PMID: 9480756,"Rieger syndrome (RIEG) characterized by malformations of the anterior segment of the eye, failure of the periumbilical skin to involute, and dental hypoplasia",others,,
+ANK2,287,4,114190319,114524337,OMIM,-,arrhythmia,others,,
+MAD2L1,4085,4,121200029,121207411,-,PMID: 17038523,optimal hematopoiesis,others,,
+PLK4,10733,4,129021551,129039377,OMIM,PMID: 16025114,mitotic infidelity and carcinogenesis,cancer/tumorgenesis,,
+FBXW7,55294,4,153675622,153461860,OMIM,-,"cancer (breast, ovary) tumors development",cancer/ tumorgenesis,,
+TERT,7015,5,1348159,1306282,OMIM,-,DYSKERATOSIS CONGENITA,others,DP_5_5_8824,1296157
+SEMA5A,9037,5,9093308,9599158,-,PMID: 9464278,abnormal brain development,mental retardation,DP_5_5_8941,16056707
+GDNF,2668,5,37875539,37851510,OMIM,PMID: 11774071,complex human diseases (Hirschsprung-like intestinal obstruction and early-onset lethality ),others,DP_5_5_1651,31712430
+FGF10,2255,5,44424541,44340854,OMIM,"PMID: 16476029, PMID: 15654336",craniofacial development and developmental disorders,developmental abnormalities,DP_5_5_1651,31712430
+PIK3R1,5295,5,67558218,67633403,-,PMID: 10829070,insulin resistance,others,DP_5_5_1651,31712430
+APC,324,5,112101483,112209835,OMIM,PMID: 14691304,familial adenomatous polyposis,cancer/tumorgenesis,,
+RAD50,10111,5,131920529,132007480,-,PMID: 16474176,hereditary breast cancer susceptibility associated with genomic instability,cancer/tumorgenesis,DP_5_5_12862,51502399
+SMAD5,4090,5,135496435,135546321,-,PMID: 12064918, secondary myelodysplasias and acute myeloid leukemias ,cancer/tumorgenesis,DP_5_5_12862,51502399
+EGR1,1958,5,137829080,137832903,-,PMID: 17420284,development of myeloid disorders,others,DP_5_5_12862,51502399
+TCOF1,6949,5,149717428,149760064,OMIM,"PMID: 17552945, PMID: 16465596, PMID: 15930015, PMID: 15249688","depletion of neural crest cell precursors, Treacher Collins syndrome ",developmental abnormalities,DP_5_5_12862,51502399
+NPM1,4869,5,170747403,170770493,OMIM,"PMID: 16341035, PMID: 16007073",myelodysplasias and leukemias,cancer/tumorgenesis,DP_5_5_14409,7903607
+NKX2-5,1482,5,172594868,172591744,OMIM,"PMID: 16470726, PMID: 10398271, PMID: 15368344",microcephaly and congenital heart disease,others,DP_5_5_14409,7903607
+MSX2,4488,5,174084181,174090508,OMIM,PMID: 10742104,pleiotropic defects in bone growth and ectodermal organ formation,others,DP_5_5_14409,7903607
+NSD1,64324,5,176493532,176655369,OMIM,"PMID: 16970856, PMID: 16547423, PMID: 15720303, PMID: 15640245, PMID: 15539801, PMID: 14631206, PMID: 14517949, PMID: 12687502, PMID: 12676901, PMID: 11896389",Sotos syndrome,mental retardation,DP_5_5_14660,1318817
+FOXC1,2296,6,1555680,1557341,OMIM,"PMID: 14564054, PMID: 11170889",Axenfeld-Rieger anomaly of the anterior eye chamber,others,DP_6_6_7785,170685011
+DSP,1832,6,7486869,7531945,OMIM,"PMID: 11841538, PMID: 11476106, PMID: 10594734, PMID: 17475244","skin fragility/woolly hair syndrome; disruption of tissue structure, integrity and changes in keratinocyte proliferation",others,DP_6_6_7785,170685011
+EEF1E1,9521,6,8047780,8024638,OMIM,-,no suppression of tumor growth,cancer/tumorgenesis,DP_6_6_7785,170685011
+TNXA,7146,6,32088120,32084369,-,PMID: 15733269,Ehlers-Danlos syndrome ,others,DP_6_6_1718,31317852
+TNX,7148,6,32185131,32116911,OMIM,PMID: 15733269,Elastic fiber abnormalities in hypermobility type Ehlers-Danlos syndrome,others,DP_6_6_1718,31317852
+HMGA1,3159,6,34312628,34321986,OMIM,-,insulin resistance and diabetes ,others,DP_6_6_1718,31317852
+RUNX2,860,6,45404032,45626797,OMIM,"PMID: 16270353, PMID: 16187316, PMID: 15952089, PMID: 15566413, PMID: 10204840, PMID: 9690033, PMID: 9207800",cleidocranial dysplasia,developmental abnormalities,DP_6_6_1718,31317852
+CD2AP,23607,6,47553900,47702606,OMIM,PMID: 12764198,glomerular disease susceptibility,others,DP_6_6_1718,31317852
+ELOVL4,6785,6,80681255,80713941,-,"PMID: 17311087, PMID: 17254625",defective skin permeability barrier function and neonatal lethality,others,DP_6_6_4116,95092966
+NT5E,4907,6,86216528,86262215,-,PMID: 12805562,Neuropathy target esterase deficiency,neurological disorders,DP_6_6_4116,95092966
+SIM1,6492,6,101018272,100943471,OMIM,"PMID: 16728530, PMID: 10587584",impaired melanocortin-mediated anorexia and activation of paraventricular nucleus neurons,others,DP_6_6_4116,95092966
+COL10A1,1300,6,116553989,116543464,OMIM,-,Schmid type metaphyseal chondrodysplasia and Japanese type spondylometaphyseal dysplasia,others,DP_6_6_4116,95092966
+PARK2,5071,6,163068793,161689661,OMIM,-,PARKINSON DISEASE 2,neurological disorders,DP_6_6_7785,170685011
+TWIST1,7291,7,19123820,19121616,OMIM,"PMID: 16540516, PMID: 16237669, PMID: 17003487, PMID: 15829502, PMID: 11854168",coronal synostosis,developmental abnormalities,DP_7_7_9044,37281773
+GLI3,2737,7,42241712,41970196,OMIM,"PMID: 15739154, PMID: 14608643, PMID: 9054938",Greig cephalopolysyndactyly and Pallister-Hall syndromes,developmental abnormalities,DP_7_7_2025,5996165
+GCK,2645,7,44195563,44150395,OMIM,-,"non-insulin dependent diabetes mellitus (NIDDM), maturity onset diabetes of the young, type 2 (MODY2) and persistent hyperinsulinemic hypoglycemia of infancy (PHHI)",others,DP_7_7_2025,5996165
+FKBP6,8468,7,72078219,72410570,OMIM,PMID: 15770126,Williams-Beuren syndrome,mental retardation,DP_7_7_4209,271401
+ELN,2006,7,73080454,73120966,OMIM,"PMID: 14556246, PMID: 10198167, PMID: 16820942, PMID: 16784071, PMID: 16476938, PMID: 12016585, PMID: 11735026, PMID: 10942104, PMID: 10885576, PMID: 10780788",cardiovascular disease and connective tissue abnormalities,others,DP_7_7_4249,1448183
+LIMK1,3984,7,73136092,73174790,-,PMID: 9637430,"Williams syndrome (WS), a neurodevelopmental disorder",mental retardation,DP_7_7_4249,1448183
+RFC2,5982,7,73306674,73283768,OMIM,-,growth deficiency as well as developmental disturbances in Williams syndrome ,growth retardation,DP_7_7_4249,1448183
+GTF3,9569,7,73506056,73654853,OMIM,PMID: 10573005,abnormal muscle fatiguability,others,DP_7_7_4249,1448183
+GTF2I,2969,7,73709966,73812958,OMIM,-,Williams-Beuren syndrome,mental retardation,DP_7_7_4249,1448183
+NCF1,653361,7,73826245,73841594,-,PMID: 15626477,autosomal recessive chronic granulomatous disease,others,DP_7_7_12437,203947
+KRIT1,889,7,91713350,91666219,OMIM,PMID: 12404106,Cerebral Cavernous Malformations (vascular malformations characterised by abnormally enlarged capillary cavities ),others,DP_7_7_13063,12978966
+COL1A2,1278,7,93861809,93898480,-,PMID: 17898012,subtle symptoms like recurrent joint subluxation or hypodontia,others,DP_7_7_13063,12978966
+SHFM1,7979,7,96156019,96177139,-,PMID: 17230488,"severe mental retardation, short stature, microcephaly and deafness",mental retardation,DP_7_7_13063,12978966
+RELN,5649,7,102899473,103417198,-,"PMID: 16376115, PMID: 11592844",Cognitive disruption and altered hippocampus synaptic function,others,DP_7_7_5243,31718983
+FOXP2,93986,7,113842288,114121063,-,PMID: 16470794,Speech and language impairment and oromotor dysprax,mental retardation,DP_7_7_5243,31718983
+CAV1,857,7,115952075,115988466,-,"PMID: 15816560, PMID: 14981899",17beta-estradiol-stimulated mammary tumorigenesis,cancer/tumorgenesis,DP_7_7_5243,31718983
+ST7,7982,7,116380617,116657313,OMIM,-,no suppression of tumor growth,cancer/tumorgenesis,DP_7_7_5243,31718983
+BRAF,673,7,140271033,140080751,OMIM,-,Cardiofaciocutaneous (CFC) syndrome,growth and mental retardation,,
+SHH,6469,7,155297728,155288319,OMIM,PMID: 10852374,"Holoprosencephaly, sacral anomalies, and situs ambiguus",others,,
+HLXB9,3110,7,156496108,156490308,OMIM,"PMID: 14663834, PMID: 12116275","Currarino syndrome including a presacral mass, sacral agenesis, and anorectal malformation",others,,
+GATA4,2626,8,11599162,11654918,OMIM,PMID: 10096597,congenital heart disease,others,DP_8_8_5239,3936454
+NKX3-1,4824,8,23592878,23596395,-,PMID: 15734999, prostate cancer,cancer/tumorgenesis,,
+FGFR1,2260,8,38445293,38389449,OMIM,-,"Pfeiffer syndrome, Jackson-Weiss syndrome, Antley-Bixler syndrome, osteoglophonic dysplasia, and autosomal dominant Kallmann syndrome 2",others,,
+CHD7,55636,8,61753893,61942019,OMIM,-,CHARGE syndrome,growth retardation,DP_8_8_6162,28183144
+CSN5,10987,8,68117871,68137116,-,PMID: 15735686,TRC8 hereditary kidney cancer,cancer/tumorgenesis,DP_8_8_6162,28183144
+EYA1,2138,8,72437021,72272222,OMIM,-,"branchiootorenal dysplasia syndrome, branchiootic syndrome, and sporadic cases of congenital cataracts and ocular anterior segment anomalies",others,DP_8_8_6162,28183144
+TRPS1,7227,8,116750402,116489900,OMIM,PMID: 11285235,dominantly inherited tricho-rhino-phalangeal (TRP) syndromes,growth retardation,,
+DMRT1,1761,9,831690,959090,OMIM,-,failure of testicular development and feminization in male,others,DP_9_9_7252,42492055
+DMRT2,10655,9,1041614,1047552,OMIM,-,defective testis formation in karyotypic males and impaired ovary function in karyotypic females,others,DP_9_9_7252,42492055
+MLLT3,4300,9,20612450,20334968,OMIM,-,"neuromotor developmental delay, cerebellar ataxia, and epilepsy",neurological disorders,DP_9_9_7252,42492055
+ARF,1029,9,21984490,21957751,OMIM,"PMID: 16199529, PMID: 12019208",acute myeloid leukemia,cancer/tumorgenesis,DP_9_9_7252,42492055
+CDKN2B,1030,9,21992909,21999312,-,PMID: 10388473, syndrome of cutaneous malignant melanoma and nervous system tumors,cancer/tumorgenesis,DP_9_9_7252,42492055
+BAG1,573,9,33242469,33254744,-,PMID: 15560850, lung tumorigenesis,tumorgenesis,DP_9_9_7252,42492055
+PAX5,5079,9,37024476,36828531,OMIM,-,pathogenesis of lymphocytic lymphomas,cancer/tumorgenesis,DP_9_9_6603,4926194
+GCNT1,2650,9,78263966,78312150,-,PMID: 16778138,T lymphoma cells resistant to cell death,others,DP_9_9_2330,18611437
+ROR2,4920,9,93365194,93752265,-,PMID: 17632781,basal cell nevus syndrome (BCNS),cancer/tumorgenesis,DP_9_9_8599,4234460
+PTCH1,5727,9,97310652,97246208,OMIM,"PMID: 11922389, PMID: 14500378",Primitive neuroectodermal tumors formation,cancer/tumorgenesis,DP_9_9_8874,2510567
+NR5A1,2516,9,126309520,126283336,OMIM,PMID: 14594453,"impaired testicular development, sex reversal, and adrenal failure ",others,,
+LMX1B,4010,9,128416619,128498551,OMIM,"PMID: 15774843, PMID: 11668639, PMID: 9837817",nail-patella syndrome,developmental abnormalities,,
+ENG,2022,9,129656805,129617115,OMIM,"PMID: 15718503, PMID: 16470589",Hereditary hemorrhagic telangiectasia type 1,developmental abnormalities,,
+TSC1,7248,9,134756557,134809841,-,PMID: 14633685,transitional cell carcinoma of the bladder,cancer/tumorgenesis,,
+COL5A1,1289,9,136673473,136876510,OMIM,"PMID: 16431952, PMID: 11391664, PMID: 10777716",Structural abnormalities of the cornea and lid,developmental abnormalities,DP_9_9_10216,2441415
+NOTCH1,4851,9,138508717,138560135,-,PMID: 16601454,aortic valve disease (cardiac malformation and aortic valve calcification),others,,
+EHMT1,79813,9,139725238,139850400,OMIM,"PMID: 16826528, PMID: 15805155",9q34 subtelomeric deletion syndrome,mental retardation,,
+KLF6,1316,10,3811260,3817455,-,PMID: 17297474,cellular growth dysregulation and tumorigenesis,cancer/tumorgenesis,,
+GATA3,2625,10,8136673,8157170,OMIM,"PMID: 17046739, PMID: 16817354, PMID: 15994092, PMID: 15705923, PMID: 11577985, PMID: 11389161","HDR (hypoparathyroidism, deafness and renal dysplasia) syndrome",others,,
+ANX7,310,10,74843831,74805210,OMIM,PMID: 14608035,tumorigenesis,cancer/tumorgenesis,DP_10_10_6926,23198693
+PTEN,5728,10,89613175,89716382,OMIM,"PMID: 16938570, PMID: 16793127, PMID: 16738322, PMID: 16288012, PMID: 16027169, PMID: 15466193, PMID: 15001465, PMID: 12569555, PMID: 12461751, PMID: 11553783, PMID: 9697695, PMID: 12011252",prostate cancer high-grade prostatic intra-epithelial neoplasias,cancer/tumorgenesis,,
+PAX2,5076,10,102495322,102579688,OMIM,PMID: 14569086,renal-coloboma syndrome,others,,
+FGF8,2253,10,103519877,103525817,-,PMID: 17448458,several human craniofacial disorders,others,,
+BUB3,9184,10,124903860,124914869,-,PMID: 16600919,short life span that is associated with the early onset of aging-related features,others,,
+CDKN1C,1028,11,2863551,2861441,OMIM,PMID: 10424812,Beckwith-Wiedemann syndrome,cancer/tumorgenesis,DP_11_11_4858,69315946
+NUP98,4928,11,3775468,3652816,OMIM,-,destruction of securin in mitosis,others,DP_11_11_394,63659827
+PAX6,5080,11,31789455,31767034,OMIM,"PMID: 16866875, PMID: 16719277, PMID: 16717455, PMID: 15480875, PMID: 15057935, PMID: 12782766, PMID: 12552561, PMID: 11920832, PMID: 11431688, PMID: 16646034",eye diseases,others,DP_11_11_394,63659827
+WT1,7490,11,32365897,32413663,-,"PMID: 8827067, PMID: 17931563",congenital genitourinary (GU) anomalies and/or bilateral disease and tumorigenesis,cancer/tumorgenesis,DP_11_11_394,63659827
+EXT2,2132,11,44073675,44223555,-,PMID: 11137991,type II form of multiple exostoses,developmental abnormalities,DP_11_11_394,63659827
+ALX4,60529,11,44288292,44242734,OMIM,"PMID: 15057119, PMID: 9636085","Tibial aplasia, lower extremity mirror image polydactyly, brachyphalangy, craniofacial dysmorphism and genital hypoplasia",others,DP_11_11_394,63659827
+FEN1,2237,11,61316726,61321286,OMIM,PMID: 16978612,neuromuscular and neurodegenerative diseases,mental retardation,DP_11_11_6101,33754378
+SF1,7536,11,64288654,64302817,-,"PMID: 17940071, PMID: 17200175",mild gonadal dysgenesis and impaired androgenization,others,DP_11_11_6101,33754378
+FGF3,2248,11,69333917,69343129,-,PMID: 17656375,otodental syndrome,others,DP_11_11_6624,3471286
+FZD4,8322,11,86334370,86344081,-,PMID: 17103440,"complex chromosome rearrangement with multiple abnormalities including growth retardation, facial anomalies, exudative vitreoretinopathy (EVR), cleft palate, and minor digital anomalies",growth retardation,DP_11_11_6101,33754378
+ATM,472,11,107598769,107745036,OMIM,"PMID: 10571946, PMID: 10363981",High incidence of cancer ,cancer/tumorgenesis,,
+H2AX,3014,11,118471387,118469794,OMIM,PMID: 12914700,"genomic instability, early onset of various tumors ",cancer/tumorgenesis,,
+FLI1,2313,11,128069199,128187520,-,PMID: 15525489,Paris-Trousseau thrombopenia,others,,
+NFRKB,4798,11,129238888,129267993,-,PMID: 11920839," cellular immunodeficiency, pancytopenia, malformations",others,,
+PHB2,11331,12,6950152,6944778,OMIM,-,enhanced estrogen receptor function ,others,,
+ETV6,2120,12,11694055,11939588,-,PMID: 16643428,a paediatric pre-B acute lymphoblastic leukaemia,cancer/tumorgenesis,DP_12_12_8317,21530205
+CDKN1B,1027,12,12761576,12766569,-,"PMID: 16951165, PMID: 11042700, PMID: 10935480",ErbB2-induced mammary tumor growth,cancer/tumorgenesis,DP_12_12_8317,21530205
+COL2A1,1280,12,46684528,46653018,OMIM,PMID: 10819645,Stickler syndrome,others,DP_12_12_8239,42300465
+KRT5,3852,12,51200510,51194628,OMIM,-,epidermolysis bullosa simplex,others,,
+MYF6,4618,12,79625577,79627382,OMIM,PMID: 11053684,myopathy and severe course of Becker muscular dystrophy,others,,
+IGF1,3479,12,101398454,101313806,OMIM,PMID: 15769976,subtle inhibition of intrauterine and postnatal growth,others,,
+SERCA2,488,12,109203815,109273278,OMIM,"PMID: 17116488, PMID: 16204033, PMID: 11389134",colon and lung cancer,cancer/tumorgenesis,DP_12_12_12439,11019754
+TBX5,6910,12,113330630,113276118,OMIM,"PMID: 15289437, PMID: 12789647, PMID: 12736217, PMID: 11572777",maturation failure of conduction system morphology and function in Holt-Oram syndrome,others,DP_12_12_12439,11019754
+TBX3,6926,12,113606352,113592442,OMIM,"PMID: 17265068, PMID: 16896345, PMID: 12668170, PMID: 12376101, PMID: 12116211",ulnar-mammary syndrome,others,DP_12_12_12439,11019754
+HNF1A,6927,12,119900932,119924698,OMIM,"PMID: 14633861, PMID: 12530534",reduced serum apolipoprotein M levels,others,DP_12_12_12439,11019754
+BRCA2,675,13,31787617,31871809,-,PMID: 15172125,"predisposed to breast, ovarian, pancreatic and other cancers",cancer/tumorgenesis,DP_13_13_268,15863359
+FKHR,2308,13,40138734,40027817,OMIM,PMID: 15489287,Alveolar rhabdomyosarcomas,others,DP_13_13_268,15863359
+RB1,5925,13,47775912,47954023,OMIM,PMID: 12531801,Metaphase cytogenetic abnormalities,others,DP_13_13_907,11390387
+ZIC2,7546,13,99432320,99437020,OMIM,"PMID: 11699604, PMID: 11285244","neurological disorderss, behavioral abnormalities ",mental retardation,,
+LIG4,3981,13,107665883,107657791,OMIM,-,"LIG4 syndrome, nonlymphoid tumorigenesis",cancer/tumorgenesis,,
+COCH,1690,14,30413516,30429573,OMIM,PMID: 16078052,unknown,unknown,,
+NPAS3,64067,14,32478200,33343133,-,PMID: 12746393,schizophrenia,neurological disorders,,
+NKX2-1,7080,14,36058654,36055353,OMIM,-,"Choreoathetosis, hypothyroidism, pulmonary alterations, neurologic phenotype and secondary hyperthyrotropinemia, and diseases due to transcription factor defects ",neurological disorders,,
+PAX9,5083,14,36200656,36215621,OMIM,"PMID: 16479262, PMID: 16333316, PMID: 11941488, PMID: 11781684",posterior tooth agenesis,others,,
+BMP4,652,14,53486207,53493362,-,PMID: 16835935,"a contiguous gene syndrome comprising anophthalmia, pituitary hypoplasia, and ear anomalies",others,,
+GCH1,2643,14,54439292,54378473,OMIM,-,malignant hyperphenylalaninemia and dopa-responsive dystonia,others,,
+SIX6,4990,14,60045775,60048278,OMIM,PMID: 10512683,bilateral anophthalmia and pituitary anomalies,others,,
+RAD51B,5890,14,67356262,68132367,-,PMID: 16778173,centrosome fragmentation and aneuploidy,others,,
+BCL11B,64919,14,98705377,98807614,-,PMID: 17306224,suppression of lymphomagenesis and thymocyte development,others,,
+SPRED1,161742,15,36331808,36433533,OMIM,-,neurofibromatosis type 1-like syndrome ,cancer/tumorgenesis,DP_15_15_8465,31681057
+BUBR1,701,15,38240530,38300629,OMIM,PMID: 14744753,enhanced tumor development,cancer/tumorgenesis,DP_15_15_8465,31681057
+DLL4,54567,15,39008839,39018529,OMIM,-,embryonic lethality due to major defects in arterial and vascular development,others,DP_15_15_8465,31681057
+FBN1,2200,15,46725210,46487797,OMIM,-,"Marfan syndrome, isolated ectopia lentis, autosomal dominant Weill-Marchesani syndrome, MASS syndrome, and Shprintzen-Goldberg craniosynostosis syndrome",others,DP_15_15_8465,31681057
+ALDH1A2,8854,15,56145198,56032919,OMIM,-,facilitate posterior organ development and prevent spina bifida,others,DP_15_15_10174,19307026
+TPM1,7168,15,61121891,61151167,OMIM,-,type 3 familial hypertrophic cardiomyopathy,others,DP_15_15_10174,19307026
+P450SCC,1583,15,72447020,72417157,OMIM,PMID: 11502818,"46,XY sex reversal and adrenal insufficiency",others,DP_15_15_10476,1120585
+BLM,641,15,89061606,89159602,OMIM,PMID: 12242442,the autosomal recessive disorder Bloom syndrome,mental retardation ,DP_15_15_12496,11484318
+COUP-TFII,7026,15,94670543,94684496,-,PMID: 15384084,"several malformations,  pre- and postnatal growth retardation and developmental ",growth retardation,DP_15_15_12496,11484318
+SOX8,30812,16,971809,976980,OMIM,-,the mental retardation found in ATR-16 syndrome,mental retardation,,
+TSC2,7249,16,2037991,2078713,-,"PMID: 16027168, PMID: 12100629",the differential cancer susceptibility,cancer/tumorgenesis,,
+PKD1,5310,16,2125900,2078712,OMIM,-,autosomal dominant polycystic kidney disease,others,DP_16_16_4638,12806239
+CBP,1387,16,3870712,3716568,OMIM,PMID: 11962765,Rubinstein-Taybi syndrome,mental retardation,DP_16_16_4642,12784300
+SOCS1,8651,16,11257540,11255775,OMIM,PMID: 15197228,severe liver fibrosis and hepatitis-induced carcinogenesis,cancer/tumorgenesis,DP_16_16_4642,12784300
+PRM2,5620,16,11277838,11276994,OMIM,-,infertility ,others,DP_16_16_4642,12784300
+PRM1,5619,16,11282684,11282200,OMIM,-,infertility ,others,DP_16_16_4642,12784300
+ABCC6,368,16,16224815,16151491,OMIM,-,pseudoxanthoma elasticum,others,DP_16_16_5172,954302
+ERAF,51327,16,31446704,31447625,OMIM,-,subtle erythroid phenotype,others,DP_16_16_1966,38387280
+SALL1,6299,16,49742653,49727830,OMIM,PMID: 16429401,Townes-Brocks syndrome,developmental abnormalities/ mental retardation,DP_16_16_1966,38387280
+CBFB,865,16,65620551,65692462,OMIM,PMID: 17022082,"delayed cranial ossification, cleft palate, congenital heart anomalies, and feeding difficulties",others,DP_16_16_1966,38387280
+CTCF,10664,16,66153965,66230584,-,"PMID: 17962299, PMID: 15761865",loss of imprinting of insulin-like growth factor-II in Wilms tumor,cancer/tumorgenesis,DP_16_16_1966,38387280
+WWOX,51741,16,76691052,77024150,OMIM,PMID: 17575124,initiation of tumor development,cancer/tumorgenesis,DP_16_16_5987,56263547
+FOXF1,2294,16,85101659,85105548,OMIM,PMID: 11943666,defects in formation and branching of primary lung buds,others,DP_16_16_5987,56263547
+FOXC2,2303,16,85158443,85159948,OMIM,"PMID: 16910099, PMID: 16081467, PMID: 15624441, PMID: 12719382, PMID: 11694548, PMID: 11078474",the lymphatic/ocular disorder Lymphedema-Distichiasis,others,DP_16_16_5987,56263547
+YWHAE,7531,17,1250267,1194590,OMIM,-,pathogenesis of small cell lung cancer,cancer/tumorgenesis,,
+HIC1,3090,17,1905013,1909070,-,PMID: 16724116,Miller-Dieker syndrome,growth and mental retardation,,
+LIS1,5048,17,2443686,2535638,OMIM,"PMID: 17148952, PMID: 16642511, PMID: 9760204","abnormal cell proliferation, migration and differentiation in the adult dentate gyrus",cancer/tumorgenesis,,
+P53,7157,17,7512445,7531642,-,"PMID: 15583690, PMID: 12517413, PMID: 12467136, PMID: 11695559, PMID: 11532857, PMID: 11319275",male oral squamous cell carcinomas,cancer/tumorgenesis,DP_17_17_407,11617447
+PMP22,5376,17,15073822,15109369,-,PMID: 15955700,hereditary neuropathy with liability to pressure palsies,neurological disorders,DP_17_17_809,1372861
+COPS3,8533,17,17125316,17090864,OMIM,PMID: 10851253,Circadian rhythm abnormalities of melatonin in Smith-Magenis syndrome,others,DP_17_17_6383,1565153
+RAI1,10743,17,17525512,17655492,OMIM,"PMID: 17041942, PMID: 17024248, PMID: 16845274, PMID: 15690371, PMID: 15565467",Smith-Magenis syndrome,mental retardation,DP_17_17_6383,1565153
+TOP3A,7156,17,18159046,18117960,OMIM,-,Smith-Magenis syndrome ,mental retardation,DP_17_17_6383,1565153
+SHMT1,6470,17,18207581,18171912,OMIM,-,Smith-Magenis syndrome,mental retardation,DP_17_17_6383,1565153
+RNF135,84282,17,26322082,26351051,-,PMID: 17632510,phenotypic abnormalities including overgrowth,others,DP_17_17_2028,402753
+NF1,4763,17,26446243,26725590,OMIM,"PMID: 16893911, PMID: 16835260, PMID: 15804420, PMID: 15676286, PMID: 15103551, PMID: 12124168, PMID: 9187663, PMID: 17103458",neurofibromatosis type 1,mental retardation,DP_17_17_7158,970212
+SUZ12,23512,17,27288185,27352162,OMIM,-,mental impairment in constitutional NF1 microdeletions,mental retardation,DP_17_17_7158,970212
+MEL-18,7703,17,34143676,34158084,-,PMID: 12196719,breast carcinogenesis,cancer/tumorgenesis,DP_17_17_7662,9182686
+KLHL10,317719,17,37247607,37258123,OMIM,-,disrupted spermiogenesis,others,DP_17_17_7662,9182686
+STAT5B,6777,17,37604722,37681950,-,PMID: 15870688,striking amelioration of IL-7-induced mortality and disease development,others,DP_17_17_7907,72069
+STAT5A,6776,17,37693091,37717484,-,PMID: 15870688,striking amelioration of IL-7-induced mortality and disease development,others,DP_17_17_7907,72069
+BECN1,8678,17,38229807,38215678,OMIM,-,"autophagy function, and tumor suppressor function",cancer/tumorgenesis,DP_17_17_7662,9182686
+BRCA1,672,17,38449840,38530994,-,"PMID: 17420720, PMID: 17404506, PMID: 15289302",shortened life span and  ovarian tumorigenesis,cancer/tumorgenesis,DP_17_17_7662,9182686
+PGRN,2896,17,39778017,39785996,OMIM,"PMID: 17168647, PMID: 16862115",neurodegeneration,mental retardation,DP_17_17_3011,2385227
+MAPT,4137,17,41327624,41461547,OMIM,-,"neuronal cell death, neurodegenerative disorders such as Alzheimer's disease, Pick's disease, frontotemporal dementia, cortico-basal degeneration and progressive supranuclear palsy",neurological disorders,DP_17_17_8127,589235
+CSH1,1442,17,59303288,59327647,-,PMID: 14642004,Silver-Russell syndrome ,others,DP_17_17_3671,216
+POLG2,11232,17,59923631,59904364,OMIM,-,mtDNA deletions causes COX deficiency in muscle fibers and results in the clinical phenotype,others,DP_17_17_8279,17775456
+PRKAR1A,5573,17,64019705,64040506,OMIM,PMID: 15371594,"Carney complex, a familial multiple neoplasia syndrome ",cancer/tumorgenesis,DP_17_17_6470,53299484
+SOX9,6662,17,67628756,67634156,OMIM,"PMID: 17142326, PMID: 11606049, PMID: 8894698, PMID: 8001137",skeletal dysplasias,cancer/tumorgenesis,DP_17_17_6470,53299484
+NHERF1,9368,17,70256363,70277084,-,PMID: 17078868,breast tumours,cancer/tumorgenesis,DP_17_17_6470,53299484
+FSCN2,25794,17,77110153,77114582,-,PMID: 16043865,"photoreceptor degeneration, autosomal dominant retinitis pigmentosa",others,,
+DSG1,1828,18,27152050,27190457,OMIM,PMID: 17194569,diseases of epidermal integrity,others,,
+DSG2,1829,18,27332203,27380855,OMIM,-,ARRHYTHMOGENIC RIGHT VENTRICULAR DYSPLASIA,others,,
+TCF4,6925,18,51406440,51045967,OMIM,PMID: 17478476,"Pitt-Hopkins syndrome, a syndromic mental disorder",mental retardation,,
+FECH,2235,18,53366535,53404988,-,PMID: 10068685,protoporphyria,others,,
+MC4R,4160,18,56190562,56189564,OMIM,"PMID: 12851322, PMID: 12639913, PMID: 10598807",increased adiposity and linear growth,others,,
+GALR1,2587,18,73090721,73111081,OMIM,-,uncontrolled proliferation and neoplastic transformation,others,,
+SALL3,27164,18,74841263,74859182,OMIM,-,18q deletion syndrome,others,,
+LKB1,6794,19,1156798,1179434,OMIM,PMID: 12218179,Peutz-Jeghers syndrome,cancer/tumorgenesis,DP_19_19_13412,63582919
+PNPLA6,10908,19,7505043,7532652,-,PMID: 15094302,organophosphorus-induced hyperactivity and toxicity,others,DP_19_19_13412,63582919
+RYR1,6261,19,43616180,43770012,OMIM,-,"malignant hyperthermia susceptibility, central core disease, and minicore myopathy with external ophthalmoplegia",others,DP_19_19_13412,63582919
+TGFB1,7040,19,46528491,46551656,-,PMID: 17114585,Aggressive pancreatic ductal adenocarcinoma,cancer/tumorgenesis,DP_19_19_13412,63582919
+RPS19,6223,19,47055828,47067324,OMIM,-,Diamond-Blackfan anemia,others,DP_19_19_13412,63582919
+DMPK,1760,19,50977576,50964815,OMIM,PMID: 10021468,cardiac disease in myotonic dystrophy,others,DP_19_19_13412,63582919
+CRX,1406,19,53016911,53038393,-,PMID: 10892846,"photoreceptor degeneration, Leber congenital amaurosis type III and the autosomal dominant cone-rod dystrophy 2",others,DP_19_19_13412,63582919
+PRPF31,26121,19,59310649,59326954,OMIM,-,retinitis pigmentosa with reduced penetrance,others,DP_19_19_13412,63582919
+JAG1,182,20,10602590,10566334,OMIM,"PMID: 11861489, PMID: 11139239, PMID: 10590916, PMID: 17786115, PMID: 11152664, PMID: 10534349",Alagille syndrome,mental retardation,,
+PAX1,5075,20,21634364,21644620,OMIM,PMID: 12774041,Klippel-Feil syndrome,others,,
+GDF5,8200,20,33489441,33484563,OMIM,"PMID: 16532400, PMID: 12357473",Multiple-synostosis syndrome,mental retardation,,
+HNF4A,3172,20,42417855,42493444,-,PMID: 10905494,monogenic autosomal dominant non-insulin-dependent diabetes mellitus type I,others,,
+SALL4,57167,20,49852421,49833988,OMIM,PMID: 16790473,Okihiro syndrome,developmental abnormalities,,
+MC3R,4159,20,54257196,54258278,OMIM,-,susceptibility to obesity,others,,
+RAE1,8480,20,55359552,55386926,OMIM,PMID: 16355229,"premature separation of sister chromatids, severe aneuploidy and untimely degradation of securin",others,,
+GNAS,2778,20,56848190,56919642,OMIM,"PMID: 17652219, PMID: 15579796",reduced activation of a downstream target in epithelial tissues,others,,
+EDN3,1908,20,57308894,57334442,OMIM,-,Hirschsprung disease,others,,
+KCNQ2,3785,20,61574437,61507986,OMIM,PMID: 12700166,epilepsy susceptibility,neurological disorders,,
+SOX18,54345,20,62149525,62151426,-,PMID: 17290276,mental retardation,mental retardation,,
+SLC5A3,6526,21,34389368,34391524,OMIM,-,brain inositol deficiency ,others,,
+RUNX1,861,21,35343465,35081968,OMIM,"PMID: 17394134, PMID: 16364766, PMID: 15339695, PMID: 15061191, PMID: 11830488, PMID: 11721958, PMID: 15297309, PMID: 14556655, PMID: 11756147, PMID: 10684580",The 8p11 myeloproliferative syndrome,others,,
+DYRK1A,1859,21,37661729,37809347,OMIM,PMID: 12192061,"neurological defects, developmental delay ",growth retardation/ mental retardation,,
+COL6A1,1291,21,46226091,46249391,OMIM,-,"autosomal dominant disorder, Bethlem myopathy",neurological disorders,,
+PRODH,5625,22,17280295,17304066,-,PMID: 17028864,22q11 Deletion syndrome,mental retardation,DP_22_22_2080,1376989
+DGCR2,9993,22,17489904,17403798,OMIM,-,DiGeorge syndrome,mental retardation,DP_22_22_2085,1285316
+HIRA,7290,22,17799219,17698224,OMIM,"PMID: 9063745, PMID: 8111380","DiGeorge syndrome (cranio-facial, cardiac and thymic malformations)",mental retardation,DP_22_22_2085,1285316
+TBX1,6899,22,18124226,18151116,OMIM,"PMID: 16969581, PMID: 16684884, PMID: 15778864, PMID: 12539040, PMID: 12351571, PMID: 11242049",22q11 deletion syndrome and schizophrenia,mental retardation,DP_22_22_2085,1285316
+COMT,1312,22,18309309,18336530,OMIM,PMID: 16848928,22q11.2 deletion syndrome,mental retardation,DP_22_22_2085,1285316
+RTN4R,65078,22,18635816,18608938,OMIM,-,schizophrenia susceptibility (schizoaffective disorders are common features in patients with DiGeorge/velocardiofacial syndrome),others,DP_22_22_2085,1285316
+PCQAP,51586,22,19191886,19271918,-,PMID: 11414760,DiGeorge syndrome,others,DP_22_22_186,609206
+LZTR1,8216,22,19666656,19683326,OMIM,-,DiGeorge syndrome,mental retardation,DP_22_22_2189,372527
+INI1,6598,22,22459150,22506705,OMIM,PMID: 16912184,pituitary tumorigenesis,cancer/tumorgenesis,DP_22_22_2376,973093
+MYH9,4627,22,35113927,35007272,OMIM,PMID: 16162639,hematological abnormalities,others,DP_22_22_944,11901937
+SOX10,6663,22,36710485,36698265,OMIM,PMID: 11641219,the etiology of Waardenburg/Hirschsprung disease,others,DP_22_22_944,11901937
+FBLN1,2192,22,44277383,44375678,OMIM,-,limb malformations,others,DP_22_22_2089,27795814
+PPARA,5465,22,44925163,45018317,OMIM,-,prostate cancer,cancer/tumorgenesis,DP_22_22_2089,27795814
+PROSAP2,85358,22,49459936,49518507,OMIM,"PMID: 11431708, PMID: 12065602","The terminal 22q13.3 deletion syndrome, characterized by severe expressive-language delay, mild mental retardation, hypotonia, joint laxity, dolichocephaly, and minor facial dysmorphisms",mental retardation,,
+SHOX,6473,X,505079,540146,OMIM,"PMID: 17881654, PMID: 17726696, PMID: 16776105, PMID: 16319696, PMID: 15356038, PMID: 15173321, PMID: 15118270, PMID: 14981722, PMID: 14557470, PMID: 14513876, PMID: 14513875, PMID: 12673642, PMID: 12510982, PMID: 12439897, PMID: 12116254, PMID: 12035792, PMID: 11889214, PMID: 11701728, PMID: 11546827, PMID: 11523902, PMID: 11503163, PMID: 11408757, PMID: 11134233, PMID: 10905666, PMID: 10878753, PMID: 10842291, PMID: 10798359, PMID: 10749976, PMID: 10599728","congenital form of growth failure, the aetiology of ""idiopathic"" short stature and the growth deficits and skeletal anomalies in Leri Weill, Langer and Turner syndrome",growth retardation,,
+P2RY8,286530,X,1616000,1541465,OMIM,PMID: 15466006,mentally retarded males,mental retardation,,
+NLGN4X,57502,X,6156706,5818083,OMIM,-,autism and Asperger syndrome,neurological disorders,,
+TRAPPC2,6399,X,13662648,13640282,OMIM,-,spondyloepiphyseal dysplasia tarda ,cancer/tumorgenesis,,
+RPS4X,6191,X,71413866,71409178,OMIM,-,unknown,unknown,,
+CSF2RA,1438,X,1347693,1388827,-,PMID: 8950669,growth deficiency,growth retardation,,

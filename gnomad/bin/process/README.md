@@ -17,11 +17,24 @@ Overview:
 ```
 #### Examples
 ```
+Main analyses:
 - All populations and all filters used (keep PASS only, no segdup, no lcr)
-[sbatch] ./process_all_chr.sh gnomad ../../vcf 1 1 1
+[sbatch] ./process_all_chr.sh gnomad ../../vcf 1 1 1 all
 
+- All populations and all filters used (keep PASS only, no segdup, no lcr) -- and only non_coding variants
+[sbatch] ./process_all_chr.sh gnomad ../../vcf-non_coding 1 1 1 all non_coding
+
+- All populations and all filters used (keep PASS only, no segdup, no lcr) -- and only coding variants
+[sbatch] ./process_all_chr.sh gnomad ../../vcf-coding 1 1 1 all coding
+
+
+
+Other examples:
 - All populations and no filters
-[sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0
+[sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0 all
+
+- All populations and no filters and keep only non_coding variants
+[sbatch] ./process_all_chr.sh gnomad ../../vcf-non_coding 0 0 0 all non_coding
 
 - Finnish population (and no filters)
 [sbatch] ./process_all_chr.sh gnomad ../../vcf 0 0 0  FIN
@@ -37,4 +50,10 @@ Overview:
 
 e.g.
 sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all-PASS_ONLY-NO_SEGDUP-NO_LCR all
+
+# non_coding
+sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all-non_coding-PASS_ONLY-NO_SEGDUP-NO_LCR all
+
+# coding
+sbatch keep_gwrvis_high_conf_regions.sh gnomad ../../out/gnomad-filtered_variant_tables-all-coding-PASS_ONLY-NO_SEGDUP-NO_LCR all
 ```

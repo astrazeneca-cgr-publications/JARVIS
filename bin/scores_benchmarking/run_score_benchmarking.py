@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import sys, os
 import subprocess
+import operator
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, auc
@@ -24,11 +25,19 @@ class ScoreBenchmark:
 
 		self.score = score
 		self.out_dir = out_dir 
-		self.benchmark_dir = self.get_benchmark_dir_for_score(self.score)
 
 		self.roc_curve_data_per_class = {}
 		self.dens_plot_data_per_class = {}
 		
+		self.multiple = False
+		self.primary_score = self.score
+		if 'gwrvis+' in self.score:
+			self.multiple = True
+			self.primary_score = self.score.replace('gwrvis+', '')
+		
+		self.benchmark_dir = self.get_benchmark_dir_for_score(self.primary_score)
+
+
 
 	def get_benchmark_dir_for_score(self, score):
 
@@ -51,7 +60,7 @@ class ScoreBenchmark:
 		benchmark_dir = self.get_benchmark_dir_for_score('gwrvis')
 		
 		gwrvis_clinvar_subset_file = benchmark_dir + '/gwrvis.clinvar_' + variant_type + '.bed'
-		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../../other_datasets/clinvar/clinvar.' + variant_type + '.bed > ' + gwrvis_clinvar_subset_file
+		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../../other_datasets/clinvar/clinvar.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -76,9 +85,10 @@ class ScoreBenchmark:
 		
 			
 		clinvar_subset_file = self.benchmark_dir + '/' + self.score + '.clinvar_' + variant_type + '.bed'
-		score_dir = '../../other_datasets/' + self.score
+		score_dir = '../../other_datasets/genome-wide-scores/' + self.primary_score
 
-		cmd = 'intersectBed -wo -a ' + score_dir + '/' + self.score + '.clinvar_' + variant_type + '.bed -b ' + gwrvis_clinvar_subset_file + ' | cut -f1,2,3,4,10 > ' + clinvar_subset_file
+		# Keeping only the intervals of the score-of-interest that overlap with gwRVIS annotations (no additional regions from gwRVIS are inserted)
+		cmd = 'intersectBed -wo -a ' + score_dir + '/' + self.primary_score + '.clinvar_' + variant_type + '.bed -b ' + gwrvis_clinvar_subset_file + ' | cut -f1,2,3,4,9,10 > ' + clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -95,7 +105,11 @@ class ScoreBenchmark:
 
 	def fit_logit_regression(self, df):
 
-		X = df['score'].values.reshape(-1, 1)
+		if self.multiple:
+			print('> Fitting multiple logistic regression...')
+			X = df[['score', 'gwrvis']].values
+		else:
+			X = df['score'].values.reshape(-1, 1)
 		y = df['pathogenic'].values
 
 		# logistic regression
@@ -112,7 +126,7 @@ class ScoreBenchmark:
 
 		fpr, tpr, thresholds = roc_curve(df['pathogenic'], df['pred_gene_class_prob'])
 		roc_auc = round(auc(fpr, tpr), 3)
-		print("Area under the ROC curve : %f" % roc_auc)
+		print("AUC : %f" % roc_auc)
 
 		# Plot ROC curve
 		fig, ax = plt.subplots(figsize=(10, 10))
@@ -135,11 +149,8 @@ class ScoreBenchmark:
 
 
 
-	def run_logistic_regression(self, pathogenic, benign, genomic_class):
+	def run_logistic_regression(self, pathogenic_df, benign_df, genomic_class):
 
-		pathogenic_df = pd.DataFrame(pathogenic, columns=['score'])
-		benign_df = pd.DataFrame(benign, columns=['score'])
-			
 		pathogenic_df['pathogenic'] = 1
 		benign_df['pathogenic'] = 0
 
@@ -154,8 +165,10 @@ class ScoreBenchmark:
 
 
 	def plot_clinvar_densities(self, pathogenic, benign, genomic_class):
-
 		try:
+			pathogenic = pathogenic.loc[:, 'score'].tolist()
+			benign = benign.loc[:, 'score'].tolist()
+			
 			fig, ax = plt.subplots(figsize=(10, 10))
 
 			sns.distplot(pathogenic, hist=False, kde=True, label='pathogenic (' + str(len(pathogenic)) + ')')
@@ -180,12 +193,14 @@ class ScoreBenchmark:
 
 
 		pathogenic_df = pd.read_csv(pathogenic_file, header=None, sep='\t')
-		pathogenic_df.columns = ['chr', 'start', 'end', 'score', 'genomic_class']
 		benign_df = pd.read_csv(benign_file, header=None, sep='\t')
-		benign_df.columns = ['chr', 'start', 'end', 'score', 'genomic_class']
+
+		pathogenic_df.columns = ['chr', 'start', 'end', 'score', 'gwrvis', 'genomic_class']
+		benign_df.columns = ['chr', 'start', 'end', 'score', 'gwrvis', 'genomic_class']
 
 		pathogenic_df.dropna(inplace=True)
 		benign_df.dropna(inplace=True)
+
 
 		genomic_classes = list(set(pathogenic_df['genomic_class']) & set(benign_df['genomic_class']))
 
@@ -194,8 +209,8 @@ class ScoreBenchmark:
 		for genomic_class in genomic_classes:
 			print('\nGenomic class:', genomic_class)
 			try:	
-				pathogenic = pathogenic_df.loc[ pathogenic_df['genomic_class'] == genomic_class, 'score'].tolist()
-				benign = benign_df.loc[ benign_df['genomic_class'] == genomic_class, 'score'].tolist()
+				pathogenic = pathogenic_df.loc[ pathogenic_df['genomic_class'] == genomic_class, ['score', 'gwrvis'] ]
+				benign = benign_df.loc[ benign_df['genomic_class'] == genomic_class, ['score', 'gwrvis'] ]
 				print('Pathogenic:', len(pathogenic))
 				print('Benign:', len(benign))
 			except Exception as e:
@@ -209,7 +224,7 @@ class ScoreBenchmark:
 
 			roc_fig, roc_auc = self.run_logistic_regression(pathogenic, benign, genomic_class)
 
-			pp = PdfPages(self.benchmark_dir + '/Logistic_Regression_ROC.AUC_' + str(roc_auc) + '.' + genomic_class + '.pdf')
+			pp = PdfPages(self.benchmark_dir + '/' + self.score + '.Logistic_Regression_ROC.AUC_' + str(roc_auc) + '.' + genomic_class + '.pdf')
 			pp.savefig(roc_fig)
 			pp.savefig(dens_fig)
 			pp.close()
@@ -221,13 +236,30 @@ def plot_multiple_roc_curves(roc_curve_data_per_score, out_dir):
 	if not os.path.exists(all_bennchmark_dir):
 		os.makedirs(all_bennchmark_dir)
 
-	colors = sns.color_palette("hls", 8).as_hex()
+	colors = sns.color_palette("Paired", 12).as_hex()
 	
-
+	# get all genomic classes	
 	genomic_classes = []
 	for score in roc_curve_data_per_score.keys():
 		genomic_classes.extend(list(roc_curve_data_per_score[score].keys()))
 	genomic_classes = list(set(genomic_classes))
+
+
+	# get scores ordered by AUC for each genomic class
+	ordered_scores_per_genomic_class = {}
+	for genomic_class in genomic_classes:
+		tmp_dict = {}
+		for score in roc_curve_data_per_score.keys():
+
+			try:
+				roc_auc, _, _ = roc_curve_data_per_score[score][genomic_class]
+				tmp_dict[score] = roc_auc
+			except:
+				print('[Warning] No ' + genomic_class + ' elements available for ' + score + ' score - Skipped.')
+
+		sorted_scores = sorted(tmp_dict.items(), key=operator.itemgetter(1), reverse=True)
+		ordered_scores_per_genomic_class[genomic_class] = sorted_scores
+
 
 	all_scores = list(roc_curve_data_per_score.keys())
 	class_colors = dict( zip(all_scores, colors[:len(all_scores)]) )
@@ -237,16 +269,17 @@ def plot_multiple_roc_curves(roc_curve_data_per_score, out_dir):
 	for genomic_class in genomic_classes:
 		fig, ax = plt.subplots(figsize=(10, 10))
 
-		for score in roc_curve_data_per_score.keys():
+		for score, auc in ordered_scores_per_genomic_class[genomic_class]:
+			try:
+				roc_auc, fpr, tpr = roc_curve_data_per_score[score][genomic_class]
+				
+				plt.plot(fpr, tpr, color=class_colors[score],
+					 lw=1.5, label=score +' (AUC = %0.3f)' % roc_auc)
+			except Exception as e:
+				print('[Warning] Omitting ROC curve for ' + score + 'in genomic class: ' + genomic_class)
+				
 
-			roc_auc, fpr, tpr = roc_curve_data_per_score[score][genomic_class]
-
-			plt.plot(fpr, tpr, color=class_colors[score],
-				 lw=2, label=score +' (AUC = %0.3f)' % roc_auc)
-
-
-			plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-
+		plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
 		plt.xlim([0.0, 1.0])
 		plt.ylim([0.0, 1.05])
 		plt.xlabel('False Positive Rate')
@@ -264,14 +297,18 @@ if __name__ == '__main__':
 	
 	config_file = sys.argv[1]
 
+
 	out_dir = create_out_dir(config_file)
 	out_dir = '../' + out_dir + '/full_genome_out'
 
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}
 
+	all_scores = ['phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+	#all_scores = ['orion']
 
-	for score in ['gwrvis', 'orion']:
+
+	for score in all_scores:
 		print('\n\n----------------\n' + score + '\n\n')
 
 		score_obj = ScoreBenchmark(score, out_dir)
@@ -284,5 +321,3 @@ if __name__ == '__main__':
 		dens_plot_data_per_score[score] = score_obj.dens_plot_data_per_class
 
 	plot_multiple_roc_curves(roc_curve_data_per_score, out_dir)
-
-	print(dens_plot_data_per_score.keys())

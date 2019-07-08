@@ -59,7 +59,8 @@ all_chrs = seq(1,22)
 
 total_df_file = paste(input_path, 'total_df.Xy.tsv', sep='/')
 
-if(!file.exists(total_df_file)){
+# DEBUG
+if(T){ #!file.exists(total_df_file)){
 	all_chrs = vector()
 
 	for(file in files){

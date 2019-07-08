@@ -31,3 +31,12 @@ Output:
 
 Output:
 - `high_cov_bed_files-min_depth[min_depth]` under `../coverage-files`
+
+
+
+# --------------------------------------------------------
+# Filter (retain) coding or non-coding only variants from gnomAD
+```
+sbatch ./filter_coding_gnomad_regions.sh coding
+sbatch ./filter_coding_gnomad_regions.sh non_coding
+```

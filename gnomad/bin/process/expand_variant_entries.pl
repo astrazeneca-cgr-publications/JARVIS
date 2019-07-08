@@ -20,7 +20,7 @@ while(my $line = <FH>){
 	
 	if($cnt == 0){	
 		if($line ne "POS\tREF\tALT\tQUAL\tAC\tAF\tAN\tDP\n"){
-			die "[Error]: incorrect header in input file '$file'.\n    >> Please make sure the 1st line of your input file is:\n    POS     REF     ALT     QUAL    AC	AF	AN	DP\n    (tab-separated)\n";
+			print "[Warning]: incorrect/non-existent header in input file '$file'.\n    >> Please make sure the 1st line of your input file is:\n    POS     REF     ALT     QUAL    AC	AF	AN	DP\n    (tab-separated) or the header line was knowingly ommited.\n";
 		}
 		print OUT $line;
 		$cnt++;	

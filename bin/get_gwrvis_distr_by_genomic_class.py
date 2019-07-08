@@ -81,7 +81,6 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 	res = res.decode('utf-8')
 	DATA = StringIO(res)
 	
-	
 	# Store windows and respective gwRVIS scores for current genomic class and chromosome into a bed file
 	gwrvis_for_cur_class = gwrvis_bed_dir + '/gwrvis_scores_chr' + chr + '.genomic_coords.' + name + '.bed'
 	ff = open(gwrvis_for_cur_class, 'w')
@@ -121,22 +120,24 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 def extract_gwrvis_progressively_by_genomic_class(sorted_genomic_classes, genomic_class_paths):
 	"""
 		Annotation of genomic regions of certain classes occurs progressively,
-		in a mutual exclusive / priority-based way (e.g. genic classes have higher priority).
+		in a mutually exclusive / priority-based way (e.g. genic classes have higher priority).
 		This means that parts of the windows from a chromosome get eliminated as they overlap
 		with regions of genomic classes.
 		
-		However, there may be the case that a window is shared by two genomic classes:
+		However, there might be cases where a window is shared by two genomic classes:
 		the one with the higher priority will get assigned the gwRVIS value of the window and
 		eliminate the corresponding overlapping region. If the remaining part of the window still
 		overlaps with another genomic class, this also gets assigned the gwRVIS value of that window too.
 		
 		So, calcualtions are mutually exclusive in terms of not counting overlapping regions from two different genomic classes twice,
-		but allowing (non-overlapping) regions share the same gwRVIS assigned to a window.
+		but allowing (non-overlapping) regions that share the same gwRVIS assigned to a window.
 		As population size increases, window size can decrease more allow for more granularity and separation of such cases between
 		different genomic classes.
 	"""
 
 	ref_chr_gwrvis_bed = gwrvis_dir + '/gwrvis.chr' + chr + '.genomic_coords.bed'
+	print(ref_chr_gwrvis_bed)
+
 
 	gwrvis_lists = {}
 	names_to_del = []
@@ -146,7 +147,8 @@ def extract_gwrvis_progressively_by_genomic_class(sorted_genomic_classes, genomi
 		print('\n>> Processing class:', name)
 		cur_genomic_class_bed = genomic_class_paths[name][0]
 		print(cur_genomic_class_bed)
-		ref_chr_gwrvis_bed, gwrvis_lists[name] =  get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, cnt)
+
+		ref_chr_gwrvis_bed, gwrvis_lists[name] = get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, cnt)
 
 		if isinstance(gwrvis_lists[name], int) and gwrvis_lists[name]  == -1:
 			print('[No elements found] - genomic class: ' + name)
@@ -164,6 +166,7 @@ def extract_gwrvis_progressively_by_genomic_class(sorted_genomic_classes, genomi
 		sorted_genomic_classes.remove(name)
 
 	return gwrvis_lists, length_per_class
+
 
 
 def filter_out_gwrvis_nan(sorted_genomic_classes, gwrvis_lists):

@@ -10,12 +10,12 @@ module load libpng/1.6.23-foss-2017a
 
 
 config_log=$1 
-input_classes=input_classes_new.txt #input_classes.txt
+input_classes=$2 #input_classes_new.txt #input_classes.txt
 
 # Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-#./parse_all_chromosomes.sh $config_log;
-#exit
+./parse_all_chromosomes.sh $config_log;
+
 
 # Perform logistic regression (common ~ all variants) to get gwRVIS scores
 python run_full_regression.py $config_log;
@@ -49,5 +49,5 @@ python ml_modules/run_gwrvis_logistic_regression.py $config_log 1 # filtering-ou
 
 # Benchmarking of gwRVIS against other scores
 cd scores_benchmarking
-python run_score_benchmarking.py $config_log
-python benchmark_gwrvis_vs_original_orion.py $config_log
+python run_score_benchmarking.py ../$config_log
+python benchmark_gwrvis_vs_original_orion.py ../$config_log

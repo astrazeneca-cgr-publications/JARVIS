@@ -1,0 +1,17 @@
+run:
+        dataset: gnomad    # e.g. gnomad, topmed
+        variants_table_dir: gnomad-filtered_variant_tables-all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions # filtered variant tables (based on population, variant filters and even high-conf-regions)
+        win_len: 5000    # e.g. 500, 3000 (window length in nt)
+        variant_filter: all    # type of variants to use: snv for SNVs, indels for INDELs, anything else (e.g. all) includes all
+        MAF_thres: 0.0001  # e.g. 0.0001 (Minor Allele Frequency) 
+        population: all    # e.g. all (default), FIN, etc.
+        filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
+        run_identifier: production  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
+fixed:
+        kmer: 7          # mutability rate based on k-mer: 7 or 3
+        hg_dir:  ../hg19    # Path with reference human genome
+        genomic_classes: genomic_classes.log      # full reference file with BED file paths and priorities per genomic class
+        all_variants_upper_thres: 500        # set to '-1' to use default value: (win_len) or set to e.g. 150 (filter_outliers_before_regression-dependent) 
+        filter_plot_outliers: True        # e.g. True - affects only plotting of gwRVIS values per genomic class
+        z_thres: 3.5    # used when 'filter_plot_outliers' is set to True
+        fixed_win_len_for_all_genomic_elements: False  # If True [NOT Stable: needs Debugging; pdf from PdfPages() is saved to /mnt/c which is //? in Windows], every 3kb window will be assigned to a single genomic class element - Else for False [Default: STABLE Version] diff classes (but non-overlapping) may share the same RVIS value

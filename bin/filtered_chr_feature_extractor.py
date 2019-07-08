@@ -198,7 +198,8 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 		#print(chrom + ':' + str(seq_start) + '-' + str(seq_end))
 
 		# Get regulatory features (open chromatin, CTCF, TG binding, etc.) for current window
-		regul_features = get_regulatory_features_per_window(chrom, seq_start, seq_end)
+		# DEBUG - move to the end of pipeline
+		#regul_features = get_regulatory_features_per_window(chrom, seq_start, seq_end)
 		#print(regul_features)
 
 		cmd = '../utils/twoBitToFa ' + human_ref_genome_2bit + ':' + chrom + ':' + str(seq_start) + '-' + str(seq_end) + " /dev/stdout | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
@@ -240,7 +241,8 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 		cpg_per_window[ win_idx ] = cpg
 		cpg_islands_per_window[ win_idx ] = cpg_islands
 		gc_content_per_window[ win_idx ] = gc_content
-		regul_features_per_window[ win_idx ] = regul_features
+		# DEBUG - move to the end of pipeline
+		#regul_features_per_window[ win_idx ] = regul_features
 
 		cc += 1
 		#if cc % 100 == 0:
@@ -270,11 +272,14 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 	print(gc_content_per_window_df.head(10))
 
 	# Regulatory features
-	regul_features_df = pd.DataFrame(regul_features_per_window).T
-	print(regul_features_df.head(10))
+	# DEBUG - move to the end of pipeline
+	#regul_features_df = pd.DataFrame(regul_features_per_window).T
+	#print(regul_features_df.head(10))
 
 
-	additional_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df, cpg_islands_per_window_df, regul_features_df], axis=1)
+	# DEBUG - move to the end of pipeline
+	#additional_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df, cpg_islands_per_window_df, regul_features_df], axis=1)
+	additional_features_df = pd.concat([agg_mut_rates_per_window_df, gc_content_per_window_df, cpg_per_window_df, cpg_islands_per_window_df], axis=1)
 	print(additional_features_df.head())
 	print(additional_features_df.tail())
 

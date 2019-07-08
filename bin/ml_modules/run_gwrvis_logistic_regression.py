@@ -105,7 +105,7 @@ def plot_roc_curve(model, df, X):
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]	#"../config.yaml"
-	discard_positive = int(sys.argv[2])	# 0 or 1
+	discard_positive = int(sys.argv[2])	# 1 or 1: discard or not windows with positive selection (gwRVIS > 0)
 	
 	out_dir = create_out_dir(config_file)    
 	#full_genome_out_dir = '../' + out_dir + '/full_genome_out'
@@ -114,6 +114,7 @@ if __name__ == '__main__':
 
 	full_gwrvis_df = pd.read_csv(full_genome_out_dir + '/Whole_genome_gwRVIS_per_class.csv')
 	print(full_gwrvis_df.head())
+	print(full_gwrvis_df['genomic_class'].unique())
 
 
 	#print('Full Df size:', df.shape)
@@ -123,6 +124,9 @@ if __name__ == '__main__':
 
 	intol_class = 'ucne'
 	toler_class = 'intergenic'
+	if 'config.coding.yaml' in config_file:
+		intol_class = 'intolerant'
+		toler_class = 'tolerant'
 
 	df = compile_gwrvis_differential_df(intol_class, toler_class)
 

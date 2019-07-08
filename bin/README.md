@@ -1,8 +1,15 @@
 # Workflow
 ### Master script:
 ```
-./wgs.sh config.yaml input_classes.txt
+# all
+[sbatch] ./wgs.sh config.yaml input_classes.txt
+
+
+# coding
+[sbatch] ./wgs.sh config.coding.yaml input_classes.coding.txt
+
 ```
+
 
 #### Run `wgs.sh` for multiple values of MAF, win_len and variant type (SNVs, INDELs or both):
 ```
