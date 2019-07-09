@@ -214,7 +214,6 @@ class ScoreBenchmark:
 				print('Pathogenic:', len(pathogenic))
 				print('Benign:', len(benign))
 			except Exception as e:
-				print('[Error]:', e)
 				print('Insufficient data points for genomic class:', genomic_class)
 				continue
 

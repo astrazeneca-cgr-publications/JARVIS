@@ -54,7 +54,7 @@ def plot_gwrvis_distr(input_file):
 	plt.title('gwRVIS benchmarking on original Orion dataset\n' + mannwu_pval_str + '\n(Sample) ' + sample_mannwu_pval_str)
 	plt.close()
 
-	fig.savefig(out_dir + '/gwrivs_vs_original_orion_benchmark.pdf', bbox_inches='tight')
+	fig.savefig(out_dir + '/gwrvis_vs_original_orion_benchmark.pdf', bbox_inches='tight')
 
 
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	orion_original_ccds_bed = '../../genome-wide-scores/other_datasets/orion/plos_one_scores/S1DataFile.bed'
 
 	
-	intersect_out_file = out_dir + '/BED/gwrivs_vs_original_orion_benchmark.tsv'
+	intersect_out_file = out_dir + '/BED/gwrvis_vs_original_orion_benchmark.tsv'
 
 	cmd = 'intersectBed -wo -a ' + gwrvis_bed + ' -b ' + orion_original_ccds_bed + ' | cut -f4,10 > ' + intersect_out_file
 	print(cmd)

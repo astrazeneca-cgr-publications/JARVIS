@@ -1,3 +1,15 @@
+Available genome-wide scores
+----------------------------
+
+- cadd
+- orion
+- phyloP46way
+- phyloP100way
+- phastCons46way
+- phastCons100way
+- dann
+- gerp
+
 Download scores
 ---------------
 
