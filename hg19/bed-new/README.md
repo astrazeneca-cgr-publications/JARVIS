@@ -9,6 +9,8 @@ zcat < Homo_sapiens.GRCh37.87.chr.gtf.gz | awk 'BEGIN{OFS="\t";} $3=="exon" {pri
 zcat < Homo_sapiens.GRCh37.87.chr.gtf.gz | awk 'BEGIN{OFS="\t";} $3=="gene" {print $1,$4-1,$5}' | sortBed | subtractBed -a stdin -b Homo_sapiens.GRCh37.87.Exons.merged.bed.gz | gzip > Homo_sapiens.GRCh37.87.Introns.merged.bed.gz
 
 # Get Intergenic regions
-mysql --user=genome --host=genome-euro-mysql.soe.ucsc.edu -A -e "select chrom, size from hg19.chromInfo"  > hg19.genome
+mysql --user=genome --host=genome-euro-mysql.soe.ucsc.edu -A -e "select chrom, size from hg19.chromInfo"  > hg19.genome  
+# - fix order of chromosomes in hg19.genom to match of the sorted gtf file)
+# - delete header of hg19.genome
 
-zcat < Homo_sapiens.GRCh37.87.chr.gtf.gz | awk 'BEGIN{OFS="\t";} $3=="gene" {print $1,$4-1,$5}' | sortBed | complementBed -i stdin -g hg19.genome | gzip > Homo_sapiens.GRCh37.87.Intergenic.merged.bed.gz
+zcat < Homo_sapiens.GRCh37.87.chr.gtf.gz | awk 'BEGIN{OFS="\t";} $3=="gene" {print $1,$4-1,$5}' | grep -v "MT" | sortBed | complementBed -i stdin -g hg19.genome | gzip > Homo_sapiens.GRCh37.87.Intergenic.merged.bed.gz
