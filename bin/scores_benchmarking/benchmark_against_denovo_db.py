@@ -198,7 +198,7 @@ class DenovodbBenchmark:
 		
 		
 	
-def plot_multiple_roc_curves(denovo_db_type, roc_curve_data_per_score, out_dir, phenotype):
+def plot_multiple_roc_curves(denovo_db_type, roc_curve_data_per_score, dens_plot_data_per_score, out_dir, phenotype):
 
 	all_bennchmark_dir = out_dir + '/denovodb_benchmarking-' + denovo_db_type + '/' + phenotype + '/all-scores'
 	if not os.path.exists(all_bennchmark_dir):
@@ -234,31 +234,69 @@ def plot_multiple_roc_curves(denovo_db_type, roc_curve_data_per_score, out_dir, 
 	class_colors = dict( zip(all_scores, colors[:len(all_scores)]) )
 	class_colors['gwrvis'] = gwrvis_color
 
-	# Plot ROC curves across scores per genomic class
+	# Plot ROC curves and Density plots across scores per genomic class
 	for genomic_class in genomic_classes:
-		fig, ax = plt.subplots(figsize=(10, 10))
+		#fig, ax = plt.subplots(figsize=(10, 10))
+		fig = plt.figure(figsize=(12, 8))
+		ax1 = plt.subplot2grid((3, 5), (0, 0), colspan=3, rowspan=3)
 
+		dens_row_index = 0
+		dens_col_index = 3
 		for score, auc in ordered_scores_per_genomic_class[genomic_class]:
 			try:
+				# ROC CURVE
 				roc_auc, fpr, tpr = roc_curve_data_per_score[score][genomic_class]
-				
-				plt.plot(fpr, tpr, color=class_colors[score],
+				#plt.plot(fpr, tpr, color=class_colors[score],
+				#	 lw=1.5, label=score +' (AUC = %0.3f)' % roc_auc)
+
+				ax1.margins(1)
+				ax1.plot(fpr, tpr, color=class_colors[score],
 					 lw=1.5, label=score +' (AUC = %0.3f)' % roc_auc)
+
+
+				# Density plots
+				if 'gwrvis+' in score:
+					ax2 = plt.subplot2grid((3, 5), (dens_row_index, dens_col_index), colspan=1, rowspan=1)
+					ax2.set_title(score, fontsize=10)
+					ax2.set_axis_off()
+				else:
+					pathogenic, benign = dens_plot_data_per_score[score][genomic_class]
+
+					ax2 = plt.subplot2grid((3, 5), (dens_row_index, dens_col_index), colspan=1, rowspan=1)
+					#fig, ax = plt.subplots(figsize=(10, 10))
+					sns.distplot(pathogenic, hist=False, kde=True, label='pathogenic (' + str(len(pathogenic)) + ')', ax=ax2)
+					sns.distplot(benign, hist=False, kde=True, label='benign (' + str(len(benign)) + ')', ax=ax2)
+					ax2.set_title(score, fontsize=10)
+					ax2.legend(fontsize=7)
+					ax2.tick_params(axis='both', which='major', labelsize=6) 
+					ax2.tick_params(axis='both', which='minor', labelsize=6)
+					#plt.close()
+
+				dens_col_index += 1
+				if dens_col_index > 4:
+					dens_row_index += 1
+					dens_col_index = 3
+
+				if dens_row_index > 2:
+					dens_row_index = 0
+
 			except Exception as e:
 				print('[Warning] Omitting ROC curve for ' + score + 'in genomic class: ' + genomic_class)
 				
 
-		plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
-		plt.xlim([0.0, 1.0])
-		plt.ylim([0.0, 1.05])
-		plt.xlabel('False Positive Rate')
-		plt.ylabel('True Positive Rate')
-		plt.title('Receiver operating characteristic - ' + genomic_class)
-		plt.legend(loc="lower right", fontsize=14)
-		plt.show()
-		plt.close()
+		ax1.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+		ax1.set_xlim([0.0, 1.0])
+		ax1.set_ylim([0.0, 1.05])
+		ax1.set_xlabel('False Positive Rate')
+		ax1.set_ylabel('True Positive Rate')
+		ax1.set_title('ROC curves - ' + genomic_class)
+		ax1.legend(loc="lower right", fontsize=12)
+		#plt.show()
+		#plt.close()
+
 
 		fig.savefig(all_bennchmark_dir + '/' + genomic_class + '.all_scores.pdf', bbox_inches='tight')
+
 	
 	
 	
@@ -312,7 +350,6 @@ def	run_benchmark(denovo_db_type, phenotype, genomic_class_type):
 	
 	all_scores = ['gwrvis', 'CaddScore', 'PolyPhen(HDiv)', 'PolyPhen(HVar)', 'SiftScore', 'LofScore', 'LrtScore']
 	
-	phenotype = 'autism'
 	for score in all_scores:
 		print('\n\n> ', score)
 		ssc_obj = DenovodbBenchmark(df, phenotype, score, out_dir, genomic_class_type=genomic_class_type, denovo_db_type=denovo_db_type)
@@ -324,7 +361,7 @@ def	run_benchmark(denovo_db_type, phenotype, genomic_class_type):
 	print(roc_curve_data_per_score.keys())
 	print(dens_plot_data_per_score.keys())
 	
-	plot_multiple_roc_curves(denovo_db_type, roc_curve_data_per_score, out_dir, phenotype)
+	plot_multiple_roc_curves(denovo_db_type, roc_curve_data_per_score, dens_plot_data_per_score, out_dir, phenotype)
 
 	
 
@@ -340,17 +377,18 @@ if __name__ == '__main__':
 	#gwrvis_bed = base_out_dir + '/gwrvis_scores/full_genome.all_gwrvis.no_win_index.bed'
 		
 	
-	phenotype = 'autism'
-	genomic_class_type = 'gwrvis_class' # 'FunctionClass' or 'gwrvis_class'
+	genomic_class_type = 'FunctionClass' # 'FunctionClass' or 'gwrvis_class'
 	
 	
 	# SSC
 	denovo_db_type = 'ssc'
+	phenotype = 'autism'
 	run_benchmark(denovo_db_type, phenotype, genomic_class_type)
 	
 	
 	# Non-SSC
-	#denovo_db_type = 'non-ssc'
-	#run_benchmark(denovo_db_type, phenotype, genomic_class_type)
+	denovo_db_type = 'non-ssc'
+	#phenotype = 'intellectualDisability' #'developmentalDisorder'
+	run_benchmark(denovo_db_type, phenotype, genomic_class_type)
 
 	

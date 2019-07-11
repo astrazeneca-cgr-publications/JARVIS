@@ -65,6 +65,8 @@ if __name__ == '__main__':
 	out_dir = create_out_dir(config_file)         
 	out_dir = '../' + out_dir + '/full_genome_out'
 
+	print('out_dir:', out_dir)
+
 	gwrvis_bed = out_dir + '/BED/full_genome.All_genomic_classes.bed'
 	orion_original_ccds_bed = '../../genome-wide-scores/other_datasets/orion/plos_one_scores/S1DataFile.bed'
 
@@ -73,6 +75,7 @@ if __name__ == '__main__':
 
 	cmd = 'intersectBed -wo -a ' + gwrvis_bed + ' -b ' + orion_original_ccds_bed + ' | cut -f4,10 > ' + intersect_out_file
 	print(cmd)
+	sys.exit()
 	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)                 
 	stdout, stderr = p.communicate()
 	p.kill() 

@@ -77,6 +77,7 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 
 
 	cmd = intersect_bed_cmd + ' ' + ref_chr_gwrvis_bed + ' ' + cur_genomic_class_bed 
+	print(cmd)
 	res = subprocess.check_output(cmd, shell=True)
 	res = res.decode('utf-8')
 	DATA = StringIO(res)

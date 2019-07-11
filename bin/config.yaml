@@ -14,4 +14,4 @@ fixed:
         all_variants_upper_thres: -1 # set to '-1' to use default value: (win_len) or set to e.g. 150 (filter_outliers_before_regression-dependent) 
         filter_plot_outliers: True        # e.g. True - affects only plotting of gwRVIS values per genomic class
         z_thres: 3.5    # used when 'filter_plot_outliers' is set to True
-        fixed_win_len_for_all_genomic_elements: False  # If True [NOT Stable: needs Debugging; pdf from PdfPages() is saved to /mnt/c which is //? in Windows], every 3kb window will be assigned to a single genomic class element - Else for False [Default: STABLE Version] diff classes (but non-overlapping) may share the same RVIS value
+        fixed_win_len_for_all_genomic_elements: False  # If False [Default] different classes (but non-overlapping regions) may share the same gwRVIS value if they belong to different parts of the same window - Else for True: every 3kb window will be assigned to a single genomic class element (signal is completely vanished so not to be used)

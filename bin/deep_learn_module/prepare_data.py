@@ -175,7 +175,6 @@ def integrate_additional_data(gwrvis_and_index_df):
 	print(merged_features_df.tail())
 	print(merged_features_df.shape)
 
-	sys.exit()
 
 	return merged_features_df
 	
@@ -227,6 +226,13 @@ def check_gwrvis_extremes_distribution(all_merged_df):
 	plt.legend(fontsize=18, markerscale=2)
 
 	fig.savefig(out_dir + '/gwrvis_extremes_distribution.pdf', bbox_inches='tight')
+
+
+
+def add_regulatory_features(all_merged_df):
+
+	print(all_merged_df.head())
+	
 
 
 
@@ -334,6 +340,8 @@ def transform_data(train_dict, validation_dict, test_dict):
 	print('\n> X_validation:', validation_dict['X'].shape)
 	print('> y_validation:', validation_dict['y'].shape)
 	print('> validation_seqs:', validation_dict['seqs'].shape)
+
+	print(test_dict['X'])
 	
 	return train_dict, validation_dict, test_dict
 
@@ -366,8 +374,8 @@ def save_data_to_files(train_dict, validation_dict, test_dict, random_seqs=False
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
-	top_ratio = float(sys.argv[2])
-	random_seqs = bool(int(sys.argv[3])) # 1 for True or 0 for False
+	top_ratio = float(sys.argv[2]) # default 0.01
+	random_seqs = bool(int(sys.argv[3])) # 1 for True or 0 for False (default)
 
 	print('Random sequences:', random_seqs)
 
@@ -412,6 +420,10 @@ if __name__ == '__main__':
 	
 	check_gwrvis_extremes_distribution(all_merged_df)
 
+
+	all_merged_df = add_regulatory_features(all_merged_df)
+	sys.exit()
+	
 
 
 	all_filtered_onehot_seqs = np.concatenate((intol_filtered_onehot_seqs, tol_filtered_onehot_seqs), axis=0)

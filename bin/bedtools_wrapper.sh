@@ -7,7 +7,7 @@ B=$3
 
 # intersect
 if [ "$mode" == 'intersect' ]; then
-	cat $A | sortBed | bedtools intersect -a stdin -b $B 
+	cat $A | sortBed | bedtools intersect -a stdin -b $B | sortBed | mergeBed -c 4 -o distinct
 	exit
 fi
 
@@ -19,7 +19,7 @@ fi
 
 # subtract
 if [ "$mode" == 'subtract' ]; then
-	cat $B | sortBed | bedtools subtract -a $A -b stdin
+	cat $B | sortBed | bedtools subtract -a $A -b stdin | sortBed | mergeBed -c 4 -o distinct
 	exit
 fi
 
