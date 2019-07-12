@@ -7,7 +7,7 @@ import yaml
 import re
 
 
-def create_out_dir(config_file):
+def create_out_dir(config_file, create_dirs=True):
 	"""
 	Create out directory for current run 
 	based on run parameters - if it doesn't exist
@@ -167,5 +167,5 @@ def is_outlier(points, thresh=3.5):
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
-	print(create_out_dir(config_file))
+	print(create_out_dir(config_file, create_dirs=False))
 	

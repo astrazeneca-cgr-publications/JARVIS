@@ -38,8 +38,7 @@ echo "Compile full feature table (gwrvis, primary sequence features and regulato
 #python compile_full_win_feature_table.py $config_log
 
 echo "Merge BED files by genomic class across all chromosomes"
-./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes
-exit
+#./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes
 
 echo "Aggregate gwRVIS scores from all chromosomes"
 python aggregate_gwrvis_scores.py $config_log $input_classes;
@@ -50,6 +49,7 @@ python aggregate_gwrvis_scores.py $config_log $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
 python get_whole_genome_rvis_distr.py $config_log $input_classes;
+exit
 
 
 #python make_ggridges_plots.py -c $config_log; 

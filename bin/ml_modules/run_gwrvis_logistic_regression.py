@@ -61,6 +61,10 @@ def run_logit_regression(df):
 	feature_cols = ['gwrvis']
 	X = df[feature_cols]
 	y = df['gene_class']
+	
+	print(X)
+	print(y)
+	sys.exit()
 
 	# logistic regression
 	model = LogisticRegression(C=1e9, solver='lbfgs')
@@ -105,11 +109,11 @@ def plot_roc_curve(model, df, X):
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]	#"../config.yaml"
-	discard_positive = int(sys.argv[2])	# 1 or 1: discard or not windows with positive selection (gwRVIS > 0)
+	discard_positive = int(sys.argv[2])	# 1 or 0: discard or not windows with positive selection (gwRVIS > 0)
 	
 	out_dir = create_out_dir(config_file)    
-	#full_genome_out_dir = '../' + out_dir + '/full_genome_out'
-	full_genome_out_dir = out_dir + '/full_genome_out'
+	full_genome_out_dir = '../' + out_dir + '/full_genome_out'
+	#full_genome_out_dir = out_dir + '/full_genome_out'
 
 
 	full_gwrvis_df = pd.read_csv(full_genome_out_dir + '/Whole_genome_gwRVIS_per_class.csv')
