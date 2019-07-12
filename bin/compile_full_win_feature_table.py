@@ -107,7 +107,7 @@ def merge_all_feature_tables(gwrvis_features_df, all_regul_features_df):
 	print('------------\n')
 	full_df  = pd.merge(gwrvis_features_df, all_regul_features_df, how='inner', left_on=['chr', 'start', 'end'], right_on=['chr', 'start', 'end'])
 	
-	full_df.to_csv(out_dir + '/full_genome_out/full_gwrvis_and_regulatory_features.tsv', sep='\t', index=None)
+	full_df.to_csv(out_dir + '/full_genome_out/full_gwrvis_and_regulatory_features.bed', sep='\t', index=None)
 	print(full_df.head())
 		
 
