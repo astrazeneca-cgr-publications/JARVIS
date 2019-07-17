@@ -8,8 +8,9 @@ import sys, os
 import subprocess
 import operator
 import seaborn as sns
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.metrics import roc_curve, auc
+from sklearn.model_selection import train_test_split, cross_val_score
 from matplotlib.backends.backend_pdf import PdfPages
 import sys
 import os
@@ -112,19 +113,36 @@ class ScoreBenchmark:
 			X = df['score'].values.reshape(-1, 1)
 		y = df['pathogenic'].values
 
+		# DEBUG: Uncomment when I'll have more data from HGMD	
+		#self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+		
+		# For Cross-Validation
+		self.X_train = X
+		self.y_train = y
+		self.X_test = X
+		self.y_test = y
+
 		# logistic regression
-		model = LogisticRegression(C=1e9, solver='lbfgs')
-		model.fit(X, y)
+		model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
+		cv_auc_scores = cross_val_score(model, X, y, cv=5)
+		print(cv_auc_scores)
+		mean_auc = np.mean(cv_auc_scores)
+		print('5-fold CV AUC:', mean_auc)
+		print('==============================')
 
-		return model, X, y
+		model = LogisticRegressionCV(cv=5, random_state=42, solver='lbfgs', max_iter=10000)
+		model.fit(self.X_train, self.y_train)
+
+		self.pred_proba = model.predict_proba(self.X_test)[:, 1]
+
+		return model 
 
 
 
-	def plot_roc_curve(self, model, df, X, genomic_class):
+	def plot_roc_curve(self, model, genomic_class):
 
-		df['pred_gene_class_prob'] = model.predict_proba(X)[:, 1]
 
-		fpr, tpr, thresholds = roc_curve(df['pathogenic'], df['pred_gene_class_prob'])
+		fpr, tpr, thresholds = roc_curve(self.y_test, self.pred_proba)
 		roc_auc = round(auc(fpr, tpr), 3)
 		print("AUC : %f" % roc_auc)
 
@@ -156,10 +174,16 @@ class ScoreBenchmark:
 
 		df = pd.concat([pathogenic_df, benign_df], axis=0)
 
-		# Logistic Regression
-		model, X, y = self.fit_logit_regression(df)
+		if genomic_class == 'intergenic':
+			print(df.head())
+			print(df.tail())
+			print(df.shape)
 
-		roc_fig, roc_auc = self.plot_roc_curve(model, df, X, genomic_class)
+
+		# Logistic Regression
+		model = self.fit_logit_regression(df)
+
+		roc_fig, roc_auc = self.plot_roc_curve(model, genomic_class)
 
 		return roc_fig, roc_auc
 
@@ -349,9 +373,8 @@ if __name__ == '__main__':
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}
 
-	all_scores = ['phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
-	#all_scores = ['orion', 'cadd', 'gwrvis']
-	#all_scores = ['orion']
+	#all_scores = ['phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+	all_scores = ['gwrvis'] # ['cadd']
 
 
 	for score in all_scores:

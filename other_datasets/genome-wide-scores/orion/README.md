@@ -6,5 +6,9 @@ tabix orion.1001.masked.new.txt.gz -B ../../clinvar/clinvar.benign.no_chr_prefix
 sbatch get_orion_midpoints_w_tabix.sh
 ```
 
+```
+cat orion.clinvar_pathogenic.bed orion.clinvar_benign.bed > orion.clinvar.bed
+```
+
 ### Dependencies:
 - https://github.com/samtools/tabix

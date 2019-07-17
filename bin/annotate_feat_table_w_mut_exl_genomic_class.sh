@@ -106,7 +106,28 @@ function add_clinvar_annotation {
 	cat $tmp_header_file $clinvar_feature_table_dir/full_feature_table.clinvar.bed.tmp > $clinvar_feature_table_dir/full_feature_table.clinvar.bed
 
 	# clenaup tmp files
-	#rm $clinvar_feature_table_dir/*.tmp
+	rm $clinvar_feature_table_dir/*.tmp
+
+	echo $clinvar_feature_table_dir
+}
+
+
+function add_other_scores {
+
+	clinvar_feature_table_dir=$1
+	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.clinvar.bed"
+
+	for score in phastCons46way phyloP46way cadd orion; do
+		echo $score
+		echo "tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.clinvar.bed | cut --complement -f35,36,37,39 > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp"
+		tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.clinvar.bed | cut --complement -f34,35,36,38 > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp
+		
+		# add header with extra column for the new score
+		cat $clinvar_feature_table_bed | head -1 | sed "s/\$/\t$score/" > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header
+		cat $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed
+		rm $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp
+	done
+
 }
 
 
@@ -120,4 +141,7 @@ function add_clinvar_annotation {
 
 
 # annotate full feature table (already with genomic class annotation) with ClinVar pathogenic/bengign variants
-add_clinvar_annotation
+clinvar_feature_table_bed=$(add_clinvar_annotation)
+
+add_other_scores $clinvar_feature_table_bed
+
