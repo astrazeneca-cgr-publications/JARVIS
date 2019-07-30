@@ -1,0 +1,1 @@
+Edit process_HGMD script to output DM (pathogenic variants) into BED files (with/out chr prefix)
