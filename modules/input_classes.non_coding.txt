@@ -1,0 +1,10 @@
+ucne
+#omim-HI
+#intolerant
+#ccds
+vista
+utr
+#tolerant
+lincrna
+intron
+intergenic

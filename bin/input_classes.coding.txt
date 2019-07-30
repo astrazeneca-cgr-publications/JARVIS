@@ -1,7 +1,0 @@
-omim-HI
-intolerant
-ccds
-utr
-tolerant
-intron
-intergenic
