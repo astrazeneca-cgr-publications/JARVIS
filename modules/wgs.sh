@@ -56,8 +56,8 @@ python get_whole_genome_rvis_distr.py $config_log $input_classes;
 
 
 echo "Run Logistic regression for gwRVIS predictive power"
-python ml_modules/run_gwrvis_logistic_regression.py $config_log 0
-python ml_modules/run_gwrvis_logistic_regression.py $config_log 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
+python ml_classification/run_gwrvis_logistic_regression.py $config_log 0
+python ml_classification/run_gwrvis_logistic_regression.py $config_log 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
 
 
 echo "Benchmarking of gwRVIS against other scores"
