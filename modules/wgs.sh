@@ -52,22 +52,35 @@ echo "Get gwRVIS distribution by genomic class across the entire genome"
 python get_whole_genome_rvis_distr.py $config_log $input_classes;
 
 
-#python make_ggridges_plots.py -c $config_log; 
+#python make_ggridges_plots.py -c $config_log; # [deprecated/redundant]
 
 
-echo "Run Logistic regression for gwRVIS predictive power"
-python ml_classification/run_gwrvis_logistic_regression.py $config_log 0
-python ml_classification/run_gwrvis_logistic_regression.py $config_log 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
 
 
-echo "Benchmarking of gwRVIS against other scores"
-cd scores_benchmarking
 
-echo "Run benchmark against clinvar (pathogenic/benign)"
-python run_clinvar_benchmarking.py ../$config_log
 
-echo "Run benchmakr against denovo-db phenotypes (cases/controls)"
-#python benchmark_against_denovo_db.py ../$config_log
+# Under "scores_benchmarking/"
+printf "\n\n==== Benchmarking for gwRVIS itself and against other scores (scores_benchmarking/) ===="
 
-# DEBUG: relative and absolute paths
-#python benchmark_vs_original_orion.py ../$config_log
+echo "> Run Logistic regression for gwRVIS tolerance predictive power"
+python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_log 0
+python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_log 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
+
+
+echo "> Run benchmark against clinvar (pathogenic/benign)"
+python scores_benchmarking/run_clinvar_benchmarking.py $config_log
+
+echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
+#python benchmark_against_denovo_db.py $config_log
+
+python scores_benchmarking/benchmark_vs_original_orion.py $config_log
+
+
+
+
+
+
+# Under "jarvis_classification/"
+printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis_classification/) ===="
+
+#jarvis_classification

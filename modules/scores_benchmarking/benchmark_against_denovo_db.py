@@ -372,7 +372,9 @@ if __name__ == '__main__':
 	config_file = sys.argv[1]
 
 	base_out_dir = create_out_dir(config_file)         
-	out_dir = '../' + base_out_dir + '/full_genome_out'
+	out_dir = base_out_dir + '/full_genome_out'
+	#out_dir = '../' + base_out_dir + '/full_genome_out'
+
 	gwrvis_bed = out_dir + '/BED/full_genome.All_genomic_classes.bed'
 	#gwrvis_bed = base_out_dir + '/gwrvis_scores/full_genome.all_gwrvis.no_win_index.bed'
 		

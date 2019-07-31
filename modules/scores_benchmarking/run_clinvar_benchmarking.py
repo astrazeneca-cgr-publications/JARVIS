@@ -451,7 +451,8 @@ if __name__ == '__main__':
 
 
 	out_dir = create_out_dir(config_file)
-	out_dir = '../' + out_dir + '/full_genome_out'
+	out_dir = out_dir + '/full_genome_out'
+	#out_dir = '../' + out_dir + '/full_genome_out'
 
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}

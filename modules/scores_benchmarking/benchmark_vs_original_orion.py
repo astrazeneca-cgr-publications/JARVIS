@@ -55,7 +55,7 @@ def plot_gwrvis_distr(input_file):
 	plt.title('gwRVIS benchmarking on original Orion dataset\n' + mannwu_pval_str + '\n(Sample) ' + sample_mannwu_pval_str + '\nOriginal Orion Mann-Whitney U p-val: 0.001')
 	plt.close()
 
-	fig.savefig(out_dir + '/gwrvis_vs_original_orion_benchmark.pdf', bbox_inches='tight')
+	fig.savefig(out_dir + '/gwRVIS_vs_original_Orion_benchmark.pdf', bbox_inches='tight')
 
 
 
@@ -64,7 +64,8 @@ if __name__ == '__main__':
 	config_file = sys.argv[1]
 
 	out_dir = create_out_dir(config_file)         
-	out_dir = '../' + out_dir + '/full_genome_out'
+	out_dir = out_dir + '/full_genome_out'
+	#out_dir = '../' + out_dir + '/full_genome_out'
 
 	print('out_dir:', out_dir)
 

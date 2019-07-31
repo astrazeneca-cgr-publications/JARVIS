@@ -14,6 +14,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from custom_utils import create_out_dir
 
 
+
 def prepare_feat_table_df(df, genomic_classes=[]):
 	
 	print('> All genomic classes:', df.genomic_class.unique())
@@ -71,7 +72,9 @@ if __name__ == '__main__':
 	
 	
 	out_dir = create_out_dir(config_file)    
-	out_dir = '../../' + out_dir
+	out_dir = out_dir
+	#out_dir = '../../' + out_dir
+	
 	ml_data_dir = out_dir + '/ml_data'
 	clinvar_feature_table_dir = ml_data_dir + '/clinvar_feature_tables'
 	clinvar_ml_out_dir = ml_data_dir + '/clinvar-out'
