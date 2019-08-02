@@ -20,8 +20,8 @@ from custom_utils import create_out_dir
 
 class Classifier:
 	
-	def __init__(self, Y_label, out_dir, regression=False, model_type='RandomForest', 
-				 include_vcf_extracted_features=False, base_score='gwrvis', use_only_base_score=False):
+	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='RandomForest', 
+				 use_only_base_score=True, include_vcf_extracted_features=False, regression=False):
 				 
 		self.out_dir = out_dir
 		self.Y_label = Y_label
@@ -31,9 +31,48 @@ class Classifier:
 		self.base_score = base_score
 		self.use_only_base_score = use_only_base_score
 
-
+		# Initialise classifier model based on input base_score and model_type
+		self.init_model()
+		
+		
+		
+	def init_model(self):
+	
 		print('\n-----\nRegression:', self.regression)
-		print('Model:', model_type, '\n-----\n')
+		print('Model:', self.model_type, '\n-----\n')
+		
+		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
+	
+		if self.model_type == 'RandomForest':
+			self.model = RandomForestClassifier(**rf_params)	
+		elif self.model_type == 'Logistic':
+			self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
+		
+		
+		# Use logistic regression for all scores except for JARVIS
+		if self.base_score != 'jarvis':
+			self.model_type = 'Logistic'
+			self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
+			
+			
+		
+		self.score_print_name = self.base_score
+		
+		if self.base_score == 'gwrvis':
+			self.score_print_name = 'gwRVIS'
+						
+		if self.base_score == 'cadd':
+			self.score_print_name = self.base_score.upper()
+		
+		if self.base_score == 'orion':
+			self.score_print_name = self.base_score.capitalize()
+			
+		if self.base_score == 'jarvis':
+			self.base_score = 'gwrvis'
+			self.score_print_name = 'JARVIS'
+
+		
+		
 		
 		
 	
@@ -69,14 +108,6 @@ class Classifier:
 		
 	def run_classification_with_cv(self):
 		
-		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
-	
-		if self.model_type == 'RandomForest':
-			classifier = RandomForestClassifier(**rf_params)	
-		elif self.model_type == 'Logistic':
-			classifier = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
-		
-
 		cv = StratifiedKFold(n_splits=5)
 		
 		tprs = []
@@ -87,25 +118,25 @@ class Classifier:
 		
 		i = 0
 		for train, test in cv.split(self.X, self.y):
-			probas_ = classifier.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+			probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 			# Compute ROC curve and area the curve
 			fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
 			tprs.append(interp(mean_fpr, fpr, tpr))
 			tprs[-1][0] = 0.0
-			roc_auc = auc(fpr, tpr)
+			roc_auc = round(auc(fpr, tpr), 3)
 			aucs.append(roc_auc)
 			plt.plot(fpr, tpr, lw=1, alpha=0.3,
 					 label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
 
 			i += 1
-		plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Chance', alpha=.8)
+		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
 
 		mean_tpr = np.mean(tprs, axis=0)
 		mean_tpr[-1] = 1.0
-		mean_auc = auc(mean_fpr, mean_tpr)
+		self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
 		std_auc = np.std(aucs)
 		plt.plot(mean_fpr, mean_tpr, color='b',
-				 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
+				 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
 				 lw=2, alpha=.8)
 
 		std_tpr = np.std(tprs, axis=0)
@@ -118,17 +149,15 @@ class Classifier:
 		plt.ylim([-0.05, 1.05])
 		plt.xlabel('False Positive Rate')
 		plt.ylabel('True Positive Rate')
-		plt.title('Receiver operating characteristic example')
+		plt.title(self.score_print_name + ': 5-fold Cross-Validation ROC Curve')
 		plt.legend(loc="lower right")
 		plt.show()
 		plt.close()
 		
 		
-		pdf_filename = self.out_dir + '/' + self.model_type + '_ROC_' + self.base_score + \
-						'.AUC_' + str(roc_auc)
+		pdf_filename = self.out_dir + '/' + self.model_type + '_ROC.' + self.score_print_name + \
+						'.AUC_' + str(self.mean_auc)
 						
-		if self.use_only_base_score:
-			pdf_filename += '.use_only_base_score'
 		if self.include_vcf_extracted_features:
 			pdf_filename += '.incl_vcf_features'
 		pdf_filename += '.pdf'
@@ -136,107 +165,27 @@ class Classifier:
 		fig.savefig(pdf_filename, bbox_inches='tight')
 		
 		
-		print('Mean AUC:', mean_auc)
-		#self.roc_curve_data_per_class[genomic_class] = [mean_auc, mean_fpr, mean_tpr]
+		print('Mean AUC:', self.mean_auc)
 		
 		
-		self.get_feature_importances(classifier)
-		
+		if self.model_type == 'RandomForest':
+			self.get_feature_importances()
+
+		self.mean_tpr = mean_tpr
+		self.mean_fpr = mean_fpr
 		print('==============================')
 
-		return fig, mean_auc
 				
-	
-	
-		
-		
-	def run_classifier_model(self):
 
-		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
-	
-		if self.regression:
-			# linear regression
-			if self.model_type == 'RandomForest':
-				model = RandomForestRegressor(**rf_params)
-				
-			elif self.model_type == 'Logistic':
-				model = LinearRegression()
-			
-			model.fit(self.X_train, self.y_train)
-			
-			self.y_pred = model.predict(self.X_test)
-			rmse = mean_squared_error(self.y_test, self.y_pred)
-			print('RMSE:', rmse)
-			mae = mean_absolute_error(self.y_test, self.y_pred)
-			print('Mean Absolute Error:', mae)
-			evs = explained_variance_score(self.y_test, self.y_pred)
-			print('Explained variance score:', evs)
-			
-			# r2 represents the proportion of variance (of y) that has been explained by the independent variables in the model
-			r2 = r2_score(self.y_test, self.y_pred)
-			print('R^2:', r2)
-			
-		else:
-			# classification
-			if self.model_type == 'RandomForest':
-				model = RandomForestClassifier(**rf_params)	
-				#add cross-validation
-				print(np.mean(cross_val_score(model, self.X_train, self.y_train, cv=5)))
-				sys.exit()
-				
-			elif self.model_type == 'Logistic':
-				print('> Running logistic regression...')
-				#model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
-				model = LogisticRegressionCV(cv=5, solver='lbfgs', max_iter=10000)
-			
-			model.fit(self.X_train, self.y_train)
-			
-			self.pred_proba = model.predict_proba(self.X_test)[:, 1]
-		
-		return model
-	
-		
-
-	def plot_roc_curve(self, model):
-
-		fpr, tpr, thresholds = roc_curve(self.y_test, self.pred_proba)
-		roc_auc = round(auc(fpr, tpr), 3)
-		print("Area under the ROC curve : %f" % roc_auc)
-
-		# Plot ROC curve
-		fig, ax = plt.subplots(figsize=(10, 10))
-		plt.plot(fpr, tpr, color='darkorange',
-			 lw=2, label='ROC curve (area = %0.3f)' % roc_auc)
-		plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-		plt.xlim([0.0, 1.0])
-		plt.ylim([0.0, 1.05])
-		plt.xlabel('False Positive Rate')
-		plt.ylabel('True Positive Rate')
-		plt.title('Receiver operating characteristic')
-		plt.legend(loc="lower right", fontsize=14)
-		plt.show()
-		
-
-		pdf_filename = self.out_dir + '/' + self.model_type + '_ROC_' + self.base_score + \
-						'.AUC_' + str(roc_auc)
-						
-		if self.use_only_base_score:
-			pdf_filename += '.use_only_base_score'
-		if self.include_vcf_extracted_features:
-			pdf_filename += '.incl_vcf_features'
-		pdf_filename += '.pdf'
-		
-		fig.savefig(pdf_filename, bbox_inches='tight')
-		
 		
 	
-	def get_feature_importances(self, model):
+	def get_feature_importances(self):
 	
 		print("\n> Feature importances:")
 		if self.model_type == 'Logistic':
-			importances = model.coef_.reshape(-1, 1)[:, 0]
+			importances = self.model.coef_.reshape(-1, 1)[:, 0]
 		elif self.model_type == 'RandomForest':
-			importances = model.feature_importances_
+			importances = self.model.feature_importances_
 		
 		
 		importances_series = pd.Series(importances, index=self.feature_cols)
@@ -248,23 +197,10 @@ class Classifier:
 		importances_series.plot.bar()
 		plt.show()
 
-		pdf_filename = self.out_dir + '/RF_importance_scores.' + self.base_score + '.' + self.model_type
+		pdf_filename = self.out_dir + '/RF_importance_scores.' + self.score_print_name + '.' + self.model_type
 
-		if self.use_only_base_score:
-			pdf_filename += '.use_only_base_score'
 		if self.include_vcf_extracted_features:
 			pdf_filename += '.incl_vcf_features'
 		pdf_filename += '.pdf'
 		
 		fig.savefig(pdf_filename, bbox_inches='tight')
-		
-		
-	def train_and_predict(self):
-	
-		model = self.run_classifier_model()
-		
-		if not self.regression:
-			self.plot_roc_curve(model)
-
-		self.get_feature_importances(model)
-		
