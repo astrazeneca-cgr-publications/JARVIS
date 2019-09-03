@@ -18,7 +18,7 @@ from custom_utils import create_out_dir
 class ClassificationWrapper:
 
 	def __init__(self, config_file, base_score='gwrvis', model_type='RandomForest', genomic_classes=None, 
-				Y_label='clinvar_annot', use_only_base_score=True, include_vcf_extracted_features=False, regression=False, exclude_base_score=False):
+				Y_label='clinvar_annot', use_only_base_score=True, include_vcf_extracted_features=False, regression=False):
 		
 		self.config_file = config_file
 		self.base_score = base_score
@@ -30,7 +30,6 @@ class ClassificationWrapper:
 		self.use_only_base_score = use_only_base_score
 		self.include_vcf_extracted_features = include_vcf_extracted_features
 		self.regression = regression
-		self.exclude_base_score = exclude_base_score
 		
 		self.harmonise_options()
 		self.init_dirs()
@@ -65,7 +64,7 @@ class ClassificationWrapper:
 		
 		self.clinvar_feature_table_dir = self.ml_data_dir + '/clinvar_feature_tables'
 		
-		self.clinvar_ml_out_dir = self.ml_data_dir + '/clinvar-out'
+		self.clinvar_ml_out_dir = self.ml_data_dir + '/primary_seq_clinvar-out'
 		if not os.path.exists(self.clinvar_ml_out_dir):
 			os.makedirs(self.clinvar_ml_out_dir)
 	
@@ -95,6 +94,7 @@ class ClassificationWrapper:
 			self.df = self.full_feature_table.copy()
 			
 		print('> Filtered genomic classes:', self.df.genomic_class.unique())
+		print(self.df.head())
 		
 		
 		# Correct data types and convert Y-label strings to 1/0 values
@@ -102,11 +102,6 @@ class ClassificationWrapper:
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Benign.*', '0', regex=True)
 		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
 	
-
-		if self.base_score in ['gwrvis']:
-			self.df.to_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.bed', sep='\t', index=False, header=False)
-			
-
 	
 	
 	def run_classifier(self):
@@ -115,16 +110,17 @@ class ClassificationWrapper:
 		if not os.path.exists(classifier_out_dir):
 			os.makedirs(classifier_out_dir)
 			
-	
 		classifier = Classifier(self.Y_label, classifier_out_dir, base_score=self.base_score,
-							model_type=self.model_type,
-							use_only_base_score=self.use_only_base_score,
-							include_vcf_extracted_features=self.include_vcf_extracted_features, 
-							regression=self.regression,
-							exclude_base_score=self.exclude_base_score)
-		
+			model_type=self.model_type,
+			use_only_base_score=self.use_only_base_score,
+			include_vcf_extracted_features=self.include_vcf_extracted_features, 
+			regression=self.regression)
+
 		classifier.preprocess_data(self.df)
 		
+		classifier.init_model()
+		
+			
 		classifier.run_classification_with_cv()
 		
 		self.score_print_name = classifier.score_print_name
@@ -202,10 +198,10 @@ if __name__ == '__main__':
 	config_file = sys.argv[1]	
 		
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['ccds']] # ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
+	genomic_classes_lists = [['intergenic']] #[ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
 	
-	all_base_scores = ['jarvis', 'gwrvis'] #, 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
+	all_base_scores = ['jarvis']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# use_only_base_score -- default: False (relevant only for gwRVIS; 'use_only_base_score' is always True for all other scores
@@ -226,8 +222,7 @@ if __name__ == '__main__':
 												Y_label='clinvar_annot', 
 												use_only_base_score=True, 
 												include_vcf_extracted_features=False, 
-												regression=False,
-												exclude_base_score=False)
+												regression=False)
 												
 			clf_wrapper.run()
 		
@@ -237,6 +232,10 @@ if __name__ == '__main__':
 			auc_list.append(clf_wrapper.mean_auc)
 
 			
+		#print(fpr_list)
+		#print(tpr_list)
+		#print(auc_list)
+		
 		
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)

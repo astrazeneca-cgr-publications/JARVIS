@@ -75,18 +75,24 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 	if fixed_win_len_for_all_genomic_elements:
 		intersect_bed_cmd = './bedtools_wrapper.sh intersect_wa'
 
+	local_min_overlap_ratio = min_overlap_ratio
 
-	cmd = intersect_bed_cmd + ' ' + ref_chr_gwrvis_bed + ' ' + cur_genomic_class_bed 
+	cmd = intersect_bed_cmd + ' ' + ref_chr_gwrvis_bed + ' ' + cur_genomic_class_bed + ' ' + local_min_overlap_ratio
 	print(cmd)
-	res = subprocess.check_output(cmd, shell=True)
-	res = res.decode('utf-8')
-	DATA = StringIO(res)
-	
-	# Store windows and respective gwRVIS scores for current genomic class and chromosome into a bed file
-	gwrvis_for_cur_class = gwrvis_bed_dir + '/gwrvis_scores_chr' + chr + '.genomic_coords.' + name + '.bed'
-	ff = open(gwrvis_for_cur_class, 'w')
-	ff.write(DATA.getvalue())
-	ff.close()
+
+	try:
+		res = subprocess.check_output(cmd, shell=True)
+		res = res.decode('utf-8')
+		DATA = StringIO(res)
+
+		# Store windows and respective gwRVIS scores for current genomic class and chromosome into a bed file
+		gwrvis_for_cur_class = gwrvis_bed_dir + '/gwrvis_scores_chr' + chr + '.genomic_coords.' + name + '.bed'
+		ff = open(gwrvis_for_cur_class, 'w')
+		ff.write(DATA.getvalue())
+		ff.close()
+	except Exception as e:
+		# set output string to empty
+		DATA = StringIO()
 
 	if DATA.getvalue() == '':
 		return ref_chr_gwrvis_bed, -1
@@ -99,10 +105,11 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 
 	# Perform subtractBed with or without '-A' option based on input run parameters
 	subtract_bed_cmd = './bedtools_wrapper.sh subtract'
-	if fixed_win_len_for_all_genomic_elements:
+	if fixed_win_len_for_all_genomic_elements: # and name == 'ccds':
 		subtract_bed_cmd = './bedtools_wrapper.sh subtract_A'
+		#local_min_overlap_ratio = '0.1'
 
-	cmd = subtract_bed_cmd + ' ' + ref_chr_gwrvis_bed + ' ' + cur_genomic_class_bed 
+	cmd = subtract_bed_cmd + ' ' + ref_chr_gwrvis_bed + ' ' + cur_genomic_class_bed + ' ' + local_min_overlap_ratio
 	res = subprocess.check_output(cmd, shell=True)
 	res = res.decode('utf-8')
 	DATA = StringIO(res)
@@ -295,6 +302,7 @@ if __name__ == '__main__':
 	win_len = run_params['win_len']
 	MAF_thres = run_params['MAF_thres']
 	fixed_win_len_for_all_genomic_elements = run_params['fixed_win_len_for_all_genomic_elements']
+	min_overlap_ratio = str(run_params['min_overlap_ratio'])
 
 
 	ucne_dir = '../other_datasets/UCNE_base'

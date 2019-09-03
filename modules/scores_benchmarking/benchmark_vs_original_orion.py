@@ -70,7 +70,7 @@ if __name__ == '__main__':
 	print('out_dir:', out_dir)
 
 	gwrvis_bed = out_dir + '/BED/full_genome.All_genomic_classes.bed'
-	orion_original_ccds_bed = '../../other_datasets/genome-wide-scores/orion/plos_one_scores/S1DataFile.bed'
+	orion_original_ccds_bed = '../other_datasets/genome-wide-scores/orion/plos_one_scores/S1DataFile.bed'
 
 	
 	intersect_out_file = out_dir + '/BED/gwrvis_vs_original_orion_benchmark.tsv'

@@ -204,6 +204,7 @@ def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intol
 	return merged_features_df, filtered_onehot_seqs
 
 
+
 def check_gwrvis_extremes_distribution(all_merged_df):
 	
 	intol_gwrvis = all_merged_df.loc[ all_merged_df.y ==1, 'gwrvis'].values

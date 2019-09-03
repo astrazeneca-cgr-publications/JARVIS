@@ -1,3 +1,6 @@
+# gnomad release 2.1.1
+
+
 All scripts are under `bin/`  
 
 - `preprocess` module: download and pre-process VCF and coverage files  

@@ -61,6 +61,9 @@ function get_feature_table_by_genomic_class {
 		cat ${gwrvis_distr_dir}/BED/gwrvis_scores_chr*.genomic_coords.${class}.bed | sed "s/\$/\t$class/g" > $genomic_class_out_file
 		printf "\n[$class] Total nt length: "`cat $genomic_class_out_file | awk '{sum+=$3-$2} END {print sum}'`
 
+		# Keep track of interval ranges per genomic class
+		cat $genomic_class_out_file | awk '{print $3-$2"\t"$1"\t"$2"\t"$3}' | sort -V | awk '{print $2"\t"$3"\t"$4"\t"$1}' > ${gwrvis_distr_dir}/interval_ranges.${class}.mutually_excl.bed
+
 
 		printf "\n- Retrieving feature table for $class ..."
 		full_feature_table_by_genomic_class=${out_feature_table_dir}/full_gwrvis_and_regulatory_features.${class}.tsv

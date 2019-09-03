@@ -13,15 +13,31 @@ from sklearn.model_selection import train_test_split
 import sys
 import os
 
+import tensorflow as tf
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from custom_utils import create_out_dir
 	
 
+class DnnClassifier:
+
+	def __init__(self, input_dim):
+		self.model = Sequential()
+		self.model.add(Dense(128, input_dim=input_dim, activation='relu'))
+		self.model.add(Dense(128, input_dim=input_dim, activation='relu'))
+		self.model.add(Dense(1, activation='sigmoid'))
+		
+		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+	
+	
 
 class Classifier:
 	
 	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='RandomForest', 
-				 use_only_base_score=True, include_vcf_extracted_features=False, regression=False, exclude_base_score=False):
+				 use_only_base_score=True, include_vcf_extracted_features=False, regression=False):
 				 
 		self.out_dir = out_dir
 		self.Y_label = Y_label
@@ -30,59 +46,15 @@ class Classifier:
 		self.include_vcf_extracted_features = include_vcf_extracted_features
 		self.base_score = base_score
 		self.use_only_base_score = use_only_base_score
-		self.exclude_base_score = exclude_base_score
-
-		# Initialise classifier model based on input base_score and model_type
-		self.init_model()
-		
-		
-		
-	def init_model(self):
-	
-		print('\n-----\nRegression:', self.regression)
-		print('Model:', self.model_type, '\n-----\n')
-		
-		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
-	
-		if self.model_type == 'RandomForest':
-			self.model = RandomForestClassifier(**rf_params)	
-		elif self.model_type == 'Logistic':
-			self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
-		
-		
-		# Use logistic regression for all scores except for JARVIS
-		if self.base_score != 'jarvis':
-			self.model_type = 'Logistic'
-			self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
-			
-			
-		
-		self.score_print_name = self.base_score
-		
-		if self.base_score == 'gwrvis':
-			self.score_print_name = 'gwRVIS'
-						
-		if self.base_score == 'cadd':
-			self.score_print_name = self.base_score.upper()
-		
-		if self.base_score == 'orion':
-			self.score_print_name = self.base_score.capitalize()
-			
-		if self.base_score == 'jarvis':
-			self.base_score = 'gwrvis'
-			self.score_print_name = 'JARVIS'
-
-		
-		
 		
 		
 	
 	def preprocess_data(self, df):
-	
+
 		if self.use_only_base_score:		
 			df.dropna(inplace=True)
 			self.feature_cols = [self.base_score]
-		
+			
 		else:
 			cols_to_drop = ['chr', 'start', 'end', 'genomic_class', self.Y_label, 'clinvar_annot']
 	
@@ -91,8 +63,6 @@ class Classifier:
 								  'bin_2', 'bin_3', 'bin_4', 'bin_5', 'bin_6']
 			if not self.include_vcf_extracted_features:
 				cols_to_drop.extend(vcf_dependent_cols)
-			if self.exclude_base_score:
-				cols_to_drop.append('gwrvis')
 				
 			self.feature_cols = [x for x in df.columns.values if x not in cols_to_drop ]
 		
@@ -108,11 +78,42 @@ class Classifier:
 
 		
 		
+	
+	def init_model(self):
+		"""
+			Initialise classifier model based on input base_score and model_type
+		"""
+		
+		print('\n-----\nRegression:', self.regression)
+		print('Model:', self.model_type, '\n-----\n')
+		
+		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
+	
+		#if self.model_type == 'RandomForest':
+		#	self.model = RandomForestClassifier(**rf_params)	
+		#elif self.model_type == 'Logistic':
+		#	self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
+		
+		
+		self.model = DnnClassifier(len(self.feature_cols)).model
+		print(self.model.summary())
+			
+			
+		
+		self.score_print_name = self.base_score
+			
+		if self.base_score == 'jarvis':
+			self.base_score = 'gwrvis'
+			self.score_print_name = 'JARVIS'
+
+		
+		
+		
 		
 		
 	def run_classification_with_cv(self):
 		
-		cv = StratifiedKFold(n_splits=5)
+		cv = StratifiedKFold(n_splits=6)
 		
 		tprs = []
 		aucs = []
@@ -122,9 +123,34 @@ class Classifier:
 		
 		i = 0
 		for train, test in cv.split(self.X, self.y):
-			probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+			history = self.model.fit(self.X[train], self.y[train], epochs=30, batch_size=32, 
+									verbose=False) #, validation_split=0.1)
+			
+			"""
+			# summarize history for accuracy
+			fig1, ax = plt.subplots(figsize=(10, 10))
+			plt.plot(history.history['acc'])
+			plt.plot(history.history['val_acc'])
+			plt.title('model accuracy')
+			plt.ylabel('accuracy')
+			plt.xlabel('epoch')
+			plt.legend(['train', 'test'], loc='upper left')
+			plt.show()
+			# summarize history for loss
+			plt.plot(history.history['loss'])
+			plt.plot(history.history['val_loss'])
+			plt.title('model loss')
+			plt.ylabel('loss')
+			plt.xlabel('epoch')
+			plt.legend(['train', 'test'], loc='upper left')
+			plt.show()
+			fig1.savefig(self.out_dir + '/DNN_model_history.pdf', bbox_inches='tight')
+			"""
+			
+			probas_ = self.model.predict_proba(self.X[test])
+			
 			# Compute ROC curve and area the curve
-			fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+			fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 0])
 			tprs.append(interp(mean_fpr, fpr, tpr))
 			tprs[-1][0] = 0.0
 			roc_auc = round(auc(fpr, tpr), 3)
@@ -171,13 +197,10 @@ class Classifier:
 		
 		print('Mean AUC:', self.mean_auc)
 		
-		
-		if self.model_type == 'RandomForest':
-			self.get_feature_importances()
 
 		self.mean_tpr = mean_tpr
 		self.mean_fpr = mean_fpr
-		print('==============================\n\n')
+		print('==============================')
 
 				
 
