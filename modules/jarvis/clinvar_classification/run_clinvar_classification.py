@@ -76,9 +76,9 @@ class ClassificationWrapper:
 		if self.base_score in ['gwrvis', 'jarvis']:
 			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.bed', sep='\t', low_memory=False)
 		else:
-			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + base_score + '.bed', sep='\t', low_memory=False)
+			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
-		print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
+		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
 		
 		
 	
@@ -93,8 +93,11 @@ class ClassificationWrapper:
 			self.df = self.full_feature_table.loc[ self.full_feature_table.genomic_class.isin(self.genomic_classes), :].copy()
 		else:
 			self.df = self.full_feature_table.copy()
-			
+		
 		print('> Filtered genomic classes:', self.df.genomic_class.unique())
+		
+		# Drop NAs
+		self.df.dropna(inplace=True)
 		
 		
 		# Correct data types and convert Y-label strings to 1/0 values
@@ -103,11 +106,50 @@ class ClassificationWrapper:
 		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
 	
 
-		if self.base_score in ['gwrvis']:
-			self.df.to_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.bed', sep='\t', index=False, header=False)
-			
-
 	
+	
+		if self.base_score in ['gwrvis', 'jarvis']:
+			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.bed'
+			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.clean.bed'
+
+			# Get the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
+			os.system("cd " + self.clinvar_feature_table_dir  + "; ./get_overlapping_variant_windows.sh")
+
+		else:
+			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
+			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + "." + '_'.join(self.genomic_classes) + '.clean.bed'
+			
+		self.df.to_csv(cur_full_feature_file, sep='\t', index=False, header=False)
+
+		
+		
+		
+		# Filter-out the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
+		clean_file_is_initialised = False
+		
+		if 'intergenic' in self.genomic_classes:
+
+			os.system("bedtools subtract -a " + cur_full_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.intergenic_overlaping_ccds.bed > " + clean_feature_file)
+			clean_file_is_initialised = True
+			
+		if 'utr' in self.genomic_classes:
+			if clean_file_is_initialised:
+				os.system("bedtools subtract -a " + clean_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.utr_overlaping_ccds.bed > " + clean_feature_file + '.tmp')
+				
+				os.system("mv " + clean_feature_file + ".tmp " + clean_feature_file)
+			else:
+				os.system("bedtools subtract -a " + cur_full_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.utr_overlaping_ccds.bed > " + clean_feature_file)
+				
+	
+	
+		# Replace df with clean version only when intergenic or UTR are in the genomic_classes
+		if 'intergenic' in self.genomic_classes or 'utr' in self.genomic_classes:
+			original_columns = self.df.columns
+		
+			self.df = pd.read_csv(clean_feature_file, sep='\t', header=None)
+			self.df.columns = original_columns
+		
+		
 	
 	def run_classifier(self):
 	
@@ -205,7 +247,7 @@ if __name__ == '__main__':
 	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['ccds']] # ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
 	
-	all_base_scores = ['jarvis', 'gwrvis'] #, 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
+	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# use_only_base_score -- default: False (relevant only for gwRVIS; 'use_only_base_score' is always True for all other scores
@@ -216,11 +258,12 @@ if __name__ == '__main__':
 	
 	
 	for genomic_classes in genomic_classes_lists:
-	
+		print('\n**********************************************************************\n>>\t\t\t\t' + ' '.join(genomic_classes) + '\n**********************************************************************\n')
 		score_list, fpr_list, tpr_list, auc_list = [], [], [], []
 		
 		for base_score in all_base_scores:
-	
+			print('>>>>>>>  ' + base_score + '\n')
+
 			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
 												genomic_classes=genomic_classes,
 												Y_label='clinvar_annot', 

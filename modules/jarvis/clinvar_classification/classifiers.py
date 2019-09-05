@@ -39,8 +39,8 @@ class Classifier:
 		
 	def init_model(self):
 	
-		print('\n-----\nRegression:', self.regression)
-		print('Model:', self.model_type, '\n-----\n')
+		#print('\n-----\nRegression:', self.regression)
+		print('Model:', self.model_type, '\n')
 		
 		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
 	
@@ -89,8 +89,10 @@ class Classifier:
 			vcf_dependent_cols = ['common_variants', 'common_vs_all_variants_ratio', 
 								  'all_variants', 'mean_ac', 'mean_af', 'bin_1', 
 								  'bin_2', 'bin_3', 'bin_4', 'bin_5', 'bin_6']
+								  
 			if not self.include_vcf_extracted_features:
 				cols_to_drop.extend(vcf_dependent_cols)
+				
 			if self.exclude_base_score:
 				cols_to_drop.append('gwrvis')
 				
@@ -110,9 +112,9 @@ class Classifier:
 		
 		
 		
-	def run_classification_with_cv(self):
+	def run_classification_with_cv(self, cv_splits=10):
 		
-		cv = StratifiedKFold(n_splits=5)
+		cv = StratifiedKFold(n_splits=cv_splits)
 		
 		tprs = []
 		aucs = []
@@ -153,7 +155,7 @@ class Classifier:
 		plt.ylim([-0.05, 1.05])
 		plt.xlabel('False Positive Rate')
 		plt.ylabel('True Positive Rate')
-		plt.title(self.score_print_name + ': 5-fold Cross-Validation ROC Curve')
+		plt.title(self.score_print_name + ': ' + str(cv_splits) + '-fold Cross-Validation ROC Curve')
 		plt.legend(loc="lower right")
 		plt.show()
 		plt.close()
@@ -177,7 +179,7 @@ class Classifier:
 
 		self.mean_tpr = mean_tpr
 		self.mean_fpr = mean_fpr
-		print('==============================\n\n')
+		print('=====================\n\n')
 
 				
 
