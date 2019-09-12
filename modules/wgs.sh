@@ -12,7 +12,9 @@ module load libpng/1.6.23-foss-2017a
 config_log=$1 
 input_classes=$2 #input_classes.txt 
 
-out_dir=`python custom_utils.py config.yaml`
+out_dir=`python custom_utils.py $config_log`
+echo "./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes"
+exit
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
@@ -39,7 +41,6 @@ python compile_full_win_feature_table.py $config_log
 
 echo "Merge BED files by genomic class across all chromosomes"
 ./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes
-#exit
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
@@ -83,5 +84,5 @@ python scores_benchmarking/benchmark_vs_original_orion.py $config_log
 
 # Under "jarvis_classification/"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis_classification/) ===="
-
-#jarvis_classification
+filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
+python jarvis/clinvar_classification/run_clinvar_classification.py $config_log $filter_ccds_overlapping_variants

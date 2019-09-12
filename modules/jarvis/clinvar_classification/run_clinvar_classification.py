@@ -18,7 +18,8 @@ from custom_utils import create_out_dir
 class ClassificationWrapper:
 
 	def __init__(self, config_file, base_score='gwrvis', model_type='RandomForest', genomic_classes=None, 
-				Y_label='clinvar_annot', use_only_base_score=True, include_vcf_extracted_features=False, regression=False, exclude_base_score=False):
+				Y_label='clinvar_annot', include_vcf_extracted_features=False, 
+				regression=False, exclude_base_score=False, filter_ccds_overlapping_variants=True):
 		
 		self.config_file = config_file
 		self.base_score = base_score
@@ -27,11 +28,12 @@ class ClassificationWrapper:
 		
 		
 		self.Y_label = Y_label		
-		self.use_only_base_score = use_only_base_score
 		self.include_vcf_extracted_features = include_vcf_extracted_features
 		self.regression = regression
 		self.exclude_base_score = exclude_base_score
+		self.filter_ccds_overlapping_variants = filter_ccds_overlapping_variants
 		
+		self.use_only_base_score = True
 		self.harmonise_options()
 		self.init_dirs()
 		
@@ -113,7 +115,7 @@ class ClassificationWrapper:
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.clean.bed'
 
 			# Get the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
-			os.system("cd " + self.clinvar_feature_table_dir  + "; ./get_overlapping_variant_windows.sh")
+			os.system("./jarvis/clinvar_classification/get_overlapping_variant_windows.sh genomic_classes.log " + self.out_dir + " " + self.clinvar_feature_table_dir )
 
 		else:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
@@ -123,33 +125,33 @@ class ClassificationWrapper:
 
 		
 		
-		
-		# Filter-out the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
-		clean_file_is_initialised = False
-		
-		if 'intergenic' in self.genomic_classes:
-
-			os.system("bedtools subtract -a " + cur_full_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.intergenic_overlaping_ccds.bed > " + clean_feature_file)
-			clean_file_is_initialised = True
+		if self.filter_ccds_overlapping_variants:
+			# Filter-out the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
+			clean_file_is_initialised = False
 			
-		if 'utr' in self.genomic_classes:
-			if clean_file_is_initialised:
-				os.system("bedtools subtract -a " + clean_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.utr_overlaping_ccds.bed > " + clean_feature_file + '.tmp')
+			if 'intergenic' in self.genomic_classes:
+
+				os.system("bedtools subtract -a " + cur_full_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.intergenic_overlaping_ccds.bed > " + clean_feature_file)
+				clean_file_is_initialised = True
 				
-				os.system("mv " + clean_feature_file + ".tmp " + clean_feature_file)
-			else:
-				os.system("bedtools subtract -a " + cur_full_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.utr_overlaping_ccds.bed > " + clean_feature_file)
+			if 'utr' in self.genomic_classes:
+				if clean_file_is_initialised:
+					os.system("bedtools subtract -a " + clean_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.utr_overlaping_ccds.bed > " + clean_feature_file + '.tmp')
+					
+					os.system("mv " + clean_feature_file + ".tmp " + clean_feature_file)
+				else:
+					os.system("bedtools subtract -a " + cur_full_feature_file + " -b " + self.clinvar_feature_table_dir + "/blacklist.utr_overlaping_ccds.bed > " + clean_feature_file)
+					
+		
+		
+			# Replace df with clean version only when intergenic or UTR are in the genomic_classes
+			if 'intergenic' in self.genomic_classes or 'utr' in self.genomic_classes:
+				original_columns = self.df.columns
+			
+				self.df = pd.read_csv(clean_feature_file, sep='\t', header=None)
+				self.df.columns = original_columns
+
 				
-	
-	
-		# Replace df with clean version only when intergenic or UTR are in the genomic_classes
-		if 'intergenic' in self.genomic_classes or 'utr' in self.genomic_classes:
-			original_columns = self.df.columns
-		
-			self.df = pd.read_csv(clean_feature_file, sep='\t', header=None)
-			self.df.columns = original_columns
-		
-		
 	
 	def run_classifier(self):
 	
@@ -241,8 +243,9 @@ def plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, cl
 
 if __name__ == '__main__':
 
-	config_file = sys.argv[1]	
-		
+	config_file = sys.argv[1]
+	filter_ccds_overlapping_variants = bool(int(sys.argv[2]))
+			
 
 	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['ccds']] # ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
@@ -250,8 +253,7 @@ if __name__ == '__main__':
 	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
-	# use_only_base_score -- default: False (relevant only for gwRVIS; 'use_only_base_score' is always True for all other scores
-	# regression -- default: False
+	# regression -- default: False, treating it as a classification problem
 	
 
 	model_type = 'RandomForest' # 'RandomForest' (default), 'Logistic' 
@@ -267,10 +269,10 @@ if __name__ == '__main__':
 			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
 												genomic_classes=genomic_classes,
 												Y_label='clinvar_annot', 
-												use_only_base_score=True, 
 												include_vcf_extracted_features=False, 
 												regression=False,
-												exclude_base_score=False)
+												exclude_base_score=False,
+												filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
 												
 			clf_wrapper.run()
 		
