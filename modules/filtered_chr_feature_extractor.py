@@ -19,9 +19,24 @@ import multiprocessing
 
 
 def pre_process_vcf_table(filtered_vcf, variant_filter=''):
+	
+	if config_params['filter_ccds_variants']:
+		filtered_vcf_basename = ntpath.basename(filtered_vcf)
+		print(filtered_vcf_basename)
 
-	df = pd.read_csv(filtered_vcf, low_memory=False, sep='\t')
+		os.system("tail -n+2 " + filtered_vcf + ' | awk -v chrom=' + chrom + """ '{print "chr"chrom"\t"$1-1"\t"$1"\t"$2","$3","$4","$5","$6","$7","$8}' | subtractBed -a stdin  -b """ + genomic_classes_files['ccds'] + """ | awk -F"\t|," '{print $3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10}' > """ + tmp_dir+"/"+filtered_vcf_basename+".tmp")
+
+		os.system("cat " + filtered_vcf + " | head -1 > " + tmp_dir+"/"+filtered_vcf_basename+".header 2>/dev/null")
+		print("[Broken pipe message may be safely ignored]")
+
+		os.system("cat " + tmp_dir+"/"+filtered_vcf_basename+".header " + tmp_dir+"/"+filtered_vcf_basename+".tmp > " + tmp_dir+"/"+filtered_vcf_basename+".no_ccds")
+		os.system("rm " +  tmp_dir+"/"+filtered_vcf_basename+".tmp " +  tmp_dir+"/"+filtered_vcf_basename+".header")
+		print(tmp_dir+"/"+filtered_vcf_basename+'.no_ccds')
+		df = pd.read_csv( tmp_dir+"/"+filtered_vcf_basename+".no_ccds", low_memory=False, sep='\t')
+	else:
+		df = pd.read_csv(filtered_vcf, low_memory=False, sep='\t')
 	print(df.shape)
+	print(df.head())
 
 
 	# ===============  VCF Table Pre-Processing  ===============
@@ -77,7 +92,7 @@ def pre_process_vcf_table(filtered_vcf, variant_filter=''):
 
 
 
-	## Essential df pre-processing to speed-up parsing
+	## Essential df pre-processing to speed-up parsing for feature extraction
 	df['WIN'] = (df['POS'] / win_len).astype(int)
 
 	return df, chr_first_window_idx, total_num_windows
@@ -171,10 +186,10 @@ def extract_additional_features_per_window(df, chr_first_window_idx, total_num_w
 	additional_features_df_file = tmp_dir + '/chr' + chrom + '.additional_features_df.csv'
 
 	# TEMP: comment next 4 lines for DEBUG
-	#if Path(additional_features_df_file).exists():
-	#	print(">> additional_features_df_file already exists. Reading file...")
-	#	additional_features_df = pd.read_csv(additional_features_df_file, index_col=0)
-	#	return additional_features_df
+	if Path(additional_features_df_file).exists():
+		print(">> additional_features_df_file already exists. Reading file...")
+		additional_features_df = pd.read_csv(additional_features_df_file, index_col=0)
+		return additional_features_df
 
 
 	agg_mut_rates_per_window = dict()
@@ -461,59 +476,6 @@ def prepare_data_for_regression(common_variants_df, all_variants_df, gwrvis_scor
 
 
 
-"""
-## --deprecated
-
-gwrvis_scores_arr = np.array(gwrvis_scores)
-print(min(gwrvis_scores_arr))
-print(max(gwrvis_scores_arr))
-
-# Plot RVIS scores for current chromosome
-f1 = plt.figure()
-plt.plot(gwrvis_scores_arr, linewidth=0.1)
-f1.suptitle('gwRVIS values across chromosome ' + chrom, fontsize=12) 
-plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
-plt.ylabel('gwRVIS score', fontsize=10)
-#plt.show()
-
-gwrvis_score_quotients = np.array(gwrvis_score_quotients)
-f1a = plt.figure()
-plt.plot(gwrvis_score_quotients, linewidth=0.1)
-f1a.suptitle('common / all variants ratios across chromosome ' + chrom, fontsize=12) 
-plt.xlabel('chr window index (genomic coordinate)', fontsize=12) 
-plt.ylabel('common / all variants ratio', fontsize=10)
-plt.ylim((-1.2, 1.2))
-
-binwidth = 0.001
-print(len(gwrvis_scores_arr))
-gwrvis_scores_arr = gwrvis_scores_arr[~np.isnan(gwrvis_scores_arr) ]
-print(len(gwrvis_scores_arr))
-f2 = plt.figure()
-plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth))
-f2.suptitle('Histogram of gwRVIS values across chromosome ' + chrom +'\n (excluding regions with no variation data)', fontsize=12) 
-plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
-plt.ylabel('Count', fontsize=10)
-
-
-# CDF plot 
-f3 = plt.figure()
-gwrvis_scores_arr = gwrvis_scores_arr[ gwrvis_scores_arr != 0 ]
-plt.hist(gwrvis_scores_arr, bins=np.arange(min(gwrvis_scores_arr), max(gwrvis_scores_arr) + binwidth, binwidth), cumulative=True, normed=True, histtype='step', alpha=0.55, color='purple')
-f3.suptitle('CDF of gwRVIS values across chromosome ' + chrom + '\n (excluding regions with no variation data)', fontsize=12) 
-plt.xlabel('chr window index (genomic coordinate)', fontsize=10) 
-plt.ylabel('Count', fontsize=10)
-
-pp = PdfPages(plots_dir + "/gwrvis_chr" + chrom + ".pdf")
-pp.savefig(f1)
-pp.savefig(f1a)
-pp.savefig(f2)
-pp.savefig(f3)
-pp.close()
-
-"""
-
-
-
 
 if __name__ == '__main__':
 
@@ -528,6 +490,13 @@ if __name__ == '__main__':
 	# Read run parameters from config file and store into a dictionary
 	config_params = get_config_params(config_file)
 	print(config_params)
+
+	genomic_classes_files = {}
+	with open(config_params['genomic_classes']) as fh:
+		for line in fh:
+			line = line.rstrip()
+			genomic_class, cur_path, _ = line.split('\t')
+			genomic_classes_files[genomic_class] = cur_path
 
 
 	# ==================== Initialisation ====================

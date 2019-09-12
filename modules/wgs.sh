@@ -13,21 +13,18 @@ config_log=$1
 input_classes=$2 #input_classes.txt 
 
 out_dir=`python custom_utils.py $config_log`
-echo "./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes"
-exit
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-#./parse_all_chromosomes.sh $config_log;
+./parse_all_chromosomes.sh $config_log;
 
 
 echo "Perform logistic regression (common ~ all variants) to get gwRVIS scores"
-#python run_full_regression.py $config_log;
+python run_full_regression.py $config_log;
 
 
 echo "Convert window indexes (0-based) to real genomic coordinates"
-#python convert_window_indexes_to_genomic_coords.py $config_log;
-
+python convert_window_indexes_to_genomic_coords.py $config_log;
 
 
 

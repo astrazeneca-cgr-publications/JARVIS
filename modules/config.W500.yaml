@@ -6,6 +6,7 @@ run:
         MAF_thres: 0.001  # e.g. 0.0001 (Minor Allele Frequency) 
         population: all    # e.g. all (default), FIN, etc.
         filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
+        filter_ccds_variants: True
         run_identifier: regression_beta  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
 fixed:
         kmer: 7          # mutability rate based on k-mer: 7 or 3
