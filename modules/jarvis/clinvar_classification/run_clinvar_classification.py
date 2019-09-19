@@ -247,10 +247,10 @@ if __name__ == '__main__':
 	filter_ccds_overlapping_variants = bool(int(sys.argv[2]))
 			
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['ccds']] # ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
+	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
 	
-	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
+	all_base_scores = ['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# regression -- default: False, treating it as a classification problem
@@ -276,10 +276,11 @@ if __name__ == '__main__':
 												
 			clf_wrapper.run()
 		
-			score_list.append(clf_wrapper.score_print_name)
-			fpr_list.append(clf_wrapper.mean_fpr)
-			tpr_list.append(clf_wrapper.mean_tpr)
-			auc_list.append(clf_wrapper.mean_auc)
+			if clf_wrapper.mean_auc is not None:
+				score_list.append(clf_wrapper.score_print_name)
+				fpr_list.append(clf_wrapper.mean_fpr)
+				tpr_list.append(clf_wrapper.mean_tpr)
+				auc_list.append(clf_wrapper.mean_auc)
 
 			
 		

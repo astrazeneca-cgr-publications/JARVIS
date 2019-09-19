@@ -1,5 +1,11 @@
 ### QC for intervals distribution
 
+#### CCDS
+v=19
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz
+zcat gencode.v$v.annotation.gtf.gz | awk 'BEGIN{OFS="\t";} $3=="CDS" {print $1,$4-1,$5}' | sortBed | mergeBed -i - > gencode_v${v}_cds_merged.bed
+
+
 #### Get total region length from BED files:
 ```
 cat gencode_v19_intron.bed | awk '{sum+=$3-$2} END {print sum}';

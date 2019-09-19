@@ -4,7 +4,7 @@
 #SBATCH -e err.wgs  # Set job error log 
 #SBATCH --cpus-per-task=5         # Request 5 CPUs (cores) on a single node 
 #SBATCH --mem=40G          # Request amount of memory 
-#SBATCH -t 24:00:0            # Request 24 hours runtime
+#SBATCH -t 48:00:0            # Request 24 hours runtime
 
 module load libpng/1.6.23-foss-2017a
 
@@ -16,25 +16,25 @@ out_dir=`python custom_utils.py $config_log`
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-./parse_all_chromosomes.sh $config_log;
+#./parse_all_chromosomes.sh $config_log;
 
 
 echo "Perform logistic regression (common ~ all variants) to get gwRVIS scores"
-python run_full_regression.py $config_log;
+#python run_full_regression.py $config_log;
 
 
 echo "Convert window indexes (0-based) to real genomic coordinates"
-python convert_window_indexes_to_genomic_coords.py $config_log;
+#python convert_window_indexes_to_genomic_coords.py $config_log;
 
 
 
 
 echo "Get gwRVIS distribution by genomic class"
-./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
+#./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
 
 
 echo "Compile full feature table (gwrvis, primary sequence features and regulatory features)"
-python compile_full_win_feature_table.py $config_log
+#python compile_full_win_feature_table.py $config_log
 
 echo "Merge BED files by genomic class across all chromosomes"
 ./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes
@@ -44,7 +44,7 @@ echo "Aggregate gwRVIS scores from all chromosomes"
 python aggregate_gwrvis_scores.py $config_log $input_classes;
 
 
-# [Deprecated] post-processing: enhancers
+# [Ad-hoc] post-processing: enhancers
 #python process_enhancers_bed_rvis_contents.py $config_log $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
@@ -66,7 +66,8 @@ python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_log 
 python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_log 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
 
 
-echo "> Run benchmark against clinvar (pathogenic/benign)"
+
+echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
 python scores_benchmarking/run_clinvar_benchmarking.py $config_log
 
 echo "> Run benchmark against denovo-db phenotypes (cases/controls)"

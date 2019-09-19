@@ -5,8 +5,9 @@ omim-HI	../hg19/bed/omim_haploinsufficient_genes.bed	220
 intolerant	../hg19/bed/most_intolerant_genes_25percentile.bed	210
 tolerant	../hg19/bed/most_tolerant_genes_75percentile.bed	200
 exon	../hg19/bed/gencode_v19_exon.merged.bed	190
+ccds	../hg19/bed/gencode_v19_cds_merged.bed	180
+ccds-slave	../hg19/bed/ccds_from_slave.bed	180
 ccds-outdated	../hg19/bed/gencode_v19_cds.merged.bed	180
-ccds	../hg19/bed/ccds_from_slave.bed	180
 vista-phantom	../hg19/bed/merged_vista_and_phantom.sorted.bed	170
 vista	../hg19/bed/ucsc_vista_enhancers.hg19.bed	170
 vista-omim	../hg19/bed/vista_omim_enhancers.bed	160

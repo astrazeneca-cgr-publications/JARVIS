@@ -84,7 +84,7 @@ def post_process_bed_file(tmp_bed_file):
 
 	df['ncrvis'] = df['ncrvis'].apply(lambda x: np.mean([float(k) for k in str(x).split(',')]) )
 	
-	df.to_csv('All_chromosomes.ncRVIS.bed', sep='\t', index=None)
+	df.to_csv('All_chromosomes.ncRVIS.bed', sep='\t', header=False, index=None)
 
 
 

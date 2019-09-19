@@ -79,9 +79,8 @@ if(T){ #!file.exists(total_df_file)){
 		df = read.table(paste(input_path, file, sep='/'), sep=',', header=T)
 		rownames(df) = paste('chr', chr, '_', df$idx, sep='')
 		df$idx = NULL
-		print(head(df, 20))
-		print(tail(df, 20))
-		print(tail(head(df, 2000)))
+		#print(head(df, 20))
+		#print(tail(df, 20))
 		total_entries_per_chr[chr] = nrow(df)
 
 		if(nrow(total_df) > 0){
@@ -98,7 +97,7 @@ if(T){ #!file.exists(total_df_file)){
 } else{
 	print("[Warning]: Reading pre-compiled total_df.Xy.tsv file")
 	total_df = read.table(total_df_file, header=T)
-	print(head(total_df))
+	#print(head(total_df))
 
 	for(chr in all_chrs){
 		tmp_df = total_df[ grepl(paste('chr', chr, '_', sep=''), rownames(total_df)), ]
@@ -169,7 +168,7 @@ stud_res = studres(regr_model)
 
 
 total_df = cbind(total_df, 'stud_res' = as.numeric(stud_res))
-print(head(total_df))
+#print(head(total_df))
 
 
 # ===== BETA ====== 
@@ -257,7 +256,7 @@ print(head(total_df))
 annotate_windows_by_tolerance <- function(final_df){
 
 	final_df['annot'] = 'other'
-	print(head(final_df))
+	#print(head(final_df))
 
 	bottom_prob = .01
 	up_prob = 1- bottom_prob
@@ -301,7 +300,7 @@ unfold_studres_from_each_chr <- function(final_df){
 		print(paste('chr:', chr))
 
 		total_entries = as.numeric(total_entries_per_chr[chr])
-		print(total_entries)
+		#print(total_entries)
 
 		chr_idx = paste('chr', chr, '_', sep='')
 

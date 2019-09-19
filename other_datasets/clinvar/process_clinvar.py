@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import gzip
 import re
 
@@ -45,5 +45,14 @@ with gzip.open(clinvar_vcf, 'r') as fh:
 			benign_out.write(coords + '\t' + cln_sig + '\n')
 			benign_no_chr_prefix_out.write(no_chr_prefix_coords + '\t' + cln_sig + '\n')
 		
+pathogenic_out.close()
+benign_out.close()
+pathogenic_no_chr_prefix_out.close()
+benign_no_chr_prefix_out.close()
 
 		
+os.system("cat clinvar.pathogenic.bed | mergeBed | sed 's/$/\tPathogenic/g' > clinvar.pathogenic.merged.bed ")
+os.system("cat clinvar.benign.bed | mergeBed | sed 's/$/\tBenign/g' > clinvar.benign.merged.bed ")
+
+os.system("cat clinvar.pathogenic.no_chr_prefix.bed | mergeBed | sed 's/$/\tPathogenic/g' > clinvar.pathogenic.no_chr_prefix.merged.bed ")
+os.system("cat clinvar.benign.no_chr_prefix.bed | mergeBed | sed 's/$/\tBenign/g' > clinvar.benign.no_chr_prefix.merged.bed ")

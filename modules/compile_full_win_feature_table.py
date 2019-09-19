@@ -25,12 +25,19 @@ def merge_gwrvis_and_feature_tables():
 	print(gwrvis_features_df.head())
 	print(gwrvis_features_df.shape)
 	
-	gwrvis_features_bed = out_dir + '/full_genome_out/gwrvis_features_table.bed'
-	gwrvis_features_df.to_csv(gwrvis_features_bed, sep='\t', index=None, header=None)
-	
-	with open(gwrvis_features_bed + '.header', 'w') as fh:
-		fh.write('\t'.join(gwrvis_features_df.columns.values))
+	WRITTEN_DF_TO_FILE = False
+	while not WRITTEN_DF_TO_FILE:
+		try:
+			gwrvis_features_bed = out_dir + '/full_genome_out/gwrvis_features_table.bed'
+			gwrvis_features_df.to_csv(gwrvis_features_bed, sep='\t', index=None, header=None)
 		
+			with open(gwrvis_features_bed + '.header', 'w') as fh:
+				fh.write('\t'.join(gwrvis_features_df.columns.values))
+			WRITTEN_DF_TO_FILE = True
+		except Exception as e:
+			print(e)
+			pass		
+
 	return gwrvis_features_df, gwrvis_features_bed
 
 
@@ -121,6 +128,11 @@ if __name__ == '__main__':
 	scratch_dir = '../scratch'
 	if not os.path.exists(scratch_dir):
 		os.makedirs(scratch_dir)
+
+	full_genome_dir = out_dir + '/full_genome_out'         
+	if not os.path.exists(full_genome_dir):
+		os.makedirs(full_genome_dir)
+
 		
 	regulatory_elements = ['CTCF_binding_sites', 'Enhancers',
 				'Open_chromatin', 'TF_binding_sites', 'H3K27ac',

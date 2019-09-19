@@ -2,7 +2,14 @@
 
 out_dir=$1
 input_classes_file=$2
+config_file=$3
 readarray -t input_classes < $input_classes_file
+
+
+pathogenic_set=`cat config.yaml | grep pathogenic | sed 's/^[ \t]*pathogenic_set: //' | sed 's/[ ]*$//'`
+benign_set=`cat config.yaml | grep benign | sed 's/^[ \t]*benign_set: //' | sed 's/[ ]*$//'`
+echo "Pathogenic set: $pathogenic_set"
+echo "Benign set: $benign_set"
 
 # ==== Global variables ====
 gwrvis_distr_dir="${out_dir}/gwrvis_distribution"
@@ -102,8 +109,8 @@ function add_clinvar_annotation {
 	mkdir -p $clinvar_feature_table_dir
 
 	# Get intersections with clinvar pathogenic/benign
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/clinvar/clinvar.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.clinvar_pathogenic.bed.tmp
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/clinvar/clinvar.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.clinvar_benign.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.clinvar_pathogenic.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.clinvar_benign.bed.tmp
 
 	cat $clinvar_feature_table_dir/full_feature_table.clinvar_pathogenic.bed.tmp $clinvar_feature_table_dir/full_feature_table.clinvar_benign.bed.tmp > $clinvar_feature_table_dir/full_feature_table.clinvar.bed.tmp
 
@@ -123,10 +130,13 @@ function add_external_genome_wide_scores {
 
 	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.clinvar.bed"
 
-	for score in phastCons46way phyloP46way cadd orion; do
+	for score in phastCons46way phyloP46way cadd orion ncRVIS; do
 		echo $score
-		echo "tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.clinvar.bed | cut --complement -f35,36,37,39 > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp"
-		tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.clinvar.bed | cut --complement -f34,35,36,38 > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp
+
+		# compile on the fly table with pathogenic and benign variants per score based on the defined pathogenic/benign sets
+		cat ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_pathogenic.bed ../other_datasets/genome-wide-scores/${score}/${score}.${benign_set}_benign.bed > ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed
+
+		tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed | cut --complement -f34,35,36,38 > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp
 		
 		# add header with extra column for the new score
 		cat $clinvar_feature_table_bed | head -1 | sed "s/\$/\t$score/" > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header

@@ -17,7 +17,7 @@ import sys
 import os
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from custom_utils import create_out_dir
+from custom_utils import create_out_dir, get_config_params
 
 
 
@@ -62,7 +62,7 @@ class ScoreBenchmark:
 		benchmark_dir = self.get_benchmark_dir_for_score('gwrvis')
 		
 		gwrvis_clinvar_subset_file = benchmark_dir + '/gwrvis.clinvar_' + variant_type + '.bed'
-		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/clinvar/clinvar.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
+		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -86,11 +86,11 @@ class ScoreBenchmark:
 			return gwrvis_clinvar_subset_file
 		
 			
-		clinvar_subset_file = self.benchmark_dir + '/' + self.score + '.clinvar_' + variant_type + '.bed'
+		clinvar_subset_file = self.benchmark_dir + '/' + self.score + '.' + variant_datasets[variant_type] + '_' + variant_type + '.bed'
 		score_dir = '../other_datasets/genome-wide-scores/' + self.primary_score
 
 		# Keeping only the intervals of the score-of-interest that overlap with gwRVIS annotations (no additional regions from gwRVIS are inserted)
-		cmd = 'intersectBed -wo -a ' + score_dir + '/' + self.primary_score + '.clinvar_' + variant_type + '.bed -b ' + gwrvis_clinvar_subset_file + ' | cut -f1,2,3,4,9,10 > ' + clinvar_subset_file
+		cmd = 'intersectBed -wo -a ' + score_dir + '/' + self.primary_score + '.' + variant_datasets[variant_type] + '_' + variant_type + '.bed -b ' + gwrvis_clinvar_subset_file + ' | cut -f1,2,3,4,9,10 > ' + clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -285,7 +285,6 @@ class ScoreBenchmark:
 			
 			return 0, fig
 
-			#fig.savefig(self.benchmark_dir + '/clinvar.pathogenic_vs_benign.density.' + genomic_class + '.pdf')
 		except Exception as e:
 			print(e)
 			print('[Warning]: Insufficient data in genomic class', genomic_class, ' - Skipped.')
@@ -453,6 +452,16 @@ if __name__ == '__main__':
 	out_dir = create_out_dir(config_file)
 	out_dir = out_dir + '/full_genome_out'
 	#out_dir = '../' + out_dir + '/full_genome_out'
+
+	config_params = get_config_params(config_file)
+	pathogenic_set = config_params['pathogenic_set']
+	benign_set = config_params['benign_set']
+
+	variant_datasets = {'pathogenic': pathogenic_set, 'benign': benign_set}
+
+
+	print('Pathogenic: ' + pathogenic_set)
+	print('Benign: ' + benign_set)
 
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}

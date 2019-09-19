@@ -10,6 +10,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.metrics import roc_curve, auc, mean_squared_error, mean_absolute_error, explained_variance_score, r2_score
 from sklearn.model_selection import train_test_split
+import warnings
+warnings.filterwarnings("error")
 import sys
 import os
 
@@ -116,72 +118,77 @@ class Classifier:
 		
 		cv = StratifiedKFold(n_splits=cv_splits)
 		
-		tprs = []
-		aucs = []
-		mean_fpr = np.linspace(0, 1, 100)
+		try:
+			tprs = []
+			aucs = []
+			mean_fpr = np.linspace(0, 1, 100)
 
-		fig, ax = plt.subplots(figsize=(10, 10))
-		
-		i = 0
-		for train, test in cv.split(self.X, self.y):
-			probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
-			# Compute ROC curve and area the curve
-			fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
-			tprs.append(interp(mean_fpr, fpr, tpr))
-			tprs[-1][0] = 0.0
-			roc_auc = round(auc(fpr, tpr), 3)
-			aucs.append(roc_auc)
-			plt.plot(fpr, tpr, lw=1, alpha=0.3,
-					 label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
+			fig, ax = plt.subplots(figsize=(10, 10))
+			
+			i = 0
+			for train, test in cv.split(self.X, self.y):
+				probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+				# Compute ROC curve and area the curve
+				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+				tprs.append(interp(mean_fpr, fpr, tpr))
+				tprs[-1][0] = 0.0
+				roc_auc = round(auc(fpr, tpr), 3)
+				aucs.append(roc_auc)
+				plt.plot(fpr, tpr, lw=1, alpha=0.3,
+						 label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
 
-			i += 1
-		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
+				i += 1
+			plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
 
-		mean_tpr = np.mean(tprs, axis=0)
-		mean_tpr[-1] = 1.0
-		self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
-		std_auc = np.std(aucs)
-		plt.plot(mean_fpr, mean_tpr, color='b',
-				 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
-				 lw=2, alpha=.8)
+			mean_tpr = np.mean(tprs, axis=0)
+			mean_tpr[-1] = 1.0
+			self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
+			std_auc = np.std(aucs)
+			plt.plot(mean_fpr, mean_tpr, color='b',
+					 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
+					 lw=2, alpha=.8)
 
-		std_tpr = np.std(tprs, axis=0)
-		tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
-		tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-		plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
-						 label=r'$\pm$ 1 std. dev.')
+			std_tpr = np.std(tprs, axis=0)
+			tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+			tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+			plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
+							 label=r'$\pm$ 1 std. dev.')
 
-		plt.xlim([-0.05, 1.05])
-		plt.ylim([-0.05, 1.05])
-		plt.xlabel('False Positive Rate')
-		plt.ylabel('True Positive Rate')
-		plt.title(self.score_print_name + ': ' + str(cv_splits) + '-fold Cross-Validation ROC Curve')
-		plt.legend(loc="lower right")
-		plt.show()
-		plt.close()
-		
-		
-		pdf_filename = self.out_dir + '/' + self.model_type + '_ROC.' + self.score_print_name + \
-						'.AUC_' + str(self.mean_auc)
-						
-		if self.include_vcf_extracted_features:
-			pdf_filename += '.incl_vcf_features'
-		pdf_filename += '.pdf'
-		
-		fig.savefig(pdf_filename, bbox_inches='tight')
-		
-		
-		print('Mean AUC:', self.mean_auc)
-		
-		
-		if self.model_type == 'RandomForest':
-			self.get_feature_importances()
+			plt.xlim([-0.05, 1.05])
+			plt.ylim([-0.05, 1.05])
+			plt.xlabel('False Positive Rate')
+			plt.ylabel('True Positive Rate')
+			plt.title(self.score_print_name + ': ' + str(cv_splits) + '-fold Cross-Validation ROC Curve')
+			plt.legend(loc="lower right")
+			plt.show()
+			plt.close()
+			
+			
+			pdf_filename = self.out_dir + '/' + self.model_type + '_ROC.' + self.score_print_name + \
+							'.AUC_' + str(self.mean_auc)
+							
+			if self.include_vcf_extracted_features:
+				pdf_filename += '.incl_vcf_features'
+			pdf_filename += '.pdf'
+			
+			fig.savefig(pdf_filename, bbox_inches='tight')
+			
+			
+			print('Mean AUC:', self.mean_auc)
+			
+			
+			if self.model_type == 'RandomForest':
+				self.get_feature_importances()
 
-		self.mean_tpr = mean_tpr
-		self.mean_fpr = mean_fpr
-		print('=====================\n\n')
+			self.mean_tpr = mean_tpr
+			self.mean_fpr = mean_fpr
+			print('=====================\n\n')
 
-				
+		except:
+			print("[Warning]: insufficient number of data for " + str(cv_splits) + "-fold CV - Skipping current training session...\n")
+			self.mean_tpr = None
+			self.mean_fpr = None
+			self.mean_auc = None
 
 		
 	
