@@ -30,11 +30,11 @@ echo "Convert window indexes (0-based) to real genomic coordinates"
 
 
 echo "Get gwRVIS distribution by genomic class"
-#./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
+./run_gwrvis_extraction_by_genomic_class.sh $config_log $input_classes;
 
 
 echo "Compile full feature table (gwrvis, primary sequence features and regulatory features)"
-#python compile_full_win_feature_table.py $config_log
+python compile_full_win_feature_table.py $config_log
 
 echo "Merge BED files by genomic class across all chromosomes"
 ./annotate_feat_table_w_mut_exl_genomic_class.sh $out_dir $input_classes

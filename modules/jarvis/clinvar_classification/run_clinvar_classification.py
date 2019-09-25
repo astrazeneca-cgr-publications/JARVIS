@@ -169,6 +169,9 @@ class ClassificationWrapper:
 		
 		classifier.preprocess_data(self.df)
 		
+		classifier.init_model()
+		
+		
 		classifier.run_classification_with_cv()
 		
 		self.score_print_name = classifier.score_print_name
@@ -247,16 +250,16 @@ if __name__ == '__main__':
 	filter_ccds_overlapping_variants = bool(int(sys.argv[2]))
 			
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
+	genomic_classes_lists =  [ ['intergenic'], ['utr'] ] #, ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
 	
-	all_base_scores = ['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
+	all_base_scores = ['gwrvis', 'jarvis'] #, 'cadd'] #['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# regression -- default: False, treating it as a classification problem
 	
 
-	model_type = 'RandomForest' # 'RandomForest' (default), 'Logistic' 
+	model_type = 'DNN' #'DNN' # 'RandomForest' (default), 'Logistic', 'DNN'
 	
 	
 	for genomic_classes in genomic_classes_lists:
