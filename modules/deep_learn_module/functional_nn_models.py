@@ -100,8 +100,6 @@ def cnn_2_conv_2_fcc(win_len, regression=False):
 
 def cnn_rnn_1_conv_1_lstm(win_len, regression=False):
 	
-	forward_lstm = LSTM(units=320, return_sequences=True)
-	brnn = Bidirectional(forward_lstm)
 	
 	# CNN
 	model = Sequential()
@@ -113,6 +111,9 @@ def cnn_rnn_1_conv_1_lstm(win_len, regression=False):
 	model.add(Dropout(0.2))
 
 	# RNN
+	forward_lstm = LSTM(units=320, return_sequences=True)
+	brnn = Bidirectional(forward_lstm)
+
 	model.add(brnn)
 	model.add(Dropout(0.5))
 

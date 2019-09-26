@@ -1,6 +1,11 @@
 # TODO:
 # 'Major'
-> Add CNNs and RNNs with Keras functional API
+> Add CNNs and RNNs with Keras functional API.
+    See from 'deep_learn_module/':
+        - prepare_data.py
+	- functional_nn_models.py
+	- train_nn_modely.py
+
 
 > Train on UTRs -> Predict on Intergenic: to justify if I can use all UTR variants for the JARVIS training to then present it as a non-coding variant prioritisation score for intergenic regions too.
 > Combine HGMD and ClinVar into a single dataset
