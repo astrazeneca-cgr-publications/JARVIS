@@ -1,8 +1,12 @@
-# TODO LIST:
-> Run logistic regression between intergenic and ucnes (or other classes) to see if gwRVIS can distinguish them efficiently.
+# TODO:
+> Add CNNs and RNNs with Keras functional API
 
--- Add CV ROC curves to "scores_benchmarking/run_clinvar_benchmarking.py":
-Follow code from 'https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html'
+> Compare pathogenic variants sets between ClinVar and HGMD (see overlap, etc.) [DONE]: They are highly overlapping
+> Combine HGMD and ClinVar into a single dataset
+
+# NOTES
+- Currently using ClinVar variants, allowing multiple alleles at the same loci and counting these as distinct mutation events ----
+
 
 
 
@@ -14,9 +18,12 @@ Follow code from 'https://scikit-learn.org/stable/auto_examples/model_selection/
 
 > Add methylation data for each window. Think about other data types too.
 
-> Add CNNs and RNNs with Keras functional API
 
 
 -----------------
 # DONE:
-- Make sure mut_rate, cpg etc. are calculated for the very last window too.
+- Make sure mut_rate, cpg etc. are calculated for the very last window too. [DONE]
+- Run logistic regression between intergenic and ucnes (or other classes) to see if gwRVIS can distinguish them efficiently. [DONE]
+- Add CV ROC curves to "scores_benchmarking/run_clinvar_benchmarking.py":
+Follow code from 'https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html' [DONE]
+- Jarvis-variant_classification cannot read hgmd as input at the moment (seems to be fixed for clinvar pathogenic input) [DONE] - Fixed

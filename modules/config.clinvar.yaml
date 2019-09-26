@@ -7,7 +7,7 @@ run:
         population: all    # e.g. all (default), FIN, etc.
         filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
         filter_ccds_variants: False     # default: False (use True to exclude CCDS variants affecting gwRVIS calculation)
-        run_identifier: pathogenic_sets_beta  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
+        run_identifier: clinvar_pathogenic_set  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
         pathogenic_set: clinvar 
         benign_set: clinvar
 fixed:

@@ -11,7 +11,7 @@ import os
 from classifiers import Classifier
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-from custom_utils import create_out_dir
+from custom_utils import create_out_dir, get_config_params
 
 
 
@@ -76,12 +76,12 @@ class ClassificationWrapper:
 	def read_input_data(self):
 		
 		if self.base_score in ['gwrvis', 'jarvis']:
-			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.bed', sep='\t', low_memory=False)
+			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed', sep='\t', low_memory=False)
 		else:
-			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + '.bed', sep='\t', low_memory=False)
+			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
 		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
-		
+		#print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
 		
 	
 
@@ -111,15 +111,15 @@ class ClassificationWrapper:
 	
 	
 		if self.base_score in ['gwrvis', 'jarvis']:
-			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.bed'
-			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + '_'.join(self.genomic_classes) + '.clean.bed'
+			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.bed'
+			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.clean.bed'
 
 			# Get the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
-			os.system("./jarvis/clinvar_classification/get_overlapping_variant_windows.sh genomic_classes.log " + self.out_dir + " " + self.clinvar_feature_table_dir )
+			os.system("./jarvis/variant_classification/get_overlapping_variant_windows.sh genomic_classes.log " + self.out_dir + " " + self.clinvar_feature_table_dir + " " + patho_benign_sets)
 
 		else:
-			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
-			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.clinvar.' + self.base_score + "." + '_'.join(self.genomic_classes) + '.clean.bed'
+			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
+			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.genomic_classes) + '.clean.bed'
 			
 		self.df.to_csv(cur_full_feature_file, sep='\t', index=False, header=False)
 
@@ -253,12 +253,19 @@ if __name__ == '__main__':
 	genomic_classes_lists =  [ ['intergenic'], ['utr'] ] #, ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
 	
-	all_base_scores = ['gwrvis', 'jarvis'] #, 'cadd'] #['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
+	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'ncRVIS'] #['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# regression -- default: False, treating it as a classification problem
-	
 
+	run_params = get_config_params(config_file)
+	pathogenic_set = run_params['pathogenic_set']
+	benign_set = run_params['benign_set']
+	print('Pathogenic set: ' + pathogenic_set)
+	print('Benign set: ' + benign_set)
+	patho_benign_sets = pathogenic_set + '_' + benign_set
+	
+	
 	model_type = 'DNN' #'DNN' # 'RandomForest' (default), 'Logistic', 'DNN'
 	
 	

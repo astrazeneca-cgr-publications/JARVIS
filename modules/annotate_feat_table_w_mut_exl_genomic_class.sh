@@ -1,15 +1,20 @@
 #!/bin/sh
 
-out_dir=$1
+# ==== Read / Infer input arguments ====
+config_file=$1
 input_classes_file=$2
-config_file=$3
 readarray -t input_classes < $input_classes_file
 
+out_dir=`python custom_utils.py $config_file`
+printf "Out dir: ${out_dir}\n"
 
-pathogenic_set=`cat config.yaml | grep pathogenic | sed 's/^[ \t]*pathogenic_set: //' | sed 's/[ ]*$//'`
-benign_set=`cat config.yaml | grep benign | sed 's/^[ \t]*benign_set: //' | sed 's/[ ]*$//'`
+
+pathogenic_set=`cat $config_file | grep "pathogenic_set:" | sed 's/^[ \t]*pathogenic_set: //' | sed 's/[ ]*$//'`
+benign_set=`cat $config_file | grep "benign_set:" | sed 's/^[ \t]*benign_set: //' | sed 's/[ ]*$//'`
 echo "Pathogenic set: $pathogenic_set"
 echo "Benign set: $benign_set"
+
+
 
 # ==== Global variables ====
 gwrvis_distr_dir="${out_dir}/gwrvis_distribution"
@@ -26,6 +31,8 @@ clinvar_feature_table_dir=$ml_data_dir/clinvar_feature_tables
 
 # Output fle
 out_full_feature_table="${out_feature_table_dir}/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv"
+
+
 
 
 function add_header_to_bed_by_genomic_class () {
@@ -109,26 +116,27 @@ function add_clinvar_annotation {
 	mkdir -p $clinvar_feature_table_dir
 
 	# Get intersections with clinvar pathogenic/benign
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.clinvar_pathogenic.bed.tmp
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.clinvar_benign.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp
 
-	cat $clinvar_feature_table_dir/full_feature_table.clinvar_pathogenic.bed.tmp $clinvar_feature_table_dir/full_feature_table.clinvar_benign.bed.tmp > $clinvar_feature_table_dir/full_feature_table.clinvar.bed.tmp
+	cat $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed.tmp
 
 	# add header
 	tmp_header_file=$clinvar_feature_table_dir/header.tmp
 	cat $out_full_feature_table | head -1 | sed 's/gwrvis/clinvar_annot\tgwrvis/' | sed 's/\t$//' > $tmp_header_file
-	cat $tmp_header_file $clinvar_feature_table_dir/full_feature_table.clinvar.bed.tmp > $clinvar_feature_table_dir/full_feature_table.clinvar.bed
+	cat $tmp_header_file $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed.tmp > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed
 
 	# clenaup tmp files
 	rm $clinvar_feature_table_dir/*.tmp
 
-	printf "\nOutput file with all annotations: $clinvar_feature_table_dir/full_feature_table.clinvar.bed\n"
+	printf "\nOutput file with all annotations: $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed\n"
 }
+
 
 
 function add_external_genome_wide_scores {
 
-	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.clinvar.bed"
+	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
 
 	for score in phastCons46way phyloP46way cadd orion ncRVIS; do
 		echo $score
@@ -136,20 +144,20 @@ function add_external_genome_wide_scores {
 		# compile on the fly table with pathogenic and benign variants per score based on the defined pathogenic/benign sets
 		cat ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_pathogenic.bed ../other_datasets/genome-wide-scores/${score}/${score}.${benign_set}_benign.bed > ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed
 
-		tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed | cut --complement -f34,35,36,38 > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp
+		tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed | cut --complement -f34,35,36,38 > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp
 		
 		# add header with extra column for the new score
-		cat $clinvar_feature_table_bed | head -1 | sed "s/\$/\t$score/" > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header
-		cat $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp > $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed
-		rm $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.clinvar.${score}.bed.tmp
+		cat $clinvar_feature_table_bed | head -1 | sed "s/\$/\t$score/" > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.header
+		cat $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed
+		rm $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp
 	done
 
 	printf "\nOutput file: $clinvar_feature_table_bed\n"
 }
 
 
-# =============== MAIN RUN ================
 
+# =============== MAIN RUN ================
 printf "\n\n------------\nMerging BED files by genomic class and retrieving respective feature table...\n"
 get_feature_table_by_genomic_class
 
