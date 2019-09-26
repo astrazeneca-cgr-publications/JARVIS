@@ -6,10 +6,6 @@ out_dir=$2
 clinvar_feature_table_dir=$3 
 patho_benign_sets=$4
 
-#genomic_classes_file=/projects/cgr/users/kclc950/gwRVIS/modules/genomic_classes.log 
-#out_dir=/projects/cgr/users/kclc950/gwRVIS/out/gnomad-regression_beta-winlen_3000.MAF_0.001.varType_snv.Pop_all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions 
-#clinvar_feature_table_dir=/projects/cgr/users/kclc950/gwRVIS/out/gnomad-regression_beta-winlen_3000.MAF_0.001.varType_snv.Pop_all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions/ml_data/clinvar_feature_tables
-
 
 declare -a genomic_classes=(`tail -n+2 $genomic_classes_file | cut -f1`)
 declare -a genomic_classes_files=(`tail -n+2 $genomic_classes_file | cut -f2`)
@@ -23,6 +19,8 @@ done
 #for i in "${!input_classes[@]}"; do
 #	printf "$i\t${input_classes[$i]}\n"
 #done
+
+
 
 coverage_ratio_diff_thres=0.15
 

@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import sys, os, getopt
 from subprocess import call
-from custom_utils import create_out_dir
 import colorbrewer
 from stats_util import is_outlier
 from scipy.stats import mode
 from pathlib import Path
 
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from custom_utils import create_out_dir
 
 
 def main(argv):
@@ -89,14 +90,14 @@ def get_density_plots(gen_df, annot='all'):
 	# Temp fix for native R installation on 'Ubuntu in Windows' that throws 'core dumped' exception
 	# during patchwork library installation.
 	rscript_path = 'Rscript'
-	rscript_w_patchwork_package = '/home/djifos/R_home/R-3.5.0/bin/Rscript'
-	rscript_w_patchwork_package_path = Path(rscript_w_patchwork_package)
+	#rscript_w_patchwork_package = '/home/djifos/R_home/R-3.5.0/bin/Rscript'
+	#rscript_w_patchwork_package_path = Path(rscript_w_patchwork_package)
 
-	if rscript_w_patchwork_package_path.exists():
-		rscript_path = rscript_w_patchwork_package 
+	#if rscript_w_patchwork_package_path.exists():
+	#	rscript_path = rscript_w_patchwork_package 
 
-	print(rscript_path, 'make_beautiful_density_plots.R', results_dir, out_file, annot)
-	call([rscript_path, 'make_beautiful_density_plots.R', results_dir, out_file, annot])
+	print(rscript_path, 'gwrvis_core/make_beautiful_density_plots.R', results_dir, out_file, annot)
+	call([rscript_path, 'gwrvis_core/make_beautiful_density_plots.R', results_dir, out_file, annot])
 
 
 

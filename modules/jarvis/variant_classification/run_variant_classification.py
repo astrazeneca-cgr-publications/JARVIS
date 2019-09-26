@@ -115,7 +115,7 @@ class ClassificationWrapper:
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.clean.bed'
 
 			# Get the blacklisted regions (gwRVIS windows which contain both CCDS and non-coding variants)
-			os.system("./jarvis/variant_classification/get_overlapping_variant_windows.sh genomic_classes.log " + self.out_dir + " " + self.clinvar_feature_table_dir + " " + patho_benign_sets)
+			os.system("./jarvis/variant_classification/get_overlapping_variant_windows.sh " + genomic_classes_log + " " + self.out_dir + " " + self.clinvar_feature_table_dir + " " + patho_benign_sets)
 
 		else:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
@@ -259,6 +259,7 @@ if __name__ == '__main__':
 	# regression -- default: False, treating it as a classification problem
 
 	run_params = get_config_params(config_file)
+	genomic_classes_log = run_params['genomic_classes']
 	pathogenic_set = run_params['pathogenic_set']
 	benign_set = run_params['benign_set']
 	print('Pathogenic set: ' + pathogenic_set)

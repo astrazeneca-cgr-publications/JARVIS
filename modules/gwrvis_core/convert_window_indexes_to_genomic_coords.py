@@ -1,7 +1,9 @@
-from custom_utils import create_out_dir, get_config_params
 import pandas as pd
 import sys
 import os
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from custom_utils import create_out_dir, get_config_params
 
 config_file = sys.argv[1]	#'config.yaml'
 

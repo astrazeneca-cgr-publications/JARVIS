@@ -1,7 +1,10 @@
 import sys
 import os
 from subprocess import call
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from custom_utils import create_out_dir, get_config_params
+
 
 config_file = sys.argv[1]	#'config.yaml'
 
@@ -24,10 +27,13 @@ all_variants_upper_thres = config_params['all_variants_upper_thres']
 
 
 # fit linear regression for all autocomal chromosomes
+cwd = os.getcwd()
+print('cwd:', cwd)
+
 chr_type = 'autosomal'
 print("Fitting linear regression for autosomal chromosomes only")
-print('Rscript', 'full_genome_r_studres_glm.R', out_dir, all_variants_upper_thres, win_len, chr_type)
-call(['Rscript', 'full_genome_r_studres_glm.R', out_dir, str(all_variants_upper_thres), str(win_len), chr_type])
+print('Rscript', 'gwrvis_core/full_genome_r_studres_glm.R', out_dir, all_variants_upper_thres, win_len, chr_type)
+call(['Rscript', 'gwrvis_core/full_genome_r_studres_glm.R', out_dir, str(all_variants_upper_thres), str(win_len), chr_type])
 
 # fit linear regression for sex chromosomes (only X in that case) separately
 #chr_type = 'sex'

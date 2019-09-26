@@ -6,12 +6,15 @@ run:
         MAF_thres: 0.001  # e.g. 0.0001 (Minor Allele Frequency) 
         population: all    # e.g. all (default), FIN, etc.
         filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
+        filter_ccds_variants: False     # default: False (use True to exclude CCDS variants affecting gwRVIS calculation)
         run_identifier: regression_beta  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
+        pathogenic_set: clinvar 
+        benign_set: clinvar
 fixed:
         kmer: 7          # mutability rate based on k-mer: 7 or 3
-        hg_dir:  ../hg19    # Path with reference human genome
-        genomic_classes: genomic_classes.log      # full reference file with BED file paths and priorities per genomic class
+        genomic_classes: static_files/genomic_classes.log      # full reference file with BED file paths and priorities per genomic class
         all_variants_upper_thres: -1 # set to '-1' to use default value: (win_len) or set to e.g. 150 (filter_outliers_before_regression-dependent) 
         filter_plot_outliers: True        # e.g. True - affects only plotting of gwRVIS values per genomic class
         z_thres: 3.5    # used when 'filter_plot_outliers' is set to True
-        fixed_win_len_for_all_genomic_elements: False  # If False [Default] different classes (but non-overlapping regions) may share the same gwRVIS value if they belong to different parts of the same window - Else for True: every 3kb window will be assigned to a single genomic class element (signal is completely vanished so not to be used)
+        fixed_win_len_for_all_genomic_elements: False  # If False (default value) different classes (but non-overlapping regions) may share the same gwRVIS value if they belong to different parts of the same window - Else for True: every 3kb window will be assigned to a single genomic class element (Not ideal: removes lots of interesting signal)
+        min_overlap_ratio: 0.01 # default: 1E-9 (1bp min. overlap) 

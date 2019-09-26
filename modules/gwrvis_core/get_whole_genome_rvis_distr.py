@@ -14,10 +14,12 @@ from stats_util import is_outlier
 import os
 import seaborn as sns
 import matplotlib.patches as mpatches
-from custom_utils import create_out_dir, get_config_params
 from copy import deepcopy
 from pathlib import Path
 import math
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from custom_utils import create_out_dir, get_config_params
 
 
 def sigmoid(x):
@@ -286,7 +288,6 @@ if __name__ == '__main__':
 
 	genomic_classes_log = run_params['genomic_classes']
 	filter_plot_outliers = run_params['filter_plot_outliers']
-	hg_dir = run_params['hg_dir']
 	z_thres = run_params['z_thres']
 	win_len = run_params['win_len']
 	MAF_thres = run_params['MAF_thres']

@@ -7,13 +7,12 @@ run:
         population: all    # e.g. all (default), FIN, etc.
         filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
         filter_ccds_variants: False     # default: False (use True to exclude CCDS variants affecting gwRVIS calculation)
-        run_identifier: clinvar_pathogenic_set  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
-        pathogenic_set: clinvar 
+        run_identifier: hgmd_pathogenic_set  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
+        pathogenic_set: hgmd 
         benign_set: clinvar
 fixed:
         kmer: 7          # mutability rate based on k-mer: 7 or 3
-        hg_dir:  ../hg19    # Path with reference human genome
-        genomic_classes: genomic_classes.log      # full reference file with BED file paths and priorities per genomic class
+        genomic_classes: static_files/genomic_classes.log      # full reference file with BED file paths and priorities per genomic class
         all_variants_upper_thres: -1 # set to '-1' to use default value: (win_len) or set to e.g. 150 (filter_outliers_before_regression-dependent) 
         filter_plot_outliers: True        # e.g. True - affects only plotting of gwRVIS values per genomic class
         z_thres: 3.5    # used when 'filter_plot_outliers' is set to True

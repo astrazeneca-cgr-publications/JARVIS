@@ -12,6 +12,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import mode
 import seaborn as sns
 import matplotlib.patches as mpatches
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from custom_utils import create_out_dir, get_config_params, is_outlier
 
 
@@ -71,9 +73,9 @@ def init_genomic_classes(input_classes_file, genomic_classes_log):
 def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, next_idx):
 
 	# Perform intersectBed with or without '-wa' option based on input run parameters
-	intersect_bed_cmd = './bedtools_wrapper.sh intersect'
+	intersect_bed_cmd = './gwrvis_core/bedtools_wrapper.sh intersect'
 	if fixed_win_len_for_all_genomic_elements:
-		intersect_bed_cmd = './bedtools_wrapper.sh intersect_wa'
+		intersect_bed_cmd = './gwrvis_core/bedtools_wrapper.sh intersect_wa'
 
 	local_min_overlap_ratio = min_overlap_ratio
 
@@ -91,6 +93,8 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 		ff.write(DATA.getvalue())
 		ff.close()
 	except Exception as e:
+		print(e)
+		print('-----------------------------\n\n')
 		# set output string to empty
 		DATA = StringIO()
 
@@ -104,9 +108,9 @@ def get_gwrvis_for_subregion(ref_chr_gwrvis_bed, cur_genomic_class_bed, name, ne
 
 
 	# Perform subtractBed with or without '-A' option based on input run parameters
-	subtract_bed_cmd = './bedtools_wrapper.sh subtract'
+	subtract_bed_cmd = './gwrvis_core/bedtools_wrapper.sh subtract'
 	if fixed_win_len_for_all_genomic_elements: # and name == 'ccds':
-		subtract_bed_cmd = './bedtools_wrapper.sh subtract_A'
+		subtract_bed_cmd = './gwrvis_core/bedtools_wrapper.sh subtract_A'
 		#local_min_overlap_ratio = '0.1'
 
 	cmd = subtract_bed_cmd + ' ' + ref_chr_gwrvis_bed + ' ' + cur_genomic_class_bed + ' ' + local_min_overlap_ratio
@@ -297,7 +301,6 @@ if __name__ == '__main__':
 
 
 	filter_plot_outliers = run_params['filter_plot_outliers']
-	hg_dir = run_params['hg_dir']
 	z_thres = run_params['z_thres']
 	win_len = run_params['win_len']
 	MAF_thres = run_params['MAF_thres']
@@ -308,7 +311,6 @@ if __name__ == '__main__':
 	ucne_dir = '../other_datasets/UCNE_base'
 
 	print('filter_plot_outliers:', filter_plot_outliers)
-	print(hg_dir)
 
 	out_dir = create_out_dir(config_file)
 	print(out_dir)

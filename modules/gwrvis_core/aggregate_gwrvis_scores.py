@@ -2,7 +2,6 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from scipy.stats import mannwhitneyu
-from custom_utils import create_out_dir
 import pandas as pd
 import numpy as np
 import subprocess
@@ -10,6 +9,9 @@ import sys, os
 import seaborn as sns;
 from matplotlib.backends.backend_pdf import PdfPages
 import operator
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from custom_utils import create_out_dir
 
 
 def aggregate_scores_into_csv_per_class():

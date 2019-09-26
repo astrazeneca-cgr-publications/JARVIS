@@ -10,12 +10,13 @@ import os
 import re
 import ntpath
 from subprocess import call
-from custom_utils import create_out_dir, get_config_params
 from random import shuffle
 import subprocess
 from pathlib import Path
 import multiprocessing 
 
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from custom_utils import create_out_dir, get_config_params
 
 
 def pre_process_vcf_table(filtered_vcf, variant_filter=''):
@@ -492,6 +493,8 @@ if __name__ == '__main__':
 	print(config_params)
 
 	genomic_classes_files = {}
+	print('cwd:', os.getcwd())
+
 	with open(config_params['genomic_classes']) as fh:
 		for line in fh:
 			line = line.rstrip()

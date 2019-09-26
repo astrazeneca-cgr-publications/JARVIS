@@ -10,11 +10,15 @@ module load libpng/1.6.23-foss-2017a
 
 config_log=$1
 
+# get path from directory of current script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+
 cnt=0
 for i in `seq 1 22`;
 do
 	echo Running parse-job for chr: $i
-	python -u filtered_chr_feature_extractor.py $i $config_log &
+	python -u $DIR/filtered_chr_feature_extractor.py $i $config_log &
 
 	if [ $cnt = 10 ]; then
 		wait
