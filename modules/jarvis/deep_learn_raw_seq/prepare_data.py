@@ -401,6 +401,8 @@ if __name__ == '__main__':
 
 	# Read all gwRVIS scores with BED-style genomic coordinates into a data frame
 	all_gwrvis_bed_df = read_all_gwrvis_scores(all_gwrvis_bed_file)	
+	print(all_gwrvis_bed_df.head())
+	print(all_gwrvis_bed_df.tail())
 
 	
 	# Get features (including raw sequences) for most *intolerant* windows
@@ -422,10 +424,8 @@ if __name__ == '__main__':
 	check_gwrvis_extremes_distribution(all_merged_df)
 
 
-	all_merged_df = add_regulatory_features(all_merged_df)
-	sys.exit()
+	#all_merged_df = add_regulatory_features(all_merged_df)
 	
-
 
 	all_filtered_onehot_seqs = np.concatenate((intol_filtered_onehot_seqs, tol_filtered_onehot_seqs), axis=0)
 	print(all_filtered_onehot_seqs.shape)
@@ -435,5 +435,6 @@ if __name__ == '__main__':
 
 	
 	train_dict, validation_dict, test_dict = transform_data(train_dict, validation_dict, test_dict)
+	print(test_dict)
 	
 	save_data_to_files(train_dict, validation_dict, test_dict, random_seqs=random_seqs)
