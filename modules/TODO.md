@@ -1,5 +1,8 @@
 # TODO:
 # 'Major'
+> Extract raw sequences of original gwRVIS windows for each variant
+	> Extract raw sequences from a window centered at each variant of total length e.g. 1001 nt
+
 > Add CNNs and RNNs with Keras functional API.
     See from 'deep_learn_module/':
         - prepare_data.py

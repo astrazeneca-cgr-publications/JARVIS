@@ -12,7 +12,8 @@ import tensorflow as tf
 import pickle
 from scipy.io import savemat
 import sys, os
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 import custom_utils
 
 
@@ -28,60 +29,6 @@ def read_all_gwrvis_scores(all_gwrvis_bed_file):
 
 	return all_gwrvis_bed_df
 
-
-
-def get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type='intolerant', random_seqs=False):
-	
-	# Sort by gwRVIS value in ascending (for intolerant) or descending (for tolerant) order
-	if not random_seqs:
-		ascending = True
-		if tol_type == 'tolerant':
-			ascending = False
-		all_gwrvis_bed_df.sort_values(by='gwrvis', inplace=True, ascending=ascending)
-		all_gwrvis_bed_df.reset_index(drop=True, inplace=True)
-		print(all_gwrvis_bed_df.head())
-		print(all_gwrvis_bed_df.tail())
-	else:
-		tol_type += '.random'
-
-	top_seqs_set_size = int(all_gwrvis_bed_df.shape[0] * top_ratio)
-	print('Sample size by tolerance type:', top_seqs_set_size)
-
-
-	raw_seq_out_file = seq_out_dir + '/most_' + tol_type + '.raw_seqs.out' 
-	windows_file = seq_out_dir + '/most_' + tol_type + '.windows.txt'
-	out_fh = open(windows_file, 'w')	
-
-	if not random_seqs:	
-		seq_list_df = all_gwrvis_bed_df[:top_seqs_set_size]
-	else:
-		seq_list_df = all_gwrvis_bed_df.sample(top_seqs_set_size)
-		seq_list_df.reset_index(drop=True, inplace=True)
-
-	gwrvis_and_index_df = seq_list_df.copy()
-	gwrvis_and_index_df.reset_index(inplace=True)	
-	gwrvis_and_index_df.columns.values[0] = 'tolerance_rank'
-	#print(gwrvis_and_index_df.head())
-
-
-	seq_list_df = seq_list_df[['chr', 'start', 'end']]
-	seq_list_df['chr'] = seq_list_df['chr'].str.replace('chr', '')
-	seq_list_df['end'] += 1 # include right-most part of the interval
-	seq_list = seq_list_df['chr'].map(str) + ':' + seq_list_df['start'].astype(str) + '-' + seq_list_df['end'].astype(str)
-
-	out_fh.write("\n".join(seq_list))
-	out_fh.close()	
-
-	# Extract raw sequences from reference genome
-	awk_fasta_collapser = "awk '/^>/ {printf(\"\\n%s\\n\",$0);next; } { printf(\"%s\",$0);}  END {printf(\"\\n\");}' | tail -n +2"
-	cmd = '../../utils/twoBitToFa ' + human_ref_genome_2bit + ' -seqList=' + windows_file + " /dev/stdout | " + awk_fasta_collapser + " | grep -v '>' > " + raw_seq_out_file # | grep -v '>' | tr '\n' ' ' | sed 's/ //g'"
-	print('\n' + cmd)
-
-	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	stdout, stderr = p.communicate()
-	print(str(stderr, "utf-8").rstrip())
-
-	return raw_seq_out_file, gwrvis_and_index_df
 
 
 
@@ -106,41 +53,50 @@ def onehot_encoded_seq(seq):
 
 def one_hot_encode_genomic_data(seq_file):
 
-	valid_rank_ids = []
+	print("One-hot encoding of fixed-length genomic windows...")
+
+	valid_win_ids = []
 
 	num_lines = sum(1 for line in open(seq_file))
 	all_onehot_seqs = np.empty(shape=(num_lines, 4, win_len))
 
-	with open(seq_file) as f:
-		rank_id = -1
-		for seq in f.readlines():
-			rank_id += 1
+	seqs_with_n = {}
 
+	with open(seq_file) as f:
+		tmp_win_id = -1
+		for seq in f.readlines():
+			tmp_win_id += 1
+
+			#if seq.count('N') > 10:
 			if 'N' in seq:
+				seqs_with_n[seq] = seqs_with_n.get(seq, 0) + 1
 				continue
 			else:
-				valid_rank_ids.append(rank_id)
+				valid_win_ids.append(tmp_win_id)
 				
 			# A = [1, 0, 0, 0]
 			# T = [0, 0, 0, 1]
 			# G = [0, 0, 1, 0]
 			# C = [0, 1, 0, 0]
 			onehot_seq = onehot_encoded_seq(seq)
-			all_onehot_seqs[rank_id] = onehot_seq
+			all_onehot_seqs[tmp_win_id] = onehot_seq
 
 	# Keep only sequences that didn't contain 'N's
-	all_onehot_seqs = all_onehot_seqs[valid_rank_ids]
+	all_onehot_seqs = all_onehot_seqs[valid_win_ids]
 	print(all_onehot_seqs)
 	print(all_onehot_seqs.shape)
 
-	return all_onehot_seqs, valid_rank_ids
+	print('Total num. of unique seqs with Ns:', len(seqs_with_n.keys()))
+	print('Total num. of variant entris to filter out:', sum(seqs_with_n.values()))
+
+	return all_onehot_seqs, valid_win_ids
 
 
 		
-def filter_gwrvis_index_df(gwrvis_and_index_df, valid_rank_ids):
+def filter_gwrvis_index_df(gwrvis_and_index_df, valid_win_ids):
 
 	print(gwrvis_and_index_df.shape)
-	gwrvis_and_index_df = gwrvis_and_index_df.loc[ gwrvis_and_index_df.tolerance_rank.isin(valid_rank_ids), :]
+	gwrvis_and_index_df = gwrvis_and_index_df.loc[ gwrvis_and_index_df.win_index.isin(valid_win_ids), :]
 	print(gwrvis_and_index_df.shape)
 	
 	return gwrvis_and_index_df
@@ -178,21 +134,86 @@ def integrate_additional_data(gwrvis_and_index_df):
 
 	return merged_features_df
 	
+
+
+
+
+
+def get_raw_seqs_from_variant_windows(all_gwrvis_bed_file, full_feature_table_file, use_gwrvis_windows=True):
 	
+	raw_seq_out_file = seq_out_dir + '/' + patho_benign_sets + '.raw_seqs.out' 
+	windows_file = seq_out_dir + '/' + patho_benign_sets + '.windows.txt'
+	out_fh = open(windows_file, 'w')	
 
-def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intolerant', random_seqs=False):
 
-	# Get raw sequences and windows indexes of most intolerant/tolerant windows
-	seq_out_file, gwrvis_and_index_df = get_most_intol_or_toler_sequences(all_gwrvis_bed_df, tol_type=tol_type, random_seqs=random_seqs)
-	print(tol_type, seq_out_file)
+	if use_gwrvis_windows:
+		seq_coords_file = seq_out_dir + '/' + patho_benign_sets + '.seq_coords.txt'
+		os.system("tail -n+2 " + all_gwrvis_bed_file  + """ | awk '{print $2"\t"$3"\t"$4"\t"$1 }' """ + " | sed 's/^chr//' > " + all_gwrvis_bed_file+".tmp")
+		os.system("tail -n+2 " + full_feature_table_file + " | sed 's/^chr//' > " + full_feature_table_file+".tmp")
 
-	# One-hot encode raw genomic sequences and filter out sequences with 'N's
-	filtered_onehot_seqs, valid_rank_ids = one_hot_encode_genomic_data(seq_out_file)
+		os.system("intersectBed -wo -a " + all_gwrvis_bed_file+".tmp" + " -b " + full_feature_table_file+".tmp" + " | cut -f1,2,3,4 > " + seq_coords_file)
+	else:
+		# Create seq_coords_file with windows centered around each variant
+		pass
+	print(seq_coords_file)
 
-	# Filter out windows with 'N's in their sequence
-	gwrvis_and_index_df = filter_gwrvis_index_df(gwrvis_and_index_df, valid_rank_ids)
+
+	seq_coords_df = pd.read_csv(seq_coords_file, sep='\t', header=None)
+	seq_coords_df.columns = ['chr', 'start', 'end', 'win_index']
+	print(seq_coords_df.head())
+
+	# record window indexes that correspond to each variant entry
+	gwrvis_and_index_df = seq_coords_df[['win_index']].copy()
+	gwrvis_and_index_df.reset_index(drop=True, inplace=True)
 	print(gwrvis_and_index_df.head())
+
+
+	seq_coords_df['end'] += 1 # include right-most part of the interval
+	print(seq_coords_df.head())
+	seq_list = seq_coords_df['chr'].map(str) + ':' + seq_coords_df['start'].astype(str) + '-' + seq_coords_df['end'].astype(str)
+
+	out_fh.write("\n".join(seq_list))
+	out_fh.close()	
+
+	# Extract raw sequences from reference genome
+	awk_fasta_collapser = "awk '/^>/ {printf(\"\\n%s\\n\",$0);next; } { printf(\"%s\",$0);}  END {printf(\"\\n\");}' | tail -n +2"
+	cmd = '../utils/twoBitToFa ' + human_ref_genome_2bit + ' -seqList=' + windows_file + " /dev/stdout | " + awk_fasta_collapser + " | grep -v '>' > " + raw_seq_out_file 
+	print('\n' + cmd)
+
+	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdout, stderr = p.communicate()
+	print(str(stderr, "utf-8").rstrip())
+
+	return raw_seq_out_file, gwrvis_and_index_df
+
+
 	
+
+
+def compile_feature_table_incl_raw_seqs(all_gwrvis_bed_file, full_feature_table_file):
+
+	# Read feature table with variant positions, gwRVIS, GC-related features and external annotations
+	full_feature_table = pd.read_csv(full_feature_table_file, sep='\t', low_memory=False)
+	print(full_feature_table.head())
+
+	# Read all gwRVIS scores with BED-style genomic coordinates into a data frame
+	all_gwrvis_bed_df = read_all_gwrvis_scores(all_gwrvis_bed_file)	
+	print(all_gwrvis_bed_df.head())
+
+
+	# > Get raw sequences and windows indexes of most intolerant/tolerant windows
+	seq_out_file, gwrvis_and_index_df = get_raw_seqs_from_variant_windows(all_gwrvis_bed_file, full_feature_table_file)
+
+
+
+	# > One-hot encode raw genomic sequences and filter out sequences with 'N's
+	filtered_onehot_seqs, valid_win_ids = one_hot_encode_genomic_data(seq_out_file)
+
+
+	# > Filter out windows with 'N's in their sequence
+	gwrvis_and_index_df = filter_gwrvis_index_df(gwrvis_and_index_df, valid_win_ids)
+	sys.exit()	
+
 	# Add additional features in the compiled table	
 	merged_features_df = integrate_additional_data(gwrvis_and_index_df)
 
@@ -201,7 +222,9 @@ def compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intol
 	else:
 		merged_features_df['y'] = 0
 
-	return merged_features_df, filtered_onehot_seqs
+	return all_merged_df, variant_win_onehot_seqs
+
+
 
 
 
@@ -375,18 +398,18 @@ def save_data_to_files(train_dict, validation_dict, test_dict, random_seqs=False
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
-	top_ratio = float(sys.argv[2]) # default 0.01
-	random_seqs = bool(int(sys.argv[3])) # 1 for True or 0 for False (default)
 
-	print('Random sequences:', random_seqs)
 
+	# ==== Read config parameters ====
 	config_params = custom_utils.get_config_params(config_file)
 	win_len = config_params['win_len']
+	pathogenic_set = config_params['pathogenic_set']
+	benign_set = config_params['benign_set']
+	patho_benign_sets = pathogenic_set + '_' + benign_set
 
-	human_ref_genome_2bit = '../../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
 
+	# ==== Define dir structure ====
 	out_dir = custom_utils.create_out_dir(config_file)
-	out_dir = '../' + out_dir
 	additional_data_dir = out_dir + '/tmp'
 
 	gwrvis_scores_dir = out_dir + '/gwrvis_scores'
@@ -396,23 +419,26 @@ if __name__ == '__main__':
 	seq_out_dir = ml_data_dir + '/raw_seq'
 	if not os.path.exists(seq_out_dir):
 		os.makedirs(seq_out_dir)
+	feature_tables_dir = ml_data_dir + '/clinvar_feature_tables'
+	if not os.path.exists(feature_tables_dir):
+		os.makedirs(feature_tables_dir)
 
+
+	# Specificy input (static) files
+	human_ref_genome_2bit = '../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
 	all_gwrvis_bed_file = gwrvis_scores_dir + '/full_genome.all_gwrvis.bed'
+	full_feature_table_file = feature_tables_dir + '/full_feature_table.' + patho_benign_sets + '.bed'
+	print(all_gwrvis_bed_file)
+	print(full_feature_table_file)
 
-	# Read all gwRVIS scores with BED-style genomic coordinates into a data frame
-	all_gwrvis_bed_df = read_all_gwrvis_scores(all_gwrvis_bed_file)	
-	print(all_gwrvis_bed_df.head())
-	print(all_gwrvis_bed_df.tail())
 
-	
-	# Get features (including raw sequences) for most *intolerant* windows
-	intol_merged_df, intol_filtered_onehot_seqs = compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='intolerant', random_seqs=random_seqs)
-
-	# Get features (including raw sequences) for most *tolerant* windows
-	tol_merged_df, tol_filtered_onehot_seqs = compile_feature_table_per_tolerance_class(all_gwrvis_bed_df, tol_type='tolerant', random_seqs=random_seqs)
 
 	
-
+	# Extract raw sequences from input variant windows and combine with original feature set
+	all_merged_df, variant_win_onehot_seqs = compile_feature_table_incl_raw_seqs(all_gwrvis_bed_file, full_feature_table_file)
+	sys.exit()
+	
+	
 	print('===========================================')
 
 
