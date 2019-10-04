@@ -34,10 +34,7 @@ def funcapi_cnn_1_conv_2_fcc(win_len, regression=False, num_features=4):
 
 	x = Dense(16, activation='relu')(x)
 	
-	if regression:
-		output = Dense(1, kernel_initializer='normal', activation='linear')(x)
-	else:
-		output = Dense(2, activation='softmax')(x)
+	output = Dense(2, activation='softmax')(x)
 
 
 	"""

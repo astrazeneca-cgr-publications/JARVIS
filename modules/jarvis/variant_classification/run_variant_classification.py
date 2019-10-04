@@ -39,7 +39,7 @@ class ClassificationWrapper:
 		
 	
 
-	def	harmonise_options(self):
+	def harmonise_options(self):
 		
 		if self.genomic_classes is None:
 			self.genomic_classes = []
