@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 import pickle
 
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_auc_score
+from scipy import interp
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
+from sklearn.metrics import roc_curve, auc
+
 
 import logging 
 logging.getLogger('tensorflow').disabled = True
@@ -16,6 +17,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
 from tensorflow.keras.layers import Convolution1D, MaxPooling1D
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from tensorflow.keras.optimizers import Adam
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 import nn_models
 import functional_nn_models
 from prepare_data import JarvisDataPreprocessing
@@ -87,15 +90,23 @@ class JarvisTraining:
 
 	def subset_data_dict_by_index(self, data_dict, indexes):
 	
-		print('indexes:', len(indexes))		
+		print('All indexes:', len(indexes))		
 		for key, _ in data_dict.items():
+
+			if key in ['X_cols', 'vcf_features_cols']:
+				continue
+
+			print('\n> Subsetting', key, ':', len(data_dict[key]))
+			print(indexes[:10])
+			print(data_dict[key][:10])
+
 			data_dict[key] = data_dict[key][indexes]
-			print(key, ':', len(data_dict[key]))
+			print('Filtered', key, ':', len(data_dict[key]))
 
 		return data_dict
 
 
-	def filter_data_by_genomic_class(self, data_dict, genomic_classes=['intergenic']):
+	def filter_data_by_genomic_class(self, data_dict, genomic_classes=None):
 		
 		print('Retaining only variants for class:', ', '.join(genomic_classes)) 
 
@@ -106,44 +117,122 @@ class JarvisTraining:
 			all_class_indexes = np.append(all_class_indexes, cur_class_indexes)
 
 		all_class_indexes = all_class_indexes.astype(int).tolist()
-		print(all_class_indexes[:10])
-		print(len(all_class_indexes))
 		
 		filtered_data_dict = self.subset_data_dict_by_index(data_dict, all_class_indexes)
 		print('filtered unique genomic_classes:', np.unique(filtered_data_dict['genomic_classes']))
-		sys.exit()
 
-		return filtered_data_dict
-
+		return filtered_data_dict	
 
 
-	def compile_and_train_model(self, model, data_dict):
+
+	def include_vcf_features_for_prediction(self, data_dict):	
+		X = np.concatenate(data_dict['X'], data_dict['vcf_features'], axis=1)
 		
-		learning_rate = 0.001 # default: 0.001
-		adam_optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-
-		model.compile(loss='binary_crossentropy', optimizer=adam_optimizer, metrics=[tf.keras.metrics.CosineSimilarity(axis=1)]) #try 'binary_accuracy' for metrics
+		return X
 
 
-		checkpoint_name = 'gwrvis_best_model.hdf5'
-		checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
-		earlystopper = EarlyStopping(monitor='val_loss', patience=10, verbose=1)
+
+	def train_with_cv(self, model, data_dict, include_vcf_features, genomic_classes,
+			  n_splits=5, batch_size=64, epochs=100, validation_split=0.1,
+			  use_multiprocessing=True, verbose=0):
+
+		checkpoint_name = 'jarvis_best_model_with_cv.hdf5'
+		checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
+		earlystopper = EarlyStopping(monitor='val_loss', patience=20, verbose=verbose)
+
 
 		if self.include_vcf_features:
-			history = model.fit([train_dict['seqs'], train_dict['X_other']], [train_dict[y]], batch_size=nn_models.batch_size, epochs=1000, 
-				  shuffle=True,
-				  validation_data=([validation_dict['seqs'], validation_dict['X_other']], [validation_dict[y]]), 
-				  callbacks=[checkpointer,earlystopper])
+			X = self.include_vcf_features_for_prediction(data_dict)
 		else:
-			history = model.fit(train_dict['seqs'], train_dict[y], batch_size=nn_models.batch_size, epochs=1000, 
-				  shuffle=True,
-				  validation_data=(validation_dict['seqs'], validation_dict[y]), 
-				  callbacks=[checkpointer,earlystopper])
-
-		return model, history
+			X = data_dict['X'].copy()
+		print('- X features:', X.shape)
 		
+		y = data_dict['y'].copy()
+		#seqs = data_dict['seqs'].copy()
+		
+	
+		tprs = [] 
+		aucs = [] 
+		mean_fpr = np.linspace(0, 1, 100)  		
+		fig, ax = plt.subplots(figsize=(10, 10))
+	
+		skf = StratifiedKFold(n_splits=n_splits)
 
-	def plot_history(history):
+		i = 0
+		for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
+			X_train, X_test = X[train_index], X[test_index]
+			y_train, y_test = y[train_index], y[test_index]
+
+			print('X_train:', X_train.shape)
+			print('y_train:', y_train.shape)
+			print('X_test:', X_test.shape)
+			print('y_test:', y_test.shape)
+
+			history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, 
+				  shuffle=True,
+				  validation_split=validation_split, 
+				  callbacks=[checkpointer,earlystopper],
+				  verbose=verbose)
+			self.plot_history(history, fold_id=(i+1))
+			
+			# Get prediction probabilities per class 				
+			probas_ = model.predict_proba(X_test)
+
+			# Compute ROC curve and area the curve 				
+			fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
+
+
+			tprs.append(interp(mean_fpr, fpr, tpr)) 
+			tprs[-1][0] = 0.0 
+			roc_auc = round(auc(fpr, tpr), 3) 	
+			print('Fold-', str(i+1), ' - AUC: ', roc_auc, '\n')
+			aucs.append(roc_auc)
+			plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
+			
+			i += 1
+
+		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
+		
+		
+		mean_tpr = np.mean(tprs, axis=0)
+		mean_tpr[-1] = 1.0
+		self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
+		std_auc = np.std(aucs)
+		plt.plot(mean_fpr, mean_tpr, color='b',
+				 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
+				 lw=2, alpha=.8)
+
+		std_tpr = np.std(tprs, axis=0)
+		tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+		tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+		plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
+						 label=r'$\pm$ 1 std. dev.')
+
+		plt.xlim([-0.05, 1.05])
+		plt.ylim([-0.05, 1.05])
+		plt.xlabel('False Positive Rate')
+		plt.ylabel('True Positive Rate')
+		plt.title('[' + ','.join(genomic_classes) + ']: ' + str(n_splits) + '-fold Cross-Validation ROC Curve')
+		plt.legend(loc="lower right")
+		plt.show()
+		plt.close()
+		
+		
+		pdf_filename = self.out_dir + '/Jarvis.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
+						
+		if include_vcf_features:
+			pdf_filename += '.incl_vcf_features'
+		pdf_filename += '.pdf'
+		
+		fig.savefig(pdf_filename, bbox_inches='tight')
+		
+		print('Mean AUC:', self.mean_auc)
+
+
+
+
+
+	def plot_history(self, history, fold_id=0):
 
 		fig, ax = plt.subplots(figsize=(15, 15))
 
@@ -154,61 +243,13 @@ class JarvisTraining:
 		plt.xlabel('epoch')
 		plt.legend()
 		
-		fig.savefig(out_dir + '/model_loss_history.pdf', bbox_inches='tight')
+		history_out_file = self.ml_data_dir + '/jarvis.model_loss_history.Fold-' + str(fold_id) + '.pdf'
+		fig.savefig(history_out_file, bbox_inches='tight')
 		
-		
-
-
-	def get_metrics(test_flat, preds_flat):
-
-		roc_auc = roc_auc_score(test_flat, preds_flat)
+		print('Model training history saved into:', history_out_file)
 		
 
-		accuracy = accuracy_score(test_flat, preds_flat)
-		confus_mat =  confusion_matrix(test_flat, preds_flat) 
-		print('> Confusion matrix:\n', confusion_matrix(test_flat, preds_flat))
-			
-		TN, FP, FN, TP = confus_mat.ravel()	
-		print('TN:', TN, '\nFP:', FP, '\nFN:', FN, '\nTP:', TP)
 
-
-		sensitivity = TP / (TP + FN)
-		precision = TP / (TP + FP)
-		specificity = TN / (TN + FP)
-
-		print('> ROC AUC:', roc_auc)
-		print('> Accuracy:', accuracy_score(test_flat, preds_flat))
-
-		print('\n> Sensitivity:', sensitivity)
-		print('> Precision:', precision)
-		print('> Specificity:', specificity)
-		
-		metrics = {'roc_auc': roc_auc, 'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity, 'confusion_matrix': confus_mat}
-
-		return metrics
-
-
-			  
-	def test_and_evaluate_model(model, test_dict, include_ext_feat=False):
-
-		if include_ext_feat:
-			print(">> Test: Including external features...")
-			test_results = model.evaluate([test_dict['seqs'], test_dict['X_other']], [test_dict[y]]) 
-			preds = model.predict([test_dict['seqs'], test_dict['X_other']])
-		else:
-			test_results = model.evaluate(test_dict['seqs'], test_dict[y]) 
-			preds = model.predict(test_dict['seqs'])
-		print(test_results)
-		
-		decision_thres = 0.5 # for classification
-
-		preds[preds >= decision_thres] = 1
-		preds[preds < decision_thres] = 0
-		
-		preds_flat = np.argmax(preds, axis=1)
-		test_flat = np.argmax(test_dict[y], axis=1)
-		
-		metrics = get_metrics(test_flat, preds_flat)
 
 
 	def compute_salient_bases_in_seq(model, seq):
@@ -248,10 +289,57 @@ class JarvisTraining:
 
 		fig.savefig(out_dir + '/avg_saliency_per.pdf', bbox_inches='tight')
 
-		
 
 
-		
+# ***************************************************************************
+# ******			FEED FORWARD DNN 			*****
+# ***************************************************************************
+def create_feedf_dnn(input_dim, nn_arch=[32, 32]):
+
+	print("\n\n> Creating feed-forward DNN model...")
+	model = Sequential()
+
+	layer_idx = 0
+	for layer_size in nn_arch:
+		if layer_idx == 0:
+			model.add(Dense(nn_arch[layer_idx], input_dim=input_dim, activation='relu'))
+		else:
+			model.add(Dense(nn_arch[layer_idx], activation='relu'))
+		layer_idx += 1
+
+	model.add(Dense(2, activation='softmax'))	
+	model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+	#model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[tf.keras.metrics.CosineSimilarity(axis=1)])
+	print(model.summary())
+
+	return model
+
+
+
+def train_feedf_dnn(model, data_dict, include_vcf_features, verbose=1):
+
+	checkpoint_name = 'jarvis_best_feedf_model.hdf5'
+	checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
+	earlystopper = EarlyStopping(monitor='val_loss', patience=20, verbose=verbose)
+
+
+	if include_vcf_features:
+		X = np.concatenate(data_dict['X'], data_dict['vcf_features'], axis=1)
+		print('X with vcf features:', X.shape)
+
+	batch_size=64
+	history = model.fit(data_dict['X'], data_dict['y'], batch_size=batch_size, epochs=100, 
+		  shuffle=True,
+		  validation_split=0.1, 
+		  callbacks=[checkpointer,earlystopper],
+		  verbose=verbose)
+
+	return history
+# ***************************************************************************
+
+
+
+
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
@@ -268,14 +356,28 @@ if __name__ == '__main__':
 	# Print input data shapes for sanity check check for consistency
 	jarvis_trainer.inspect_input_data(data_dict)
 
-	jarvis_trainer.filter_data_by_genomic_class(data_dict, ['utr', 'intergenic'])
+	#genomic_classes = ['utr', 'intergenic']
+	genomic_classes = ['intergenic']
+	filtered_data_dict = jarvis_trainer.filter_data_by_genomic_class(data_dict, genomic_classes)
+	print(filtered_data_dict)
+
+
+
+	# Train using only structured features (i.e. without raw sequence data)	
+	model = create_feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[32, 32]) 
+
+	# ===== First test run - (only train set, without test set or CV) ==========
+	if False:
+		history = train_feedf_dnn(model, filtered_data_dict, include_vcf_features)
+		jarvis_trainer.plot_history(history)
+	# ==========================================================================
+
+	jarvis_trainer.train_with_cv(model, filtered_data_dict, include_vcf_features, genomic_classes, n_splits=5)
 	sys.exit()
 
 
-	## NEED TO ADD MODULE TO FILTER BY GENOMIC CLASS
 
 	## NEED TO ADD module for cross validation
-		## Function for selecting data based on indexes
 
 
 	#model = nn_models.cnn_1_conv_2_fcc(win_len) 
