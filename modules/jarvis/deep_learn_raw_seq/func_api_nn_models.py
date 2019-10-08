@@ -8,7 +8,54 @@ from tensorflow.keras.layers import concatenate
 import sys
 
 
-def funcapi_cnn_1_conv_2_fcc(win_len, regression=False, num_features=4):
+def feedf_dnn(input_dim, nn_arch=[32,32]):
+
+	features_input = Input(shape=(input_dim, ))
+
+	layer_idx = 0
+	for layer_size in nn_arch:
+		if layer_idx == 0:
+			x = Dense(nn_arch[layer_idx], activation='relu')(features_input)
+			layer_idx += 1
+		else:
+			x = Dense(nn_arch[layer_idx], activation='relu')(x)
+	
+	output = Dense(2, activation='softmax')(x)
+	
+	model = Model(inputs=features_input, outputs=output)
+
+	return model
+
+
+
+def cnn2_fc2(win_len, num_features=4):
+
+	seq_input = Input(shape=(win_len, 4), name='seq_input')
+
+	# ---- seqs
+	x = Conv1D(activation="relu", input_shape=(win_len, 4), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+
+	x = Conv1D(activation="relu", padding="valid", strides=1, filters=64, kernel_size=11)(x)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+	
+	x = Flatten()(x)
+	x = Dense(128, activation='relu')(x)
+	x = Dense(32, activation='relu')(x)
+	#x = Dense(16, activation='relu')(x)
+	
+	output = Dense(2, activation='softmax')(x)
+
+
+	model = Model(inputs=seq_input, outputs=output)
+
+	return model
+
+
+
+def funcapi_cnn1_cnn2_fcc(win_len, num_features=4):
 
 	seq_input = Input(shape=(win_len, 4), name='seq_input')
 
@@ -27,7 +74,7 @@ def funcapi_cnn_1_conv_2_fcc(win_len, regression=False, num_features=4):
 	seq_output = x
 
 	# ---- other features
-	feat_input = Input(shape=(num_features, ), name='feat_input')
+	#feat_input = Input(shape=(num_features, ), name='feat_input')
 
 	# ---- concatenate 
 	x = concatenate([seq_output, feat_input])
@@ -36,26 +83,6 @@ def funcapi_cnn_1_conv_2_fcc(win_len, regression=False, num_features=4):
 	
 	output = Dense(2, activation='softmax')(x)
 
-
-	"""
-	# CNN
-	model = Sequential()
-	model.add(Convolution1D(activation="relu", 
-				input_shape=(win_len, 4), 
-				padding="valid", strides=1, 
-				filters=32, kernel_size=30)) #starting default: 30, 60 (ok)
-	model.add(MaxPooling1D(strides=15, pool_size=15))
-	model.add(Dropout(0.2))
-
-	# FCC
-	model.add(Flatten())
-	model.add(Dense(128, activation='relu'))
-
-	if regression:
-		model.add(Dense(1, kernel_initializer='normal', activation='linear'))
-	else:
-		model.add(Dense(2, activation='softmax'))
-	"""
 
 	model = Model(inputs=[seq_input, feat_input], outputs=[output])
 

@@ -20,12 +20,12 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.optimizers import Adam
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 import nn_models
-import functional_nn_models
+import func_api_nn_models
 from prepare_data import JarvisDataPreprocessing
 
 import sys, os 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-sys.path.insert(1, os.path.join(sys.path[0], '..')) 
+#sys.path.insert(1, os.path.join(sys.path[0], '..')) 
 sys.path.insert(1, os.path.join(sys.path[0], '.')) 
 import custom_utils
 
@@ -132,14 +132,27 @@ class JarvisTraining:
 
 
 
-	def train_with_cv(self, model, data_dict, include_vcf_features, genomic_classes,
-			  n_splits=5, batch_size=64, epochs=100, validation_split=0.1,
-			  use_multiprocessing=True, verbose=0):
+	def train_with_cv(self, data_dict, include_vcf_features, genomic_classes,
+			  n_splits=5, batch_size=64, epochs=40, validation_split=0.1,
+			  use_multiprocessing=True, verbose=0, input_features='structured'):
+		""" 
+			Arg 'input_features' may take 1 of 3 possible values:
+			- stuctured: using only structured features as input
+			- sequence: using only sequence features as input
+			- both: using both structured and sequence features as inputs
+		"""
+		
+		if input_features != 'structured':
+			verbose = 1
 
+		# ---- Callbacks ----
 		checkpoint_name = 'jarvis_best_model_with_cv.hdf5'
 		checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
-		earlystopper = EarlyStopping(monitor='val_loss', patience=20, verbose=verbose)
-
+		patience = 10
+		if input_features == 'structured':
+			patience = 20
+		earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
+		# -------------------
 
 		if self.include_vcf_features:
 			X = self.include_vcf_features_for_prediction(data_dict)
@@ -148,7 +161,9 @@ class JarvisTraining:
 		print('- X features:', X.shape)
 		
 		y = data_dict['y'].copy()
-		#seqs = data_dict['seqs'].copy()
+		
+		if input_features != 'structured':
+			seqs = data_dict['seqs'].copy()
 		
 	
 		tprs = [] 
@@ -156,27 +171,54 @@ class JarvisTraining:
 		mean_fpr = np.linspace(0, 1, 100)  		
 		fig, ax = plt.subplots(figsize=(10, 10))
 	
-		skf = StratifiedKFold(n_splits=n_splits)
+		skf = StratifiedKFold(n_splits=n_splits, shuffle=True)
 
 		i = 0
 		for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
-			X_train, X_test = X[train_index], X[test_index]
 			y_train, y_test = y[train_index], y[test_index]
-
+			X_train, X_test = X[train_index], X[test_index]
 			print('X_train:', X_train.shape)
 			print('y_train:', y_train.shape)
 			print('X_test:', X_test.shape)
 			print('y_test:', y_test.shape)
 
-			history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, 
+			if input_features != 'structured':
+				seqs_train, seqs_test = seqs[train_index], seqs[test_index]
+				print('seqs_train:', seqs_train.shape)
+				print('seqs_test:', seqs_test.shape)
+
+
+			if input_features == 'structured':
+				train_inputs = X_train
+				test_inputs = X_test
+			elif input_features == 'sequences':
+				train_inputs = seqs_train
+				test_inputs = seqs_test
+			elif input_features == 'both':
+				train_inputs = [X_train, seqs_train]
+				test_inputs = [X_test, seqs_test]
+
+			# -- Create new/clean model instance for each fold
+			# > Keras functional API
+			if input_features == 'structured':
+				# @ Feed-forward DNN (for structured features input only)
+				model = func_api_nn_models.feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[64, 128, 256])	
+			elif input_features == 'sequences':
+				# @ CNN-CNN-FC-FC (for sequence features only)
+				model = func_api_nn_models.cnn2_fc2(jarvis_trainer.win_len)
+			model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+
+			history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
 				  shuffle=True,
 				  validation_split=validation_split, 
-				  callbacks=[checkpointer,earlystopper],
+				  callbacks=[checkpointer, earlystopper], 
 				  verbose=verbose)
 			self.plot_history(history, fold_id=(i+1))
 			
 			# Get prediction probabilities per class 				
-			probas_ = model.predict_proba(X_test)
+			#probas_ = model.predict_proba(X_test)
+			probas_ = model.predict(test_inputs)  # for Keras functional API
 
 			# Compute ROC curve and area the curve 				
 			fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
@@ -214,12 +256,11 @@ class JarvisTraining:
 		plt.ylabel('True Positive Rate')
 		plt.title('[' + ','.join(genomic_classes) + ']: ' + str(n_splits) + '-fold Cross-Validation ROC Curve')
 		plt.legend(loc="lower right")
-		plt.show()
-		plt.close()
+		#plt.show()
+		#plt.close()
 		
 		
 		pdf_filename = self.out_dir + '/Jarvis.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
-						
 		if include_vcf_features:
 			pdf_filename += '.incl_vcf_features'
 		pdf_filename += '.pdf'
@@ -327,7 +368,7 @@ def train_feedf_dnn(model, data_dict, include_vcf_features, verbose=1):
 		X = np.concatenate(data_dict['X'], data_dict['vcf_features'], axis=1)
 		print('X with vcf features:', X.shape)
 
-	batch_size=64
+	batch_size = 64 #default values: 64 (intergenic), 64 (utr)
 	history = model.fit(data_dict['X'], data_dict['y'], batch_size=batch_size, epochs=100, 
 		  shuffle=True,
 		  validation_split=0.1, 
@@ -358,21 +399,27 @@ if __name__ == '__main__':
 
 	#genomic_classes = ['utr', 'intergenic']
 	genomic_classes = ['intergenic']
+	#genomic_classes = ['utr']
+	#genomic_classes = ['ccds']
 	filtered_data_dict = jarvis_trainer.filter_data_by_genomic_class(data_dict, genomic_classes)
 	print(filtered_data_dict)
 
 
 
 	# Train using only structured features (i.e. without raw sequence data)	
-	model = create_feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[32, 32]) 
-
+	#model = create_feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[32, 32]) 
 	# ===== First test run - (only train set, without test set or CV) ==========
 	if False:
 		history = train_feedf_dnn(model, filtered_data_dict, include_vcf_features)
 		jarvis_trainer.plot_history(history)
 	# ==========================================================================
+	
 
-	jarvis_trainer.train_with_cv(model, filtered_data_dict, include_vcf_features, genomic_classes, n_splits=5)
+	#input_features = 'structured'
+	input_features = 'sequences'
+
+	jarvis_trainer.train_with_cv(filtered_data_dict, include_vcf_features, genomic_classes, 
+				     input_features=input_features, verbose=0)
 	sys.exit()
 
 

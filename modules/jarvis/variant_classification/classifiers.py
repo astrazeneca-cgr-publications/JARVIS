@@ -174,6 +174,9 @@ class Classifier:
 		
 		i = 0
 		for train, test in cv.split(self.X, self.y):
+
+			# TODO - FIX
+			# Create clean instance of model for each fold
 		
 			if self.model_type == 'DNN':
 				history = self.model.fit(self.X[train], self.y[train], epochs=30, batch_size=32, 
