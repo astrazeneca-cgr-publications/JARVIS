@@ -28,6 +28,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 #sys.path.insert(1, os.path.join(sys.path[0], '..')) 
 sys.path.insert(1, os.path.join(sys.path[0], '.')) 
 import custom_utils
+from simple_dnn import create_feedf_dnn, train_feedf_dnn
 
 
 
@@ -142,17 +143,9 @@ class JarvisTraining:
 			- both: using both structured and sequence features as inputs
 		"""
 		
-		if input_features != 'structured':
-			verbose = 1
+		#if input_features != 'structured':
+		#	verbose = 1
 
-		# ---- Callbacks ----
-		checkpoint_name = 'jarvis_best_model_with_cv.hdf5'
-		checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
-		patience = 10
-		if input_features == 'structured':
-			patience = 20
-		earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
-		# -------------------
 
 		if self.include_vcf_features:
 			X = self.include_vcf_features_for_prediction(data_dict)
@@ -209,12 +202,23 @@ class JarvisTraining:
 			model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 
+
+			# ---- Callbacks ----
+			checkpoint_name = 'jarvis_best_model_with_cv.hdf5'
+			checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
+			patience = 10
+			if input_features == 'structured':
+				patience = 20
+			earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
+			# -------------------
+
+
 			history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
 				  shuffle=True,
 				  validation_split=validation_split, 
 				  callbacks=[checkpointer, earlystopper], 
 				  verbose=verbose)
-			self.plot_history(history, fold_id=(i+1))
+			#self.plot_history(history, fold_id=(i+1))
 			
 			# Get prediction probabilities per class 				
 			#probas_ = model.predict_proba(X_test)
@@ -260,7 +264,7 @@ class JarvisTraining:
 		#plt.close()
 		
 		
-		pdf_filename = self.out_dir + '/Jarvis.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
+		pdf_filename = self.out_dir + '/Jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
 		if include_vcf_features:
 			pdf_filename += '.incl_vcf_features'
 		pdf_filename += '.pdf'
@@ -293,102 +297,23 @@ class JarvisTraining:
 
 
 
-	def compute_salient_bases_in_seq(model, seq):
-
-		input_tensors = [model.input]
-		gradients = model.optimizer.get_gradients(model.output[0][1], model.input)
-		compute_gradients = K.function(inputs = input_tensors, outputs = gradients)
-		x_value = np.expand_dims(seq, axis=0)
-		gradients = compute_gradients([x_value])[0][0]
-		sal = np.clip(np.sum(np.multiply(gradients, seq), axis=1), a_min=0, a_max=None)   
-
-		return sal
-		
-
-	def get_avg_saliency_scores(model, sequences):
-		
-		all_sal = []
-
-		# TODO: there's no point aggregating scores from all sequences at each base index.
-		# Maybe, for each sequence extract a contiguous substring that has the highest saliency scores
-		# (allowing 1 or 2 'gaps' with lower saliency scores) 
-		# and then do multiple sequence alighment between the corresponding substrings to see
-		# if there is any particular motif.
-
-		for seq in sequences:
-			sal = compute_salient_bases(model, input_features[sequence_index])
-
-
-		fig, ax = plt.subplots(figsize=(15, 15))
-
-		barlist = plt.bar(np.arange(len(sal)), sal)
-		plt.xlabel('Bases')
-		plt.ylabel('Magnitude of saliency values')
-		plt.xticks(np.arange(len(sal)), list(sequences[sequence_index]));
-
-		plt.title('Avg. Saliency map for bases across all sequences')
-
-		fig.savefig(out_dir + '/avg_saliency_per.pdf', bbox_inches='tight')
-
-
-
-# ***************************************************************************
-# ******			FEED FORWARD DNN 			*****
-# ***************************************************************************
-def create_feedf_dnn(input_dim, nn_arch=[32, 32]):
-
-	print("\n\n> Creating feed-forward DNN model...")
-	model = Sequential()
-
-	layer_idx = 0
-	for layer_size in nn_arch:
-		if layer_idx == 0:
-			model.add(Dense(nn_arch[layer_idx], input_dim=input_dim, activation='relu'))
-		else:
-			model.add(Dense(nn_arch[layer_idx], activation='relu'))
-		layer_idx += 1
-
-	model.add(Dense(2, activation='softmax'))	
-	model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-	#model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[tf.keras.metrics.CosineSimilarity(axis=1)])
-	print(model.summary())
-
-	return model
-
-
-
-def train_feedf_dnn(model, data_dict, include_vcf_features, verbose=1):
-
-	checkpoint_name = 'jarvis_best_feedf_model.hdf5'
-	checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
-	earlystopper = EarlyStopping(monitor='val_loss', patience=20, verbose=verbose)
-
-
-	if include_vcf_features:
-		X = np.concatenate(data_dict['X'], data_dict['vcf_features'], axis=1)
-		print('X with vcf features:', X.shape)
-
-	batch_size = 64 #default values: 64 (intergenic), 64 (utr)
-	history = model.fit(data_dict['X'], data_dict['y'], batch_size=batch_size, epochs=100, 
-		  shuffle=True,
-		  validation_split=0.1, 
-		  callbacks=[checkpointer,earlystopper],
-		  verbose=verbose)
-
-	return history
-# ***************************************************************************
-
 
 
 
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
+	input_features = sys.argv[2]
+	genomic_classes = sys.argv[3] # comma-separated
+	genomic_classes = genomic_classes.split(',')	
+
+
 	include_vcf_features = False
 
-	jarvis_trainer = JarvisTraining(config_file, include_vcf_features)
 
-	
+
+
+	jarvis_trainer = JarvisTraining(config_file, include_vcf_features)
 
 
 	# Read train, validation, test data
@@ -397,10 +322,7 @@ if __name__ == '__main__':
 	# Print input data shapes for sanity check check for consistency
 	jarvis_trainer.inspect_input_data(data_dict)
 
-	#genomic_classes = ['utr', 'intergenic']
-	genomic_classes = ['intergenic']
-	#genomic_classes = ['utr']
-	#genomic_classes = ['ccds']
+	# Filter data by genomic class
 	filtered_data_dict = jarvis_trainer.filter_data_by_genomic_class(data_dict, genomic_classes)
 	print(filtered_data_dict)
 
@@ -409,35 +331,12 @@ if __name__ == '__main__':
 	# Train using only structured features (i.e. without raw sequence data)	
 	#model = create_feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[32, 32]) 
 	# ===== First test run - (only train set, without test set or CV) ==========
-	if False:
-		history = train_feedf_dnn(model, filtered_data_dict, include_vcf_features)
-		jarvis_trainer.plot_history(history)
+	#if False:
+	#	history = train_feedf_dnn(model, filtered_data_dict, include_vcf_features)
+	#	jarvis_trainer.plot_history(history)
 	# ==========================================================================
 	
 
-	#input_features = 'structured'
-	input_features = 'sequences'
-
 	jarvis_trainer.train_with_cv(filtered_data_dict, include_vcf_features, genomic_classes, 
 				     input_features=input_features, verbose=0)
-	sys.exit()
 
-
-
-	## NEED TO ADD module for cross validation
-
-
-	#model = nn_models.cnn_1_conv_2_fcc(win_len) 
-	model = nn_models.cnn_2_conv_2_fcc(win_len) 
-	#model = nn_models.cnn_rnn_1_conv_1_lstm(win_len)
-	
-	#model = functional_nn_models.funcapi_cnn_1_conv_2_fcc(win_len)
-	print(model.summary())
-
-
-
-	model, history = compile_and_train_model(model, train_dict, validation_dict, include_ext_feat=include_ext_feat)
-
-	plot_history(history)
-
-	test_and_evaluate_model(model, test_dict, include_ext_feat=include_ext_feat)
