@@ -1,3 +1,17 @@
+# For variant annotation (pathogenic/benign)
+
+Need to provide for each `score` BED files with the intersection of the score's values with pathogenic and benign variants from a certain `resource_set`.
+
+The naming standard for the files is:
+```
+genome-wide-scores/${score}/${score}.${resource_set}_[pathogenic|benign].bed
+```
+
+e.g.
+cadd.hgmd_pathogenic.bed
+cadd.clinvar_pathogenic.bed
+cadd.clinvar_benign.bed
+
 Available genome-wide scores
 ----------------------------
 
