@@ -8,6 +8,7 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.metrics import roc_curve, auc, mean_squared_error
 import sys
 import os
+os.environ['KMP_WARNINGS'] = 'off'
 from classifiers import Classifier
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
@@ -80,9 +81,9 @@ class ClassificationWrapper:
 		else:
 			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
-		print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
-		print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
-		print(self.full_feature_table.head())
+		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
+		#print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
+		#print(self.full_feature_table.head())
 	
 
 	def subset_feat_table_df(self):

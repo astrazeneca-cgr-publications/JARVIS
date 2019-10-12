@@ -122,7 +122,6 @@ def plot_history(history):
 	
 	
 
-
 def get_metrics(test_flat, preds_flat):
 
 	roc_auc = roc_auc_score(test_flat, preds_flat)

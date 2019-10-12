@@ -4,7 +4,7 @@ library(glmnet)
 library(lmridge)
 library(plotmo)
 library(pROC)
-library(e1071)
+#library(e1071)
 
 
 # ========== Auxiliary functions ==========

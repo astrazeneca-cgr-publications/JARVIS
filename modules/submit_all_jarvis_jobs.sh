@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-declare -a input_features=(structured sequences)  #both
-declare -a genomic_classes=("intergenic" "utr" "intergenic,utr")
+declare -a input_features=("both") #(structured sequences both)
+declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista" "intron" "ccds")
 
 
 
@@ -12,7 +12,7 @@ for in_features in "${input_features[@]}"; do
 		job_name="${in_features}_${gen_classes}"
 		echo "Job: $job_name"
 
-		if [ $in_features == 'sequences' ]; then
+		if [ $in_features == 'sequences' ] || [ $in_features == 'both' ]; then
 			ncores=8
 		else
 			ncores=4

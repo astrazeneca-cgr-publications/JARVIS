@@ -70,7 +70,7 @@ def get_density_plots(gen_df, annot='all'):
 		print(tmp_df.head())
 
 		# filter  or retain outliers
-		vec = tmp_df.ix[:, 0]
+		vec = tmp_df.iloc[:, 0]
 
 		if annot == 'no_outliers':
 			vec = vec[ ~is_outlier(vec, 3.5)] 
@@ -79,7 +79,7 @@ def get_density_plots(gen_df, annot='all'):
 
 		#vec = vec[ vec != intergenic_mode] # [BETA]: remove peak of windows with zero variants 
 
-		tmp_df.ix[:, 0] = vec
+		tmp_df.iloc[:, 0] = vec
 		df = pd.concat([df, tmp_df], axis=1)
 
 	print(df.head())

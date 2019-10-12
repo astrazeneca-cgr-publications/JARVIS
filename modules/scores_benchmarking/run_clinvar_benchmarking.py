@@ -13,6 +13,8 @@ from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import StratifiedKFold, train_test_split, cross_val_score
 from matplotlib.backends.backend_pdf import PdfPages
+from imblearn.under_sampling import RandomUnderSampler
+from collections import Counter
 import sys
 import os
 
@@ -20,6 +22,13 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from custom_utils import create_out_dir, get_config_params
 
 
+
+"""
+__Deprecated__
+
+Issues:
+- Imbalance of classes is not taken into account
+"""
 
 class ScoreBenchmark:
 	
@@ -62,7 +71,7 @@ class ScoreBenchmark:
 		benchmark_dir = self.get_benchmark_dir_for_score('gwrvis')
 		
 		gwrvis_clinvar_subset_file = benchmark_dir + '/gwrvis.clinvar_' + variant_type + '.bed'
-		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
+		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/variant_annotation/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -105,39 +114,6 @@ class ScoreBenchmark:
 
 
 
-	def fit_logit_regression(self, df):
-
-		if self.multiple:
-			print('> Fitting multiple logistic regression...')
-			X = df[['score', 'gwrvis']].values
-		else:
-			X = df['score'].values.reshape(-1, 1)
-		y = df['pathogenic'].values
-
-		# DEBUG: Uncomment when I'll have more data from HGMD	
-		#self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-		
-		# For Cross-Validation
-		self.X_train = X
-		self.y_train = y
-		self.X_test = X
-		self.y_test = y
-
-		# logistic regression
-		model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
-		cv_auc_scores = cross_val_score(model, X, y, cv=5)
-		print(cv_auc_scores)
-		mean_auc = np.mean(cv_auc_scores)
-		print('5-fold CV AUC:', mean_auc)
-
-		model = LogisticRegressionCV(cv=5, random_state=42, solver='lbfgs', max_iter=10000)
-		model.fit(self.X_train, self.y_train)
-
-		self.pred_proba = model.predict_proba(self.X_test)[:, 1]
-
-		return model 
-
-
 
 	def plot_roc_curve(self, model, genomic_class):
 
@@ -166,26 +142,33 @@ class ScoreBenchmark:
 		return fig, roc_auc
 
 
+	
+	
 		
-	def depr_run_logistic_regression(self, pathogenic_df, benign_df, genomic_class):
-
-		pathogenic_df['pathogenic'] = 1
-		benign_df['pathogenic'] = 0
-
-		df = pd.concat([pathogenic_df, benign_df], axis=0)
-
-
-		# Logistic Regression
-		model = self.fit_logit_regression(df)
-
-		roc_fig, roc_auc = self.plot_roc_curve(model, genomic_class)
-		print('==============================')
-
-
-		return roc_fig, roc_auc
-
+	def fix_class_imbalance(self, X, y):
 	
-	
+		"""
+			Fix class imbalance (with over/under-sampling minority/majority class)
+		"""
+		
+		#y = np.argmax(y, axis=1)
+		
+		
+		positive_set_size = (y == 1).sum()
+		negative_set_size = (y == 0).sum()
+		print('Positive / Negative size:', positive_set_size, '/', negative_set_size)
+		pos_neg_ratio = 1/1
+
+		if positive_set_size / negative_set_size < pos_neg_ratio:
+			print('\n> Fixing class imbalance ...')
+			print('Imbalanced sets: ', sorted(Counter(y).items()))
+			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
+			X, y = rus.fit_resample(X, y)
+			print('Balanced sets:', sorted(Counter(y).items()))
+			#print('Sampled indices:', rus.sample_indices_)
+		
+		return X, y
+		
 		
 
 	def run_logistic_regression(self, pathogenic_df, benign_df, genomic_class):
@@ -204,6 +187,7 @@ class ScoreBenchmark:
 		y = df['pathogenic'].values
 		
 
+		X, y = self.fix_class_imbalance(X, y)
 		
 		
 		# Run classifier with cross-validation and plot ROC curves
@@ -466,7 +450,7 @@ if __name__ == '__main__':
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}
 
-	all_scores = ['phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+	all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
 	#all_scores = ['gwrvis'] # ['cadd']
 
 

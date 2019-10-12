@@ -116,8 +116,8 @@ function add_clinvar_annotation {
 	mkdir -p $clinvar_feature_table_dir
 
 	# Get intersections with clinvar pathogenic/benign
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets//variant_annotation/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets//variant_annotation/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp
 
 	cat $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed.tmp
 

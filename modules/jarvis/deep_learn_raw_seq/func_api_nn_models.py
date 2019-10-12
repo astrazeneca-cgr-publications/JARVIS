@@ -55,36 +55,49 @@ def cnn2_fc2(win_len, num_features=4):
 
 
 
-def funcapi_cnn1_cnn2_fcc(win_len, num_features=4):
+def cnn2_concat_dnn_fc2(feat_input_dim, nn_arch=[32,32], win_len=3000, num_features=4):
 
 	seq_input = Input(shape=(win_len, 4), name='seq_input')
 
-	# ---- seqs
-	x = Conv1D(activation="relu", input_shape=(win_len, 4), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
-	x = MaxPooling1D(strides=4, pool_size=4)(x)
-	x = Dropout(0.2)(x)
+	# ---- sequences as features
+	x1 = Conv1D(activation="relu", input_shape=(win_len, 4), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
+	x1 = MaxPooling1D(strides=4, pool_size=4)(x1)
+	x1 = Dropout(0.2)(x1)
 
-	x = Conv1D(activation="relu", padding="valid", strides=1, filters=64, kernel_size=11)(x)
-	x = MaxPooling1D(strides=4, pool_size=4)(x)
-	x = Dropout(0.2)(x)
+	x1 = Conv1D(activation="relu", padding="valid", strides=1, filters=64, kernel_size=11)(x1)
+	x1 = MaxPooling1D(strides=4, pool_size=4)(x1)
+	x1 = Dropout(0.2)(x1)
 	
-	x = Flatten()(x)
-	x = Dense(128, activation='relu')(x)
-	x = Dense(32, activation='relu')(x)
-	seq_output = x
+	x1 = Flatten()(x1)
+	x1 = Dense(128, activation='relu')(x1)
+	x1 = Dense(32, activation='relu')(x1)
+	seq_output = x1
 
-	# ---- other features
-	#feat_input = Input(shape=(num_features, ), name='feat_input')
+
+	# ---- structured features
+	feat_input = Input(shape=(feat_input_dim, ), name='feat_input')
+
+	layer_idx = 0
+	for layer_size in nn_arch:
+		if layer_idx == 0:
+			x2 = Dense(nn_arch[layer_idx], activation='relu')(feat_input)
+			layer_idx += 1
+		else:
+			x2 = Dense(nn_arch[layer_idx], activation='relu')(x2)
+	feat_output = x2
+
+
 
 	# ---- concatenate 
-	x = concatenate([seq_output, feat_input])
+	x = concatenate([seq_output, feat_output])
+	x = Dense(64, activation='relu')(x)
+	x = Dense(128, activation='relu')(x)
 
-	x = Dense(16, activation='relu')(x)
 	
 	output = Dense(2, activation='softmax')(x)
 
 
-	model = Model(inputs=[seq_input, feat_input], outputs=[output])
+	model = Model(inputs=[feat_input, seq_input], outputs=output)
 
 
 	return model

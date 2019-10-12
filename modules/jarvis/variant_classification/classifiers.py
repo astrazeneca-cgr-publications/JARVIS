@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
+from collections import Counter
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
@@ -14,6 +15,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.metrics import roc_curve, auc, mean_squared_error, mean_absolute_error, explained_variance_score, r2_score
 from sklearn.model_selection import train_test_split
+from imblearn.under_sampling import RandomUnderSampler
+
 import warnings
 warnings.filterwarnings("error")
 import sys
@@ -85,7 +88,18 @@ class Classifier:
 		self.X = df[self.feature_cols].values
 		self.y = df[self.Y_label].astype(int).values
 
-		
+		# Fix class imbalance (with over/under-sampling minority/majority class)
+		positive_set_size = (self.y == 1).sum()
+		negative_set_size = (self.y == 0).sum()
+		pos_neg_ratio = 1/2
+
+		if positive_set_size / negative_set_size < pos_neg_ratio:
+			print('\n> Fixing class imbalance ...')
+			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
+			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
+			self.X, self.y = rus.fit_resample(self.X, self.y)
+			print('Balanced sets:', sorted(Counter(self.y).items()))
+			
 		
 		
 	

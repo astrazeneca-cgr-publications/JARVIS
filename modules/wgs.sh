@@ -40,21 +40,21 @@ echo "Compile full feature table (gwrvis, primary sequence features and regulato
 
 
 echo "Merge BED files by genomic class across all chromosomes"
-#./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
+./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
-#python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
+python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
 
 
 # [Ad-hoc] post-processing: enhancers
 #python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
-#python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
+python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
 
 
-#python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [deprecated/redundant]
+#python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
 
 
 
@@ -74,7 +74,8 @@ python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file
 echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
 python scores_benchmarking/run_clinvar_benchmarking.py $config_file
 
-echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
+# [To become depecreated]
+#echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
 #python benchmark_against_denovo_db.py $config_file
 
 python scores_benchmarking/benchmark_vs_original_orion.py $config_file

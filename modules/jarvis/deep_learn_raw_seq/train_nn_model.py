@@ -3,6 +3,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from collections import Counter
 import pickle
 
 from scipy import interp
@@ -18,12 +19,17 @@ from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
 from tensorflow.keras.layers import Convolution1D, MaxPooling1D
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.optimizers import Adam
+
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+from imblearn.under_sampling import RandomUnderSampler
 import nn_models
 import func_api_nn_models
 from prepare_data import JarvisDataPreprocessing
 
+
+
 import sys, os 
+os.environ['KMP_WARNINGS'] = 'off'
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 #sys.path.insert(1, os.path.join(sys.path[0], '..')) 
 sys.path.insert(1, os.path.join(sys.path[0], '.')) 
@@ -132,9 +138,42 @@ class JarvisTraining:
 		return X
 
 
+	
+	def fix_class_imbalance(self, X, y, seqs):
+	
+		"""
+			Fix class imbalance (with over/under-sampling minority/majority class)
+		"""
+		
+		y = np.argmax(y, axis=1)
+		
+		
+		positive_set_size = (y == 1).sum()
+		negative_set_size = (y == 0).sum()
+		print('Positive / Negative size:', positive_set_size, '/', negative_set_size)
+		pos_neg_ratio = 1/1
+
+		if positive_set_size / negative_set_size < pos_neg_ratio:
+			print('\n> Fixing class imbalance ...')
+			print('Imbalanced sets: ', sorted(Counter(y).items()))
+			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
+			X, y = rus.fit_resample(X, y)
+			print('Balanced sets:', sorted(Counter(y).items()))
+			print('Sampled indices:', rus.sample_indices_)
+			
+			if seqs is not None:
+				print('Original seqs:', seqs.shape)
+				seqs = seqs[rus.sample_indices_]
+				print('Sampled seqs:', seqs.shape)
+			
+		y = tf.keras.utils.to_categorical(y)
+		
+		return X, y, seqs
+	
+		
 
 	def train_with_cv(self, data_dict, include_vcf_features, genomic_classes,
-			  n_splits=5, batch_size=64, epochs=40, validation_split=0.1,
+			  n_splits=5, batch_size=16, epochs=40, validation_split=0.1,
 			  use_multiprocessing=True, verbose=0, input_features='structured'):
 		""" 
 			Arg 'input_features' may take 1 of 3 possible values:
@@ -146,17 +185,23 @@ class JarvisTraining:
 		#if input_features != 'structured':
 		#	verbose = 1
 
-
+		# 'X'
 		if self.include_vcf_features:
 			X = self.include_vcf_features_for_prediction(data_dict)
 		else:
 			X = data_dict['X'].copy()
 		print('- X features:', X.shape)
 		
+		# 'y'
 		y = data_dict['y'].copy()
 		
+		# 'seqs'
 		if input_features != 'structured':
 			seqs = data_dict['seqs'].copy()
+		else:
+			seqs = None
+		
+		X, y, seqs = self.fix_class_imbalance(X, y, seqs)
 		
 	
 		tprs = [] 
@@ -191,24 +236,32 @@ class JarvisTraining:
 				train_inputs = [X_train, seqs_train]
 				test_inputs = [X_test, seqs_test]
 
+
+			nn_arch = [8, 8] # [64, 128, 256]
 			# -- Create new/clean model instance for each fold
 			# > Keras functional API
 			if input_features == 'structured':
 				# @ Feed-forward DNN (for structured features input only)
-				model = func_api_nn_models.feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[64, 128, 256])	
+				model = func_api_nn_models.feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=nn_arch)	
 			elif input_features == 'sequences':
 				# @ CNN-CNN-FC-FC (for sequence features only)
-				model = func_api_nn_models.cnn2_fc2(jarvis_trainer.win_len)
+				model = func_api_nn_models.cnn2_fc2(self.win_len)
+			elif input_features == 'both':
+				# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
+				model = func_api_nn_models.cnn2_concat_dnn_fc2(filtered_data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
 			model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 
 
 			# ---- Callbacks ----
-			checkpoint_name = 'jarvis_best_model_with_cv.hdf5'
+			checkpoint_dir = self.ml_data_dir + '/checkpoint_cv_models'
+			if not os.path.exists(checkpoint_dir):
+				os.makedirs(checkpoint_dir)
+			checkpoint_name = checkpoint_dir + '/jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '.best_model_with_cv.hdf5'
 			checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
 			patience = 10
-			if input_features == 'structured':
-				patience = 20
+			#if input_features == 'structured':
+			#	patience = 20  # may lead to over-fitting
 			earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
 			# -------------------
 
@@ -224,6 +277,17 @@ class JarvisTraining:
 			#probas_ = model.predict_proba(X_test)
 			probas_ = model.predict(test_inputs)  # for Keras functional API
 
+			
+						
+			
+			# Evaluate predictions on test and get performance metrics
+			#try:
+			self.test_and_evaluate_model(probas_, y_test)
+			#	pass
+			#except:
+			#	print('\n\n[Warning] ROC_AUC failed - only 1 class present in predictions')
+			
+			
 			# Compute ROC curve and area the curve 				
 			fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
 
@@ -292,6 +356,54 @@ class JarvisTraining:
 		fig.savefig(history_out_file, bbox_inches='tight')
 		
 		print('Model training history saved into:', history_out_file)
+		
+		
+		
+		
+	def get_metrics(self, test_flat, preds_flat):
+	
+		#roc_auc = roc_auc_score(test_flat, preds_flat)
+		
+
+		accuracy = accuracy_score(test_flat, preds_flat)
+		confus_mat =  confusion_matrix(test_flat, preds_flat) 
+		print('> Confusion matrix:\n', confusion_matrix(test_flat, preds_flat))
+			
+		TN, FP, FN, TP = confus_mat.ravel()	
+		print('TN:', TN, '\nFP:', FP, '\nFN:', FN, '\nTP:', TP)
+
+
+		sensitivity = TP / (TP + FN)
+		precision = TP / (TP + FP)
+		specificity = TN / (TN + FP)
+
+		#print('> ROC AUC:', roc_auc)
+		print('> Accuracy:', accuracy_score(test_flat, preds_flat))
+
+		print('\n> Sensitivity:', sensitivity)
+		print('> Precision:', precision)
+		print('> Specificity:', specificity)
+		
+		#metrics = {'roc_auc': roc_auc, 'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity, 'confusion_matrix': confus_mat}
+
+		#return metrics
+		return None
+		
+
+			  
+	def test_and_evaluate_model(self, y_probas, y_test):
+
+		# --- Needs DEBUGGING! ---
+		
+		y_pred_flat = np.argmax(y_probas, axis=1)
+		#print(y_probas)
+		#print(y_pred_flat)
+		
+		y_test_flat = np.argmax(y_test, axis=1)
+		print('y_test:', y_test_flat)
+		print('y_pred:', y_pred_flat)
+		
+		metrics = self.get_metrics(y_test_flat, y_pred_flat)
 		
 
 
