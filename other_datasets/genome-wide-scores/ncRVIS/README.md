@@ -11,20 +11,5 @@ ncRVIS_scores_table.csv
 python parse_genomic_boundaries.py	# --> All_chromosomes.ncRVIS.bed
 
 
-# 4. Intersect with ClinVar Pathogenic / Benign variant BED files
-## a. ClinVar
-```
-intersectBed -a All_chromosomes.ncRVIS.bed -b ../../clinvar/clinvar.pathogenic.bed > ncRVIS.clinvar_pathogenic.bed &
-intersectBed -a All_chromosomes.ncRVIS.bed -b ../../clinvar/clinvar.benign.bed > ncRVIS.clinvar_benign.bed &
-
-cat ncRVIS.clinvar_pathogenic.bed ncRVIS.clinvar_benign.bed > ncRVIS.clinvar.bed
-```
-
-
-## b. HGMD
-```
-intersectBed -a All_chromosomes.ncRVIS.bed -b ../../hgmd/hgmd.pathogenic.bed > ncRVIS.hgmd_pathogenic.bed &
-
-cat ncRVIS.hgmd_pathogenic.bed ncRVIS.clinvar_benign.bed > ncRVIS.hgmd.bed
-```
-
+# Run
+sbatch ./prepare_variant_specific_files.sh
