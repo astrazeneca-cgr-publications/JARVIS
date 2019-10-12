@@ -1,0 +1,38 @@
+# CURRENT:
+[--> test_and_evaluate_model -- need Debugging... - See what happens when using RandomForest for ClinVar classification, if I manage to predict successfully (check Sensitivity, Precision, etc.) and see what I can do for the DNN to not overfit the data.
+- FIXED! (with utr case): with pos/neg ratio = 1/1. See how the other scores will behave now and also check their sensitivity, precision, etc. scores.
+-- Add metrics in scores_benchmarking/run_clinvar_benchmarking.py
+<--]
+
+
+
+- Get metrics of Sensitivity (low number of FN) and Specifity (low number of FP) to see if I can use it safely on the whole genome without risking to predict too many False Positives.
+
+- Optimse cnn+dnn network for predictions with 'both' types of features (structured and sequences)
+
+- Submit jobs for jarvis training with clinvar/hgmd pathogenic sets and clinvar/denovodb(non_SSC)/topmed_uniq benign variants
+
+- Train JARVIS on UTR and predict on intergenic
+
+
+
+- Create clean instance of model for each fold in jarvis/variant_classification/classifiers.py
+- Make sure I fix imbalance everywhere (
+
+- Run grid-search for optimal nn (dnn / cnn) architecture selection -- need to create static splits of the batches for this task to be comparable.
+
+- Create sets of 'pathogenic'/'benign' based on their gERP++ scores or base on the CADD datasets
+
+
+
+Minor:
+- Add a conservation score into Jarvis (when not trained based on gERP-labelling)
+- Compare AF of variants that are both in ClinVar and HGMD and of those that are only in HGMD.
+- Fix tidyverse installation: make_ggridges_plot.py uses gather() that requires this dependency - see if I can use some other function to discard this dependency
+- (Maybe) add Repeated k-fold CV for Jarvis (and clinvar-variant classifier) - https://stats.stackexchange.com/questions/82546/how-many-times-should-we-repeat-a-k-fold-cv
+
+
+DONE:
+- Get random sample of control/benign variants that is up to x10 (?) larger than the pathogenic set, for the genomic class or set of genomic classes under consideration! [DONE]
+- Combine structured and sequence data [DONE]
+- Download Ryan's new control datasets and build new sets of control variants per score [DONE]
