@@ -71,7 +71,14 @@ class ScoreBenchmark:
 		benchmark_dir = self.get_benchmark_dir_for_score('gwrvis')
 		
 		gwrvis_clinvar_subset_file = benchmark_dir + '/gwrvis.clinvar_' + variant_type + '.bed'
-		cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/variant_annotation/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
+
+		
+		if variant_type == 'pathogenic':
+			# Use clean pathogenic file, after subtraction of any overlapping benign variants
+			cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ' + clinvar_feature_table_dir + '/clean.' + pathogenic_set + '.pathogenic.bed' + ' | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
+
+		else:
+			cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/variant_annotation/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -280,6 +287,8 @@ class ScoreBenchmark:
 	def run(self):
 		pathogenic_file = self.intersect_clinvar('pathogenic')
 		benign_file = self.intersect_clinvar('benign')
+		#print('pathogenic_file:', pathogenic_file)
+		#print('benign_file:', benign_file)
 
 
 		pathogenic_df = pd.read_csv(pathogenic_file, header=None, sep='\t')
@@ -434,6 +443,8 @@ if __name__ == '__main__':
 
 
 	out_dir = create_out_dir(config_file)
+	clinvar_feature_table_dir = out_dir + '/ml_data/clinvar_feature_tables'
+
 	out_dir = out_dir + '/full_genome_out'
 	#out_dir = '../' + out_dir + '/full_genome_out'
 

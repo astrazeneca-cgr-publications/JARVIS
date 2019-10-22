@@ -387,9 +387,6 @@ class JarvisTraining:
 		
 	def get_metrics(self, test_flat, preds_flat):
 	
-		roc_auc = roc_auc_score(test_flat, preds_flat)
-		
-
 		accuracy = accuracy_score(test_flat, preds_flat)
 		confus_mat =  confusion_matrix(test_flat, preds_flat) 
 		print('> Confusion matrix:\n', confusion_matrix(test_flat, preds_flat))
@@ -402,14 +399,13 @@ class JarvisTraining:
 		precision = TP / (TP + FP)
 		specificity = TN / (TN + FP)
 
-		print('> ROC AUC:', roc_auc)
 		print('> Accuracy:', accuracy_score(test_flat, preds_flat))
 
 		print('\n> Sensitivity:', sensitivity)
 		print('> Precision:', precision)
 		print('> Specificity:', specificity)
 		
-		metrics = {'roc_auc': roc_auc, 'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity, 'confusion_matrix': confus_mat}
+		metrics = {'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity, 'confusion_matrix': confus_mat}
 
 		return metrics
 		
@@ -476,7 +472,7 @@ if __name__ == '__main__':
 	# DNN
 	nn_arch = [128, 128] # [64, 128, 256]
 	dnn_model = feedf_dnn
-	sequence_model = cnn2_fc2 #default
+	sequence_model = cnn3_fc2 #default: cnn2_fc2
 	#sequence_model = cnn2_brnn1 
 	concat_model = cnn2_concat_dnn_fc2
 

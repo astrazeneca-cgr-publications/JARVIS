@@ -1,3 +1,4 @@
+__all__ = ['feedf_dnn', 'cnn2_fc2', 'cnn3_fc2', 'cnn2_concat_dnn_fc2', 'brnn1', 'cnn2_brnn1']
 import logging 
 logging.getLogger('tensorflow').disabled = True
 from tensorflow.keras.models import Model
@@ -43,15 +44,45 @@ def cnn2_fc2(win_len, num_features=4):
 	
 	x = Flatten()(x)
 	x = Dense(128, activation='relu')(x)
-	x = Dense(32, activation='relu')(x)
-	#x = Dense(16, activation='relu')(x)
+	x = Dense(64, activation='relu')(x)
+	#x = Dense(32, activation='relu')(x)
 	
 	output = Dense(2, activation='softmax')(x)
-
 
 	model = Model(inputs=seq_input, outputs=output)
 
 	return model
+
+
+
+def cnn3_fc2(win_len, num_features=4):
+
+	seq_input = Input(shape=(win_len, num_features), name='seq_input')
+
+	# ---- seqs
+	x = Conv1D(activation="relu", input_shape=(win_len, num_features), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+
+	x = Conv1D(activation="relu", padding="valid", strides=1, filters=256, kernel_size=11)(x)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+	
+	x = Conv1D(activation="relu", padding="valid", strides=1, filters=512, kernel_size=11)(x)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+
+	x = Flatten()(x)
+	x = Dense(512, activation='relu')(x)
+	x = Dense(256, activation='relu')(x)
+	
+	output = Dense(2, activation='softmax')(x)
+
+	model = Model(inputs=seq_input, outputs=output)
+
+	return model
+
+
 
 
 

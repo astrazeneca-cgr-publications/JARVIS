@@ -43,7 +43,7 @@ class DnnClassifier:
 
 class Classifier:
 	
-	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='RandomForest', 
+	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='DNN', 
 				 use_only_base_score=True, include_vcf_extracted_features=False, regression=False, exclude_base_score=False):
 				 
 		self.out_dir = out_dir
@@ -91,7 +91,7 @@ class Classifier:
 		# Fix class imbalance (with over/under-sampling minority/majority class)
 		positive_set_size = (self.y == 1).sum()
 		negative_set_size = (self.y == 0).sum()
-		pos_neg_ratio = 1/2
+		pos_neg_ratio = 1/1
 
 		if positive_set_size / negative_set_size < pos_neg_ratio:
 			print('\n> Fixing class imbalance ...')
@@ -118,7 +118,7 @@ class Classifier:
 			self.model_type = 'Logistic'
 			self.model = LogisticRegression(C=1, solver='lbfgs', max_iter=10000)
 		else:
-			if self.model_type == 'RandomForest':
+			if self.model_type == 'RF':
 				self.model = RandomForestClassifier(**rf_params)	
 				
 			elif self.model_type == 'Logistic':
@@ -258,7 +258,7 @@ class Classifier:
 		print('Mean AUC:', self.mean_auc)
 		
 		
-		if self.model_type == 'RandomForest':
+		if self.model_type == 'RF':
 			self.get_feature_importances()
 
 		self.mean_tpr = mean_tpr
@@ -279,7 +279,7 @@ class Classifier:
 		print("\n> Feature importances:")
 		if self.model_type == 'Logistic':
 			importances = self.model.coef_.reshape(-1, 1)[:, 0]
-		elif self.model_type == 'RandomForest':
+		elif self.model_type == 'RF':
 			importances = self.model.feature_importances_
 		
 		

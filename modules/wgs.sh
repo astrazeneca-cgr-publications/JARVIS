@@ -72,7 +72,8 @@ echo "> Run Logistic regression for gwRVIS tolerance predictive power"
 
 
 echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
-#python scores_benchmarking/run_clinvar_benchmarking.py $config_file
+python scores_benchmarking/run_clinvar_benchmarking.py $config_file
+exit
 
 # [To become depecreated]
 #echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
@@ -88,4 +89,5 @@ echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
 # Under "jarvis_classification/"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis_classification/) ===="
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
-python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants
+model_type="RF"
+python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type

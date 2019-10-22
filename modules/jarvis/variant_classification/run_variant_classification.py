@@ -18,7 +18,7 @@ from custom_utils import create_out_dir, get_config_params
 
 class ClassificationWrapper:
 
-	def __init__(self, config_file, base_score='gwrvis', model_type='RandomForest', genomic_classes=None, 
+	def __init__(self, config_file, base_score='gwrvis', model_type='DNN', genomic_classes=None, 
 				Y_label='clinvar_annot', include_vcf_extracted_features=False, 
 				regression=False, exclude_base_score=False, filter_ccds_overlapping_variants=True):
 		
@@ -249,7 +249,8 @@ if __name__ == '__main__':
 
 	config_file = sys.argv[1]
 	filter_ccds_overlapping_variants = bool(int(sys.argv[2]))
-			
+	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
+	
 
 	genomic_classes_lists =  [ ['intergenic'], ['utr'] ] #, ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
@@ -268,7 +269,7 @@ if __name__ == '__main__':
 	patho_benign_sets = pathogenic_set + '_' + benign_set
 	
 	
-	model_type = 'DNN' #'DNN' # 'RandomForest' (default), 'Logistic', 'DNN'
+	
 	
 	
 	for genomic_classes in genomic_classes_lists:
