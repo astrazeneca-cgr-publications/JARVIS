@@ -1,38 +1,43 @@
 # CURRENT:
-[--> test_and_evaluate_model -- need Debugging... - See what happens when using RandomForest for ClinVar classification, if I manage to predict successfully (check Sensitivity, Precision, etc.) and see what I can do for the DNN to not overfit the data.
-- FIXED! (with utr case): with pos/neg ratio = 1/1. See how the other scores will behave now and also check their sensitivity, precision, etc. scores.
--- Add metrics in scores_benchmarking/run_clinvar_benchmarking.py
-<--]
+• Validate JARVIS on non-coding benign vs pathogenic variants from denovodb (when trained with all of ClinVar and not using denovodb as a control set)
+	- Consider aggregating denovo-db and Clinvar pathogenic for the training with CV to see results!
+ 
+
+
+• Use the same CV batches for benchmarking all other scores (if possible)
+
+• Get metrics of Sensitivity (low number of FN) and Specifity (low number of FP) to see if I can use it safely on the whole genome without risking to predict too many False Positives.
 
 
 
-- Get metrics of Sensitivity (low number of FN) and Specifity (low number of FP) to see if I can use it safely on the whole genome without risking to predict too many False Positives.
+• Submit jobs for jarvis training with clinvar/hgmd pathogenic sets and clinvar/denovodb(non_SSC)/topmed_uniq benign variants
 
-- Optimse cnn+dnn network for predictions with 'both' types of features (structured and sequences)
-
-- Submit jobs for jarvis training with clinvar/hgmd pathogenic sets and clinvar/denovodb(non_SSC)/topmed_uniq benign variants
-
-- Train JARVIS on UTR and predict on intergenic
+• Train JARVIS on UTR and predict on intergenic
 
 
 
-- Create clean instance of model for each fold in jarvis/variant_classification/classifiers.py
-- Make sure I fix imbalance everywhere (
+• Create clean instance of model for each fold in jarvis/variant_classification/classifiers.py
 
-- Run grid-search for optimal nn (dnn / cnn) architecture selection -- need to create static splits of the batches for this task to be comparable.
-
-- Create sets of 'pathogenic'/'benign' based on their gERP++ scores or base on the CADD datasets
+- Create sets of 'pathogenic'/'benign' based on their gERP++ scores or based on the CADD datasets
 
 
 
 Minor:
+- Check https://github.com/slundberg/shap for Feature Importance from CNNs.
 - Add a conservation score into Jarvis (when not trained based on gERP-labelling)
 - Compare AF of variants that are both in ClinVar and HGMD and of those that are only in HGMD.
 - Fix tidyverse installation: make_ggridges_plot.py uses gather() that requires this dependency - see if I can use some other function to discard this dependency
-- (Maybe) add Repeated k-fold CV for Jarvis (and clinvar-variant classifier) - https://stats.stackexchange.com/questions/82546/how-many-times-should-we-repeat-a-k-fold-cv
+- (Maybe) add n-repeated k-fold CV for Jarvis (and clinvar-variant classifier) - https://stats.stackexchange.com/questions/82546/how-many-times-should-we-repeat-a-k-fold-cv
+- Run grid-search for optimal nn (dnn / cnn) architecture selection -- need to create static splits of the batches for this task to be comparable.
+• Default  pos_neg_ratio = 1/1; Add this to config file as a parameter
 
 
 DONE:
 - Get random sample of control/benign variants that is up to x10 (?) larger than the pathogenic set, for the genomic class or set of genomic classes under consideration! [DONE]
 - Combine structured and sequence data [DONE]
 - Download Ryan's new control datasets and build new sets of control variants per score [DONE]
+- test_and_evaluate_model -- need Debugging... - See what happens when using RandomForest for ClinVar classification, if I manage to predict successfully (check Sensitivity, Precision, etc.) and see what I can do for the DNN to not overfit the data. [DONE] -- FIXED! (with utr case): with pos/neg ratio = 1/1. 
+- For performance comparison between structured, sequences and both get a good run from sequences or structured and use the exact same CV batches to assess performance! [DONE]
+
+- Optimse cnn+dnn network for predictions with 'both' types of features (structured and sequences) [DONE]
+- Make sure I fix imbalance everywhere  [DONE]

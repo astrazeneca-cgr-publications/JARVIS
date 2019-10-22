@@ -4,6 +4,7 @@
 declare -a input_features=("both") #(structured sequences both)
 declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista" "intron" "ccds")
 
+use_fixed_cv_batches=1
 
 
 for in_features in "${input_features[@]}"; do
@@ -19,10 +20,10 @@ for in_features in "${input_features[@]}"; do
 		fi
 
 		# ClinVar pathogenic set
-		sbatch -o "logs/clinvar.${job_name}.out" -e "logs/clinvar.${job_name}.err" --mem-per-cpu=24G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.yaml $in_features $gen_classes
+		sbatch -o "logs/clinvar.${job_name}.out" -e "logs/clinvar.${job_name}.err" --mem-per-cpu=24G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.yaml $in_features $gen_classes $use_fixed_cv_batches
 
 		# HGMD pathogenic set
-		sbatch -o "logs/hgmd.${job_name}.out" -e "logs/hgmd.${job_name}.err" --mem-per-cpu=36G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.hgmd.yaml $in_features $gen_classes
+		sbatch -o "logs/hgmd.${job_name}.out" -e "logs/hgmd.${job_name}.err" --mem-per-cpu=36G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.hgmd.yaml $in_features $gen_classes $use_fixed_cv_batches
 
 	done
 done

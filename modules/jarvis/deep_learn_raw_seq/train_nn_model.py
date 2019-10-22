@@ -23,7 +23,7 @@ from tensorflow.keras.optimizers import Adam
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from imblearn.under_sampling import RandomUnderSampler
 import nn_models
-import func_api_nn_models
+from func_api_nn_models import *
 from prepare_data import JarvisDataPreprocessing
 
 
@@ -139,7 +139,7 @@ class JarvisTraining:
 
 
 	
-	def fix_class_imbalance(self, X, y, seqs):
+	def fix_class_imbalance(self, X, y, seqs, pos_neg_ratio=1/1):
 	
 		"""
 			Fix class imbalance (with over/under-sampling minority/majority class)
@@ -151,7 +151,6 @@ class JarvisTraining:
 		positive_set_size = (y == 1).sum()
 		negative_set_size = (y == 0).sum()
 		print('Positive / Negative size:', positive_set_size, '/', negative_set_size)
-		pos_neg_ratio = 1/1
 
 		if positive_set_size / negative_set_size < pos_neg_ratio:
 			print('\n> Fixing class imbalance ...')
@@ -173,7 +172,7 @@ class JarvisTraining:
 		
 
 	def train_with_cv(self, data_dict, include_vcf_features, genomic_classes,
-			  n_splits=5, batch_size=16, epochs=40, validation_split=0.1,
+			  n_splits=5, batch_size=16, epochs=40, validation_split=0,
 			  use_multiprocessing=True, verbose=0, input_features='structured'):
 		""" 
 			Arg 'input_features' may take 1 of 3 possible values:
@@ -211,8 +210,23 @@ class JarvisTraining:
 	
 		skf = StratifiedKFold(n_splits=n_splits, shuffle=True)
 
-		i = 0
+
+		cv_data_dict = {}
+		fixed_cv_batches_file = self.ml_data_dir + '/fixed_cv_batches.pkl'
+		# load CV batches from pickle file
+		if use_fixed_cv_batches:
+			print("\nLoading fixed CV batches...")
+			with open(fixed_cv_batches_file, 'rb') as handle:
+				cv_data_dict = pickle.load(handle)
+
+		fold = 0
 		for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
+
+			if use_fixed_cv_batches:
+				train_index, test_index = cv_data_dict[fold]
+			else:
+				cv_data_dict[fold] = [train_index, test_index]
+
 			y_train, y_test = y[train_index], y[test_index]
 			X_train, X_test = X[train_index], X[test_index]
 			print('X_train:', X_train.shape)
@@ -237,19 +251,21 @@ class JarvisTraining:
 				test_inputs = [X_test, seqs_test]
 
 
-			nn_arch = [8, 8] # [64, 128, 256]
+
 			# -- Create new/clean model instance for each fold
 			# > Keras functional API
 			if input_features == 'structured':
 				# @ Feed-forward DNN (for structured features input only)
-				model = func_api_nn_models.feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=nn_arch)	
+				model = dnn_model(data_dict['X'].shape[1], nn_arch=nn_arch)	
 			elif input_features == 'sequences':
 				# @ CNN-CNN-FC-FC (for sequence features only)
-				model = func_api_nn_models.cnn2_fc2(self.win_len)
+				#model = func_api_nn_models.cnn2_fc2(self.win_len)
+				model = sequence_model(self.win_len)
 			elif input_features == 'both':
 				# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
-				model = func_api_nn_models.cnn2_concat_dnn_fc2(filtered_data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
+				model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
 			model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+			print(model.summary())
 
 
 
@@ -271,7 +287,7 @@ class JarvisTraining:
 				  validation_split=validation_split, 
 				  callbacks=[checkpointer, earlystopper], 
 				  verbose=verbose)
-			#self.plot_history(history, fold_id=(i+1))
+			#self.plot_history(history, fold_id=(fold+1))
 			
 			# Get prediction probabilities per class 				
 			#probas_ = model.predict_proba(X_test)
@@ -295,11 +311,20 @@ class JarvisTraining:
 			tprs.append(interp(mean_fpr, fpr, tpr)) 
 			tprs[-1][0] = 0.0 
 			roc_auc = round(auc(fpr, tpr), 3) 	
-			print('Fold-', str(i+1), ' - AUC: ', roc_auc, '\n')
+			print('Fold-', str(fold+1), ' - AUC: ', roc_auc, '\n')
 			aucs.append(roc_auc)
-			plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
+			plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (fold, roc_auc))
 			
-			i += 1
+			fold += 1
+
+
+		# Save CV batches to a pickle file
+		if not use_fixed_cv_batches:
+			print("\nSaving CV batches to a pickle file...")
+			with open(fixed_cv_batches_file, 'wb') as handle:
+				pickle.dump(cv_data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+	
+
 
 		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
 		
@@ -362,7 +387,7 @@ class JarvisTraining:
 		
 	def get_metrics(self, test_flat, preds_flat):
 	
-		#roc_auc = roc_auc_score(test_flat, preds_flat)
+		roc_auc = roc_auc_score(test_flat, preds_flat)
 		
 
 		accuracy = accuracy_score(test_flat, preds_flat)
@@ -377,17 +402,16 @@ class JarvisTraining:
 		precision = TP / (TP + FP)
 		specificity = TN / (TN + FP)
 
-		#print('> ROC AUC:', roc_auc)
+		print('> ROC AUC:', roc_auc)
 		print('> Accuracy:', accuracy_score(test_flat, preds_flat))
 
 		print('\n> Sensitivity:', sensitivity)
 		print('> Precision:', precision)
 		print('> Specificity:', specificity)
 		
-		#metrics = {'roc_auc': roc_auc, 'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity, 'confusion_matrix': confus_mat}
+		metrics = {'roc_auc': roc_auc, 'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity, 'confusion_matrix': confus_mat}
 
-		#return metrics
-		return None
+		return metrics
 		
 
 			  
@@ -418,6 +442,7 @@ if __name__ == '__main__':
 	input_features = sys.argv[2]
 	genomic_classes = sys.argv[3] # comma-separated
 	genomic_classes = genomic_classes.split(',')	
+	use_fixed_cv_batches = bool(int(sys.argv[4]))
 
 
 	include_vcf_features = False
@@ -448,6 +473,13 @@ if __name__ == '__main__':
 	#	jarvis_trainer.plot_history(history)
 	# ==========================================================================
 	
+	# DNN
+	nn_arch = [128, 128] # [64, 128, 256]
+	dnn_model = feedf_dnn
+	sequence_model = cnn2_fc2 #default
+	#sequence_model = cnn2_brnn1 
+	concat_model = cnn2_concat_dnn_fc2
+
 
 	jarvis_trainer.train_with_cv(filtered_data_dict, include_vcf_features, genomic_classes, 
 				     input_features=input_features, verbose=0)

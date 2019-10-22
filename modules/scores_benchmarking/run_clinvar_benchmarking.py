@@ -145,7 +145,7 @@ class ScoreBenchmark:
 	
 	
 		
-	def fix_class_imbalance(self, X, y):
+	def fix_class_imbalance(self, X, y, pos_neg_ratio = 1/1):
 	
 		"""
 			Fix class imbalance (with over/under-sampling minority/majority class)
@@ -157,7 +157,7 @@ class ScoreBenchmark:
 		positive_set_size = (y == 1).sum()
 		negative_set_size = (y == 0).sum()
 		print('Positive / Negative size:', positive_set_size, '/', negative_set_size)
-		pos_neg_ratio = 1/1
+		
 
 		if positive_set_size / negative_set_size < pos_neg_ratio:
 			print('\n> Fixing class imbalance ...')
@@ -297,7 +297,7 @@ class ScoreBenchmark:
 		print('===================================')
 
 		genomic_classes = list(set(pathogenic_df['genomic_class']) & set(benign_df['genomic_class']))
-		genomic_classes = [g for g in genomic_classes if g != 'vista']
+		genomic_classes = [g for g in genomic_classes if g not in ['vista', 'ucne']]
 
 
 		for genomic_class in genomic_classes:

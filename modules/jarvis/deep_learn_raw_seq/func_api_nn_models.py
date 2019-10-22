@@ -30,14 +30,14 @@ def feedf_dnn(input_dim, nn_arch=[32,32]):
 
 def cnn2_fc2(win_len, num_features=4):
 
-	seq_input = Input(shape=(win_len, 4), name='seq_input')
+	seq_input = Input(shape=(win_len, num_features), name='seq_input')
 
 	# ---- seqs
-	x = Conv1D(activation="relu", input_shape=(win_len, 4), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
+	x = Conv1D(activation="relu", input_shape=(win_len, num_features), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
 	x = MaxPooling1D(strides=4, pool_size=4)(x)
 	x = Dropout(0.2)(x)
 
-	x = Conv1D(activation="relu", padding="valid", strides=1, filters=64, kernel_size=11)(x)
+	x = Conv1D(activation="relu", padding="valid", strides=1, filters=256, kernel_size=11)(x)
 	x = MaxPooling1D(strides=4, pool_size=4)(x)
 	x = Dropout(0.2)(x)
 	
@@ -57,14 +57,14 @@ def cnn2_fc2(win_len, num_features=4):
 
 def cnn2_concat_dnn_fc2(feat_input_dim, nn_arch=[32,32], win_len=3000, num_features=4):
 
-	seq_input = Input(shape=(win_len, 4), name='seq_input')
+	seq_input = Input(shape=(win_len, num_features), name='seq_input')
 
 	# ---- sequences as features
-	x1 = Conv1D(activation="relu", input_shape=(win_len, 4), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
+	x1 = Conv1D(activation="relu", input_shape=(win_len, num_features), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
 	x1 = MaxPooling1D(strides=4, pool_size=4)(x1)
 	x1 = Dropout(0.2)(x1)
 
-	x1 = Conv1D(activation="relu", padding="valid", strides=1, filters=64, kernel_size=11)(x1)
+	x1 = Conv1D(activation="relu", padding="valid", strides=1, filters=256, kernel_size=11)(x1)
 	x1 = MaxPooling1D(strides=4, pool_size=4)(x1)
 	x1 = Dropout(0.2)(x1)
 	
@@ -96,71 +96,63 @@ def cnn2_concat_dnn_fc2(feat_input_dim, nn_arch=[32,32], win_len=3000, num_featu
 	
 	output = Dense(2, activation='softmax')(x)
 
-
 	model = Model(inputs=[feat_input, seq_input], outputs=output)
 
 
 	return model
 
 
-
-def cnn_2_conv_2_fcc(win_len, regression=False):
+def brnn1(win_len, num_features=4):
 	
-	# CNN
-	model = Sequential()
-	model.add(Convolution1D(activation="relu", 
-				input_shape=(win_len, 4), 
-				padding="valid", strides=1, 
-				filters=128, kernel_size=50))
-	model.add(MaxPooling1D(strides=15, pool_size=15))
-	model.add(Dropout(0.2))
-
-	model.add(Convolution1D(activation="relu", 
-				padding="valid", strides=1, 
-				filters=64, kernel_size=25))
-
-	model.add(MaxPooling1D(strides=15, pool_size=15))
-	model.add(Dropout(0.2))
-
-	
-	# FCC
-	model.add(Flatten())
-	model.add(Dense(128, activation='relu'))
-
-	if regression:
-		model.add(Dense(1, kernel_initializer='normal', activation='linear'))
-	else:
-		model.add(Dense(2, activation='softmax'))
-
-	return model
-		  
-
-def cnn_rnn_1_conv_1_lstm(win_len, regression=False):
-	
-	
-	# CNN
-	model = Sequential()
-	model.add(Convolution1D(activation="relu", 
-				input_shape=(win_len, 4), 
-				padding="valid", strides=1, 
-				filters=16, kernel_size=30))
-	model.add(MaxPooling1D(strides=15, pool_size=15))
-	model.add(Dropout(0.2))
+	seq_input = Input(shape=(win_len, num_features), name='seq_input')
 
 	# RNN
-	forward_lstm = LSTM(units=320, return_sequences=True)
+	forward_lstm = LSTM(units=32, return_sequences=True)
 	brnn = Bidirectional(forward_lstm)
 
-	model.add(brnn)
-	model.add(Dropout(0.5))
+	x = brnn(seq_input)	
+	x = Dropout(0.2)(x)
 
-	model.add(Flatten())
-	model.add(Dense(128, activation='relu'))
+	x = Flatten()(x)
+	x = Dense(128, activation='relu')(x)
 
-	if regression:
-		model.add(Dense(1, kernel_initializer='normal', activation='linear'))
-	else:
-		model.add(Dense(2, activation='softmax'))
+	output = Dense(2, activation='softmax')(x)
+
+	model = Model(inputs=seq_input, outputs=output)
+
+	return model
+
+
+def cnn2_brnn1(win_len, num_features=4):
+	
+	seq_input = Input(shape=(win_len, num_features), name='seq_input')
+	
+	# CNN
+	x = Conv1D(activation="relu", input_shape=(win_len, num_features), padding="valid", strides=1, filters=128, kernel_size=11)(seq_input)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+
+	x = Conv1D(activation="relu", padding="valid", strides=1, filters=256, kernel_size=11)(x)
+	x = MaxPooling1D(strides=4, pool_size=4)(x)
+	x = Dropout(0.2)(x)
+	
+	#x = Flatten()(x)
+	#x = Dense(128, activation='relu')(x)
+
+	# RNN
+	forward_lstm = LSTM(units=256, return_sequences=True)
+	brnn = Bidirectional(forward_lstm)
+
+	x = brnn(x)	
+	x = Dropout(0.2)(x)
+
+	x = Flatten()(x)
+	x = Dense(128, activation='relu')(x)
+
+	output = Dense(2, activation='softmax')(x)
+
+	model = Model(inputs=seq_input, outputs=output)
+
 
 	return model
 		  
