@@ -1,17 +1,18 @@
 # CURRENT:
 
-• Add aggregate (avg.) metrics for sensitivity, precision, etc. in "jarvis/deep_learn_raw_seq/train_nn_model.py"
+- Check status of: ./submit_all_jarvis_jobs.sh and re-plot performance metrics with "jarvis/performance_estimation/process_performance_metrics.py"
+	- Build JARVIS model across all non-coding regions - and compare against other scores trained on all same regions as well (ideally with same batches in CV!)
+
+
+- Debug errors from "conf.W500.err" to be able to run clean analyses for final figures
 
 • Validate JARVIS on non-coding benign vs pathogenic variants from denovodb (when trained with all of ClinVar and not using denovodb as a control set)
-	- Look at: 'benchmark_against_denovo_db.py'
+	- Look at: 'benchmark_against_denovo_db.py' [DONE - but sample size is small and maybe not the best case for benchmarking]
 	- Consider aggregating denovo-db and Clinvar pathogenic for the training with CV to see results!
  
 
-• Use the same CV batches for benchmarking all other scores (if possible)
+• Train JARVIS-sequences using 3kb around the variant instead of the gwRVIS 3kb window
 
-• Get metrics of Sensitivity (low number of FN) and Specifity (low number of FP) to see if I can use it safely on the whole genome without risking to predict too many False Positives.
-
-• Re-run JARVIS training with Random Forest too, to extract feature importance and for benchmarking comparison.
 
 
 • Submit jobs for jarvis training with clinvar/hgmd pathogenic sets and clinvar/denovodb(non_SSC)/topmed_uniq benign variants
@@ -19,18 +20,20 @@
 • Train JARVIS on UTR and predict on intergenic
 
 
-- Build JARVIS model across all non-coding regions - and compare against other scores trained on all same regions as well (ideally with same batches in CV!)
 
 
 - Create sets of 'pathogenic'/'benign' based on their gERP++ scores or based on the CADD datasets
 
+- Run everything again with TOPMED this time instead of gnomAD
 
 
 [!] Attention:
 - cnn1_brnn1 on intergenic gave avg. AUC=0.5
+	- Play a bit more with some LSTM architectures (and probably better with a much smaller window size)
 
 
 Minor:
+- Add DANN and DANQ in final benchmarkings
 - Check https://github.com/slundberg/shap for Feature Importance from CNNs.
 - Add a conservation score into Jarvis (when not trained based on gERP-labelling)
 - Compare AF of variants that are both in ClinVar and HGMD and of those that are only in HGMD.
@@ -52,3 +55,11 @@ DONE:
 - Make sure I fix imbalance everywhere  [DONE]
 - Set RF as default classifier for JARVIS in 'jarvis/variant_classification/run_variant_classification.py' [DONE] -- the DNN (FeedF and CNNs are in the 'jarvis/deep_learn_raw_seq/' module
 - Remove any overlapping benign variants from pathogenic file before classification [DONE]
+• Re-run JARVIS training with Random Forest too, to extract feature importance and for benchmarking comparison. [DONE]
+• Get metrics of Sensitivity (low number of FN) and Specifity (low number of FP) to see if I can use it safely on the whole genome without risking to predict too many False Positives. [DONE]
+• Use the same CV batches for benchmarking all other scores (if possible) [DONE] -- Not possible, as not all scores will be defined for the same types of variants. So, I will just train them with independent CV batches, that will represent their generalised predictive power.
+
+• Complete: Add metrics for sensitivity, precision, etc. in "jarvis/deep_learn_raw_seq/train_nn_model.py" [DONE]
+	- Also test n-repeated in CV train_nn_model.py [DONE]
+• Add aggr. (avg.) metrics for sensitivity, precision, etc. in "variant_classification/run_variant_classification.py" [DONE]
+- Combine metrics from the two modules and plot them. [DONE]

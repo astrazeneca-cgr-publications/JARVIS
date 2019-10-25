@@ -13,7 +13,7 @@ from scipy import interp
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV, LinearRegression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-from sklearn.metrics import roc_curve, auc, mean_squared_error, mean_absolute_error, explained_variance_score, r2_score
+from sklearn.metrics import roc_curve, auc, accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -175,50 +175,63 @@ class Classifier:
 		
 		
 		
-	def run_classification_with_cv(self, cv_splits=6):
+	def run_classification_with_cv(self, cv_splits=5, cv_repeats=5):
 		
 		cv = StratifiedKFold(n_splits=cv_splits)
 		
-		#try:
+		
 		tprs = []
 		aucs = []
 		mean_fpr = np.linspace(0, 1, 100)
-
+		metrics_list = []
+		
 		fig, ax = plt.subplots(figsize=(10, 10))
-		
-		i = 0
-		for train, test in cv.split(self.X, self.y):
 
-			# TODO - FIX
-			# Create clean instance of model for each fold
-		
-			if self.model_type == 'DNN':
-				history = self.model.fit(self.X[train], self.y[train], epochs=30, batch_size=32, 
-								verbose=False, validation_split=0.1)
-				# Get prediction probabilities per class
-				probas_ = self.model.predict_proba(self.X[test])
 
-				# Compute ROC curve and area the curve
-				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 0])
-							
-				# Plot training history for train/validation sets
-				self.plot_dnn_model_history(history)
+		# n-repeated CV
+		for n in range(cv_repeats):
+			print('CV - Repeat:', str(n+1))
+			fold = 0
+			for train, test in cv.split(self.X, self.y):
+
+				# TODO - FIX
+				# Create clean instance of model for each fold
+			
+				if self.model_type == 'DNN':
+					history = self.model.fit(self.X[train], self.y[train], epochs=30, batch_size=32, 
+									verbose=False, validation_split=0.1)
+					# Get prediction probabilities per class
+					probas_ = self.model.predict_proba(self.X[test])
+
+					# Compute ROC curve and area the curve
+					fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 0])
+								
+					# Plot training history for train/validation sets
+					self.plot_dnn_model_history(history)
+					
+				else:
+					probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+					# Compute ROC curve and area the curve
+					fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+					
 				
-			else:
-				probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
-				# Compute ROC curve and area the curve
-				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+				
+				tprs.append(interp(mean_fpr, fpr, tpr))
+				tprs[-1][0] = 0.0
+				roc_auc = round(auc(fpr, tpr), 3)
+				aucs.append(roc_auc)
+				plt.plot(fpr, tpr, lw=1, alpha=0.3,
+						 label='ROC fold %d (AUC = %0.2f)' % (fold, roc_auc))
+
+				
+				# Evaluate predictions on test and get performance metrics
+				metrics = self.test_and_evaluate_model(probas_, self.y[test])
+				metrics['auc'] = roc_auc
+				metrics_list.append(metrics)		 
+						 
+				fold += 1
 				
 			
-			
-			tprs.append(interp(mean_fpr, fpr, tpr))
-			tprs[-1][0] = 0.0
-			roc_auc = round(auc(fpr, tpr), 3)
-			aucs.append(roc_auc)
-			plt.plot(fpr, tpr, lw=1, alpha=0.3,
-					 label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
-
-			i += 1
 		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
 
 		mean_tpr = np.mean(tprs, axis=0)
@@ -264,14 +277,66 @@ class Classifier:
 		self.mean_tpr = mean_tpr
 		self.mean_fpr = mean_fpr
 		print('=====================\n\n')
+	
+		self.metrics_list = metrics_list
+		#print("\nMetrics: ", metrics_list)
+	
+	
+	
+	def get_metrics(self, test_flat, preds_flat, verbose=0):
+	
+		accuracy = accuracy_score(test_flat, preds_flat)
+		confus_mat =  confusion_matrix(test_flat, preds_flat)
 
-		#except Exception as e:
-		#	print(e)
-		#	print("[Warning]: insufficient number of data for " + str(cv_splits) + "-fold CV - Skipping current training session...\n")
-		#	self.mean_tpr = None
-		#	self.mean_fpr = None
-		#	self.mean_auc = None
+			
+		TN, FP, FN, TP = confus_mat.ravel()	
 
+		try:
+			sensitivity = TP / (TP + FN)
+		except:
+			sensitivity = 'NA'
+		
+		try:	
+			precision = TP / (TP + FP)
+		except:
+			precision = 'NA'
+		
+		try:
+			specificity = TN / (TN + FP)
+		except:
+			specificity = 'NA'
+		
+
+		if verbose:
+			print('> Confusion matrix:\n', confusion_matrix(test_flat, preds_flat))		
+			print('TN:', TN, '\nFP:', FP, '\nFN:', FN, '\nTP:', TP)
+			
+			print('\n> Accuracy:', accuracy_score(test_flat, preds_flat))
+			print('> Sensitivity:', sensitivity)
+			print('> Precision:', precision)
+			print('> Specificity:', specificity)
+		
+		metrics = {'accuracy': accuracy, 'sensitivity': sensitivity, 'precision': precision, 'specificity': specificity}
+
+		return metrics
+		
+		
+
+			  
+	def test_and_evaluate_model(self, y_probas, y_test):
+
+		
+		y_pred_flat = np.argmax(y_probas, axis=1)
+		y_test_flat = y_test
+		
+		#print('y_test:', y_test_flat)
+		#print('y_pred:', y_pred_flat)
+		
+		metrics = self.get_metrics(y_test_flat, y_pred_flat)
+		
+		return metrics	
+	
+	
 		
 	
 	def get_feature_importances(self):

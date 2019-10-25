@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import pickle
+
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.metrics import roc_curve, auc, mean_squared_error
 import sys
@@ -179,6 +181,9 @@ class ClassificationWrapper:
 		self.mean_tpr = classifier.mean_tpr
 		self.mean_fpr = classifier.mean_fpr	
 		self.mean_auc = classifier.mean_auc
+		
+		self.metrics_list = classifier.metrics_list
+		
 
 		
 	def run(self):
@@ -236,11 +241,37 @@ def plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, cl
 	pdf_filename = clinvar_ml_out_dir + '/' + '_'.join(genomic_classes) + '.all_scores_classification.pdf'
 	fig.savefig(pdf_filename, bbox_inches='tight')
 	
+
 	
 	
+def check_and_save_performance_metrics(metrics_per_score, genomic_classes, clinvar_feature_table_dir):
+
+	for score, metrics in metrics_per_score.items():
+		print('\n>', score)
+		#print('Metrics:', metrics)
 	
-	
-	
+		#print("metrics[0].keys():", list(metrics[0].keys()))
+		
+		
+		for metric in metrics[0].keys():
+			#print('Metric:', metric)
+			cur_metric_list = []
+			
+			for sublist in metrics:
+				cur_metric_list.append(sublist[metric])
+				
+				cur_metric_list = [x if x != 'NA' else 0.5 for x in cur_metric_list]
+				
+				
+			#print(cur_metric_list)
+			print('Avg.', metric, ':', np.mean(cur_metric_list))
+				
+	metrics_out_file = clinvar_feature_table_dir + '/all_but_dnn_performance_metrics.' + '_'.join(genomic_classes) + '.pkl'
+	with open(metrics_out_file, 'wb') as handle:
+		pickle.dump(metrics_per_score, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		
+	print('Metrics saved at:', metrics_out_file)
+		
 	
 	
 	
@@ -252,10 +283,10 @@ if __name__ == '__main__':
 	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
 	
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'] ] #, ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
+	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'], ['ccds'] ] #, ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
 	#genomic_classes_lists =  [['ccds'], ['intron']] 
 	
-	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'ncRVIS'] #['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
+	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'ncRVIS', 'phyloP46way', 'phastCons46way', 'orion']  #['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
 	
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# regression -- default: False, treating it as a classification problem
@@ -276,6 +307,9 @@ if __name__ == '__main__':
 		print('\n**********************************************************************\n>>\t\t\t\t' + ' '.join(genomic_classes) + '\n**********************************************************************\n')
 		score_list, fpr_list, tpr_list, auc_list = [], [], [], []
 		
+		
+		metrics_per_score = {}
+		
 		for base_score in all_base_scores:
 			print('>>>>>>>  ' + base_score + '\n')
 
@@ -295,11 +329,12 @@ if __name__ == '__main__':
 				tpr_list.append(clf_wrapper.mean_tpr)
 				auc_list.append(clf_wrapper.mean_auc)
 
-			
+			metrics_per_score[base_score] = clf_wrapper.metrics_list
 		
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)
 		
+		check_and_save_performance_metrics(metrics_per_score, genomic_classes, clf_wrapper.clinvar_feature_table_dir)
 
 		
 		

@@ -17,44 +17,44 @@ gwrvis_core_dir=gwrvis_core
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-#./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
+./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
 
 
 
 echo "Perform logistic regression (common ~ all variants) to get gwRVIS scores"
-#python ${gwrvis_core_dir}/run_full_regression.py $config_file;
+python ${gwrvis_core_dir}/run_full_regression.py $config_file;
 
 
 echo "Convert window indexes (0-based) to real genomic coordinates"
-#python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
+python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
 
 
 
 
 echo "Get gwRVIS distribution by genomic class"
-#./${gwrvis_core_dir}/run_gwrvis_extraction_by_genomic_class.sh $config_file $input_classes;
+./${gwrvis_core_dir}/run_gwrvis_extraction_by_genomic_class.sh $config_file $input_classes;
 
 
 echo "Compile full feature table (gwrvis, primary sequence features and regulatory features)"
-#python ${gwrvis_core_dir}/compile_full_win_feature_table.py $config_file
+python ${gwrvis_core_dir}/compile_full_win_feature_table.py $config_file
 
 
 echo "Merge BED files by genomic class across all chromosomes"
-#./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
+./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
-#python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
+python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
 
 
 # [Ad-hoc] post-processing: enhancers
 #python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
-#python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
+python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
 
 
-#python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
+python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
 
 
 
@@ -66,20 +66,19 @@ echo "Get gwRVIS distribution by genomic class across the entire genome"
 printf "\n\n==== Benchmarking for gwRVIS itself and against other scores (scores_benchmarking/) ===="
 
 echo "> Run Logistic regression for gwRVIS tolerance predictive power"
-#python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 0
-#python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
+python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 0
+python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
 
 
 
 echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
 python scores_benchmarking/run_clinvar_benchmarking.py $config_file
-exit
 
 # [To become depecreated]
-#echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
-#python benchmark_against_denovo_db.py $config_file
+echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
+python benchmark_against_denovo_db.py $config_file
 
-#python scores_benchmarking/benchmark_vs_original_orion.py $config_file
+python scores_benchmarking/benchmark_vs_original_orion.py $config_file
 
 
 
@@ -91,3 +90,10 @@ printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external ann
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
 model_type="RF"
 python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
+
+
+# Train JARVIS with structured data, sequences or both
+./submit_all_jarvis_jobs.sh $config_file
+
+# Sample command call - Look into "submit_all_jarvis_jobs.sh"
+#./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.yaml structured intergenic 1
