@@ -4,7 +4,6 @@
 	- Build JARVIS model across all non-coding regions - and compare against other scores trained on all same regions as well (ideally with same batches in CV!)
 
 
-- Debug errors from "conf.W500.err" to be able to run clean analyses for final figures
 
 • Validate JARVIS on non-coding benign vs pathogenic variants from denovodb (when trained with all of ClinVar and not using denovodb as a control set)
 	- Look at: 'benchmark_against_denovo_db.py' [DONE - but sample size is small and maybe not the best case for benchmarking]
@@ -37,7 +36,6 @@ Minor:
 - Check https://github.com/slundberg/shap for Feature Importance from CNNs.
 - Add a conservation score into Jarvis (when not trained based on gERP-labelling)
 - Compare AF of variants that are both in ClinVar and HGMD and of those that are only in HGMD.
-- Fix tidyverse installation: make_ggridges_plot.py uses gather() that requires this dependency - see if I can use some other function to discard this dependency
 - (Maybe) add n-repeated k-fold CV for Jarvis (and clinvar-variant classifier) - https://stats.stackexchange.com/questions/82546/how-many-times-should-we-repeat-a-k-fold-cv
 - Run grid-search for optimal nn (dnn / cnn) architecture selection -- need to create static splits of the batches for this task to be comparable.
 • Default  pos_neg_ratio = 1/1; Add this to config file as a parameter
@@ -63,3 +61,4 @@ DONE:
 	- Also test n-repeated in CV train_nn_model.py [DONE]
 • Add aggr. (avg.) metrics for sensitivity, precision, etc. in "variant_classification/run_variant_classification.py" [DONE]
 - Combine metrics from the two modules and plot them. [DONE]
+- Fix tidyverse installation: make_ggridges_plot.py uses gather() that requires this dependency - see if I can use some other function to discard this dependency [DONE]

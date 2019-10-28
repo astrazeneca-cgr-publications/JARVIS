@@ -5,10 +5,13 @@ get_new_fixed_cv_batch=0 # 1: create new fixed CV batch, 0: otherwise
 
 
 
-declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista" "intron" "ccds")
+#declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista" "intron" "ccds")
+declare -a genomic_classes=("intergenic")
 
 # > Train for "structured" features first and get a fixed CV batch set for use with each genomic class
 if [ $get_new_fixed_cv_batch == 1 ]; then
+	echo "Training JARVIS with structured features..."
+
 	use_fixed_cv_batches=0
 	in_features="structured"
 	for gen_classes in "${genomic_classes[@]}"; do
@@ -38,6 +41,8 @@ declare -a input_features=("sequences" "both")
 use_fixed_cv_batches=1
 
 for in_features in "${input_features[@]}"; do
+	echo "Training JARVIS with $in_features features..."
+
 	for gen_classes in "${genomic_classes[@]}"; do
 
 		job_name="${in_features}_${gen_classes}"

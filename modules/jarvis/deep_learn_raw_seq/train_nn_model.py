@@ -461,6 +461,7 @@ def check_and_save_performance_metrics(metrics_list, genomic_classes, clinvar_fe
 			cur_metric_list.append(sublist[metric])
 			
 			cur_metric_list = [x if x != 'NA' else 0.5 for x in cur_metric_list]
+			cur_metric_list = [x if not np.isnan(x) else 0.5 for x in cur_metric_list]
 			
 			
 		#print(cur_metric_list)

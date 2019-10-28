@@ -76,7 +76,7 @@ python scores_benchmarking/run_clinvar_benchmarking.py $config_file
 
 # [To become depecreated]
 echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
-python benchmark_against_denovo_db.py $config_file
+#python scores_benchmarking/benchmark_against_denovo_db.py $config_file
 
 python scores_benchmarking/benchmark_vs_original_orion.py $config_file
 
@@ -95,5 +95,9 @@ python jarvis/variant_classification/run_variant_classification.py $config_file 
 # Train JARVIS with structured data, sequences or both
 ./submit_all_jarvis_jobs.sh $config_file
 
-# Sample command call - Look into "submit_all_jarvis_jobs.sh"
+# [Deprecated] Sample command call - Look into "submit_all_jarvis_jobs.sh"
 #./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.yaml structured intergenic 1
+
+
+# Aggregate and plot performance metrics across different genomic classes
+python jarvis/performance_estimation/process_performance_metrics.py $config_file
