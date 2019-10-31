@@ -1,0 +1,9 @@
+Class	BED_file	Priority_decreasing
+exon	../hg38/bed/gencode_v29_exon_merged.bed	190
+ccds	../hg38/bed/gencode_v29_cds_merged.bed	180
+vista	../hg38/bed/ucsc_vista_enhancers.liftovered_to_hg38.bed	170
+ucne	../other_datasets/UCNE_base/ucnes.liftovered_to_hg38.bed	60
+utr	../hg38/bed/gencode_v29_utr_merged.bed	40
+intron	../hg38/bed/gencode_v29_intron.bed	30
+lincrna	../hg38/bed/ensembl_v19_lincrna.liftovered_to_hg38.bed	20
+intergenic	../hg38/bed/gencode_v29_intergenic.bed	0
