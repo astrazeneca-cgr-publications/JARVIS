@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -J 20mindepth_get_high_cov_bed
-#SBATCH -o out.get_high_cov_bed_mindepth_20
-#SBATCH -e err.get_high_cov_bed_mindepth_20
+#SBATCH -J 30mindepth_get_high_cov_bed
+#SBATCH -o out.get_high_cov_bed_mindepth_30
+#SBATCH -e err.get_high_cov_bed_mindepth_30
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=8G
 #SBATCH --time=24:00:00
