@@ -10,7 +10,8 @@ awkm gnomad.r3.0.coverage_means.txt
 
 # Get 10,20,30,40-percentiles of mean coverage depths
 ```
-sbatch ./submit_get_depth_percentile.sh
+# [Not-necessary] - current implementation crashes
+sbatch ./submit_get_depth_percentile.sh  
 ```
 
 
