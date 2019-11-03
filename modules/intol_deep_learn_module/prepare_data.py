@@ -236,8 +236,10 @@ if __name__ == '__main__':
 
 	config_params = custom_utils.get_config_params(config_file)
 	win_len = config_params['win_len']
+	hg_version = config_params['hg_version']
+	grch = {'hg19': '37', 'hg38': '38'}
 
-	human_ref_genome_2bit = '../../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
+	human_ref_genome_2bit = '../../' + hg_version + '/homo_sapiens_GRCh' + grch[hg_version] + '_FASTA/hsa' + grch[hg_version] + '.2bit'
 
 	out_dir = custom_utils.create_out_dir(config_file)
 	out_dir = '../' + out_dir

@@ -78,7 +78,7 @@ class MetricsBenchmark:
 
 	def get_order_of_genomic_classes(self, df, order='mean'):
 
-		print(df)
+		#print(df)
 		if order == 'mean':
 			df = df.groupby(['score']).mean().reset_index().sort_values(by='values', ascending=False)
 		elif order == 'median':
@@ -97,8 +97,8 @@ class MetricsBenchmark:
 		jarvis_df = self.get_melt_df_from_metric_dict(self.jarvis_metrics)
 
 
-		print(list(all_but_dnn_df.keys()))
-		print(list(jarvis_df.keys()))
+		#print(list(all_but_dnn_df.keys()))
+		#print(list(jarvis_df.keys()))
 
 		self.all_scores = sorted(all_but_dnn_df.score.unique().tolist() + jarvis_df.score.unique().tolist())
 		self.cur_palette = dict(zip(self.all_scores, self.hex_colors[:len(self.all_scores)]))
@@ -110,7 +110,7 @@ class MetricsBenchmark:
 		#print(cur_df.shape)
 
 		ordered_classes_df = self.get_order_of_genomic_classes(cur_df, order='mean')
-		print(ordered_classes_df)
+		#print(ordered_classes_df)
 
 		sorted_df = pd.merge(ordered_classes_df.score, cur_df, left_on='score', right_on='score', how='outer')
 		#print(sorted_df)
@@ -131,6 +131,7 @@ class MetricsBenchmark:
 
 		plot_filepath = clinvar_out_dir + '/Benchmarking-' + metric + '.' + genomic_class + '.pdf'
 		ax.get_figure().savefig(plot_filepath, format='pdf', bbox_inches='tight')
+		plt.close()
 
 
 		
@@ -140,8 +141,8 @@ class MetricsBenchmark:
 def infer_avail_genomic_classes():
 
 	# Infer all run genomic_classes from "jarvis_performance_metrics.[*].[genomic_classes].pkl files
-	jarvis_metric_files = glob(clinvar_feature_table_dir + '/jarvis_performance_metrics.structured.*.pkl')
-	print(jarvis_metric_files)
+	jarvis_metric_files = glob(clinvar_feature_table_dir + '/jarvis_performance_metrics.both.*.pkl')
+	print('All metrics files (with both features run complete):', jarvis_metric_files)
 
 	genomic_classes = []
 	for f in jarvis_metric_files:
@@ -167,7 +168,7 @@ if __name__ == '__main__':
 		
 
 	for genomic_class in genomic_classes:
-		print('Genomic class:', genomic_class)
+		print('\n> Genomic class:', genomic_class)
 
 		bench = MetricsBenchmark(config_file, genomic_class)
 		bench.read_metrics_from_saved_files()

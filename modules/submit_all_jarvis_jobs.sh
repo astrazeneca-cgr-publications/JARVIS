@@ -1,64 +1,38 @@
 #!/bin/bash
 
 config_file=$1
-get_new_fixed_cv_batch=0 # 1: create new fixed CV batch, 0: otherwise
+cv_repeats=$2
 
 
-
-#declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista" "intron" "ccds")
-declare -a genomic_classes=("intergenic")
-
-# > Train for "structured" features first and get a fixed CV batch set for use with each genomic class
-if [ $get_new_fixed_cv_batch == 1 ]; then
-	echo "Training JARVIS with structured features..."
-
-	use_fixed_cv_batches=0
-	in_features="structured"
-	for gen_classes in "${genomic_classes[@]}"; do
-
-		job_name="${in_features}_${gen_classes}"
-		echo "Job: $job_name"
-
-		if [ $in_features == 'sequences' ] || [ $in_features == 'both' ]; then
-			ncores=8
-		else
-			ncores=4
-		fi
-
-		# ClinVar pathogenic set
-		sbatch -o "logs/clinvar.${job_name}.out" -e "logs/clinvar.${job_name}.err" --mem-per-cpu=24G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh $config_file $in_features $gen_classes $use_fixed_cv_batches
-
-		# HGMD pathogenic set
-		#sbatch -o "logs/hgmd.${job_name}.out" -e "logs/hgmd.${job_name}.err" --mem-per-cpu=36G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh $config_file $in_features $gen_classes $use_fixed_cv_batches
-	done
+if [ "$#" -ne 2 ]; then
+	echo -e "[Error] Insufficient args. Re-run with 2 input args: [config_file] [cv_repeats]\n"
+	exit
 fi
 
 
+#declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
+#declare -a genomic_classes=("ccds" "intron")
+declare -a genomic_classes=("intron")
 
 
-# > Train for "sequences" and "both" features using fixed CV batches built earlier while training for "structured" features 
-declare -a input_features=("sequences" "both")
-use_fixed_cv_batches=1
+for gen_classes in "${genomic_classes[@]}"; do
 
-for in_features in "${input_features[@]}"; do
-	echo "Training JARVIS with $in_features features..."
+	job_name="${gen_classes}.jarvis"
+	echo -e "\nJob: $job_name"
 
-	for gen_classes in "${genomic_classes[@]}"; do
+	ncores=4
+	mem="24G"
+	t="24:0:0"
+	if [ "$gen_classes" == "ccds" ] || [ "$gen_classes" == "intron" ]; then
+		ncores=10
+		mem="24G"
+		t="48:0:0"
+	fi
 
-		job_name="${in_features}_${gen_classes}"
-		echo "Job: $job_name"
+	# ClinVar pathogenic set
+	sbatch -o "logs/clinvar.${job_name}.out" -e "logs/clinvar.${job_name}.err" --time=$t --mem-per-cpu=${mem} --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh $config_file $gen_classes $cv_repeats
 
-		if [ $in_features == 'sequences' ] || [ $in_features == 'both' ]; then
-			ncores=8
-		else
-			ncores=4
-		fi
-
-		# ClinVar pathogenic set
-		sbatch -o "logs/clinvar.${job_name}.out" -e "logs/clinvar.${job_name}.err" --mem-per-cpu=24G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh $config_file $in_features $gen_classes $use_fixed_cv_batches
-
-		# HGMD pathogenic set
-		#sbatch -o "logs/hgmd.${job_name}.out" -e "logs/hgmd.${job_name}.err" --mem-per-cpu=36G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh $config_file $in_features $gen_classes $use_fixed_cv_batches
-
-	done
+	# HGMD pathogenic set
+	#sbatch -o "logs/hgmd.${job_name}.out" -e "logs/hgmd.${job_name}.err" --time=$t --mem-per-cpu=36G --cpus-per-task=${ncores} ./jarvis/deep_learn_raw_seq/submit_train_job.sh $config_file $gen_classes $cv_repeats
 done
+

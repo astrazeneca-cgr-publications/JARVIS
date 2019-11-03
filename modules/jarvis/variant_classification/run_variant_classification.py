@@ -283,11 +283,16 @@ if __name__ == '__main__':
 	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
 	
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'], ['ccds'] ] #, ['ccds'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'] ]
-	#genomic_classes_lists =  [['ccds'], ['intron']] 
+	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
+
+	#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+	all_base_scores = ['gwrvis', 'jarvis']
+
+	# Ad-hoc: exclude 'lincrna' when running for ncRVIS
+	#genomic_classes_lists =  [ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'], ['ccds'], ['intron'] ] 
+	#all_base_scores = ['ncRVIS'] 
 	
-	all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'ncRVIS', 'phyloP46way', 'phastCons46way', 'orion']  #['gwrvis', 'ncRVIS', 'jarvis', 'cadd', 'orion'] #'jarvis', 'cadd', 'phyloP46way', 'phastCons46way', 'orion']
-	
+
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# regression -- default: False, treating it as a classification problem
 
@@ -311,6 +316,7 @@ if __name__ == '__main__':
 		metrics_per_score = {}
 		
 		for base_score in all_base_scores:
+
 			print('>>>>>>>  ' + base_score + '\n')
 
 			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 

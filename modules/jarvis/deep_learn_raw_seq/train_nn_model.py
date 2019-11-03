@@ -13,6 +13,8 @@ from sklearn.metrics import roc_curve, auc
 
 import logging 
 logging.getLogger('tensorflow').disabled = True
+import sys, os 
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
@@ -28,7 +30,6 @@ from prepare_data import JarvisDataPreprocessing
 
 
 
-import sys, os 
 os.environ['KMP_WARNINGS'] = 'off'
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 #sys.path.insert(1, os.path.join(sys.path[0], '..')) 
@@ -76,7 +77,7 @@ class JarvisTraining:
 
 	def read_data(self):
 
-		print('Reading training data...')
+		print('Reading training data...\nFile: ', self.data_dict_file)
 		pkl_in = open(self.data_dict_file, 'rb')
 		data_dict = pickle.load(pkl_in)
 		pkl_in.close()
@@ -106,8 +107,8 @@ class JarvisTraining:
 				continue
 
 			print('\n> Subsetting', key, ':', len(data_dict[key]))
-			print(indexes[:10])
-			print(data_dict[key][:10])
+			#print(indexes[:10])
+			#print(data_dict[key][:10])
 
 			data_dict[key] = data_dict[key][indexes]
 			print('Filtered', key, ':', len(data_dict[key]))
@@ -204,6 +205,21 @@ class JarvisTraining:
 		
 		X, y, seqs = self.fix_class_imbalance(X, y, seqs)
 		
+		# ------ Custom NN settings for CCDS and introns ------
+		if '_'.join(genomic_classes) == 'ccds':
+			cv_repeats = 1
+			n_splits = 10
+			batch_size = 1024
+			patience = 2
+
+		if '_'.join(genomic_classes) == 'intron':
+			cv_repeats = 2
+			n_splits = 10
+			batch_size = 128
+			patience = 5
+		print("Batch size:", batch_size)
+		# -----------------------------------------------------
+
 	
 		tprs = [] 
 		aucs = [] 
@@ -216,7 +232,7 @@ class JarvisTraining:
 
 
 		cv_data_dict = {}
-		fixed_cv_batches_file = self.ml_data_dir + '/fixed_cv_batches.pkl'
+		fixed_cv_batches_file = self.ml_data_dir + '/fixed_cv_batches.' + '_'.join(genomic_classes) + '.pkl'
 		# load CV batches from pickle file
 		if use_fixed_cv_batches:
 			print("\nLoading fixed CV batches...")
@@ -260,7 +276,6 @@ class JarvisTraining:
 					test_inputs = [X_test, seqs_test]
 
 
-
 				# -- Create new/clean model instance for each fold
 				# > Keras functional API
 				if input_features == 'structured':
@@ -289,6 +304,7 @@ class JarvisTraining:
 				#	patience = 20  # may lead to over-fitting
 				earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
 				# -------------------
+
 
 
 				history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
@@ -480,12 +496,14 @@ def check_and_save_performance_metrics(metrics_list, genomic_classes, clinvar_fe
 
 if __name__ == '__main__':
 
+	print('Sys.argv in train_nn_model.py:', sys.argv)
+
 	config_file = sys.argv[1]
 	input_features = sys.argv[2]
 	genomic_classes = sys.argv[3] # comma-separated
 	genomic_classes = genomic_classes.split(',')	
 	use_fixed_cv_batches = bool(int(sys.argv[4]))
-
+	cv_repeats = int(sys.argv[5])
 
 	include_vcf_features = False
 
@@ -522,9 +540,9 @@ if __name__ == '__main__':
 	#sequence_model = cnn2_brnn1 
 	concat_model = cnn2_concat_dnn_fc2
 
-
+	verbose=1
 	jarvis_trainer.train_with_cv(filtered_data_dict, include_vcf_features, genomic_classes, 
-				     input_features=input_features, verbose=0)
+				     input_features=input_features, verbose=verbose, cv_repeats=cv_repeats)
 					 
 					 
 	check_and_save_performance_metrics(jarvis_trainer.metrics_list, genomic_classes, jarvis_trainer.clinvar_feature_table_dir, input_features)

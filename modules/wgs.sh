@@ -17,16 +17,16 @@ gwrvis_core_dir=gwrvis_core
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
+#./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
 
 
 
 echo "Perform logistic regression (common ~ all variants) to get gwRVIS scores"
-python ${gwrvis_core_dir}/run_full_regression.py $config_file;
+#python ${gwrvis_core_dir}/run_full_regression.py $config_file;
 
 
 echo "Convert window indexes (0-based) to real genomic coordinates"
-python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
+#python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
 
 
 
@@ -92,12 +92,19 @@ model_type="RF"
 python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
 
 
+exit
+
+
 # Train JARVIS with structured data, sequences or both
-./submit_all_jarvis_jobs.sh $config_file
+cv_repeats=5
+./submit_all_jarvis_jobs.sh $config_file $cv_repeats
 
-# [Deprecated] Sample command call - Look into "submit_all_jarvis_jobs.sh"
-#./jarvis/deep_learn_raw_seq/submit_train_job.sh conf/config.yaml structured intergenic 1
 
+
+
+# ================= POST-PROCESSING ==================
+# ... After all "submit_all_jarvis_jobs.sh" jobs have been complete
+# # Add a monitoring script for some files that are expected to be present
 
 # Aggregate and plot performance metrics across different genomic classes
 python jarvis/performance_estimation/process_performance_metrics.py $config_file

@@ -49,7 +49,7 @@ class JarvisDataPreprocessing:
 
 
 		# Specificy input (static) files
-		self.human_ref_genome_2bit = '../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
+		self.human_ref_genome_2bit = '../' + hg_version +  '/homo_sapiens_GRCh' + grch[hg_version] + '_FASTA/hsa' + grch[hg_version] + '.2bit'
 		self.all_gwrvis_bed_file = gwrvis_scores_dir + '/full_genome.all_gwrvis.bed'
 		self.full_feature_table_file = self.feature_tables_dir + '/full_feature_table.' + self.patho_benign_sets + '.bed'
 
@@ -360,6 +360,10 @@ class JarvisDataPreprocessing:
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
+	run_params = custom_utls.get_config_params(config_file)
+	hg_version = run_params['hg_version']
+
+	grch = {'hg19': '37', 'hg38': '38'}
 
 	data_preprocessor = JarvisDataPreprocessing(config_file)
 

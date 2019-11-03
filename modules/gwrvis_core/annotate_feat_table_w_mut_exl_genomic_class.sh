@@ -11,9 +11,12 @@ printf "Out dir: ${out_dir}\n"
 
 pathogenic_set=`cat $config_file | grep "pathogenic_set:" | sed 's/^[ \t]*pathogenic_set: //' | sed 's/[ ]*$//'`
 benign_set=`cat $config_file | grep "benign_set:" | sed 's/^[ \t]*benign_set: //' | sed 's/[ ]*$//'`
-echo "Pathogenic set: $pathogenic_set"
-echo "Benign set: $benign_set"
+hg_version=`cat $config_file | grep "hg_version:" | sed 's/^[ \t]*hg_version: //' | sed 's/[ ]*$//'`
+echo "Pathogenic set: *$pathogenic_set*"
+echo "Benign set: *$benign_set*"
+echo "hg version: *$hg_version*"
 
+variant_annot_dir="../other_datasets/variant_annotation-${hg_version}"
 
 
 # ==== Global variables ====
@@ -117,12 +120,12 @@ function add_clinvar_annotation {
 
 
 	# First, subtract any benign variants from the current pathogenic file!
-	subtractBed -a ../other_datasets/variant_annotation/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b ../other_datasets/variant_annotation/${benign_set}/${benign_set}.benign.bed > $clinvar_feature_table_dir/clean.${pathogenic_set}.pathogenic.bed
+	subtractBed -a ${variant_annot_dir}/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b ${variant_annot_dir}/${benign_set}/${benign_set}.benign.bed > $clinvar_feature_table_dir/clean.${pathogenic_set}.pathogenic.bed
 
 	
 	# > Get intersections with clinvar pathogenic/benign
 	tail -n +2 $out_full_feature_table | intersectBed -wo -a $clinvar_feature_table_dir/clean.${pathogenic_set}.pathogenic.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp
-	tail -n +2 $out_full_feature_table | intersectBed -wo -a ../other_datasets/variant_annotation/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp
+	tail -n +2 $out_full_feature_table | intersectBed -wo -a ${variant_annot_dir}/${benign_set}/${benign_set}.benign.bed -b stdin | cut --complement -f5,6,7,37 > $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp
 
 	cat $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_pathogenic.bed.tmp $clinvar_feature_table_dir/full_feature_table.${benign_set}_benign.bed.tmp > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed.tmp
 
@@ -143,7 +146,7 @@ function add_external_genome_wide_scores {
 
 	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
 
-	for score in phastCons46way phyloP46way cadd orion ncRVIS; do
+	for score in phastCons46way phyloP46way cadd dann orion ncRVIS; do
 		echo $score
 
 		# compile on the fly table with pathogenic and benign variants per score based on the defined pathogenic/benign sets

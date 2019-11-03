@@ -78,7 +78,7 @@ class ScoreBenchmark:
 			cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ' + clinvar_feature_table_dir + '/clean.' + pathogenic_set + '.pathogenic.bed' + ' | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
 
 		else:
-			cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/variant_annotation/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
+			cmd = 'intersectBed -a ' + self.out_dir + '/BED/full_genome.All_genomic_classes.bed -b ../other_datasets/variant_annotation-' + hg_version + '/' + variant_datasets[variant_type] + '/' + variant_datasets[variant_type] + '.' + variant_type + '.bed | ' + """awk '{print $1"\t"$2"\t"$3"\t"$4"\t"$4"\t"$5}' """ + ' > ' + gwrvis_clinvar_subset_file
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		stdout, stderr = p.communicate()
@@ -451,6 +451,7 @@ if __name__ == '__main__':
 	config_params = get_config_params(config_file)
 	pathogenic_set = config_params['pathogenic_set']
 	benign_set = config_params['benign_set']
+	hg_version = config_params['hg_version']
 
 	variant_datasets = {'pathogenic': pathogenic_set, 'benign': benign_set}
 
@@ -461,8 +462,8 @@ if __name__ == '__main__':
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}
 
-	all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
-	#all_scores = ['gwrvis'] # ['cadd']
+	#all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+	all_scores = ['gwrvis'] # ['cadd']
 
 
 	for score in all_scores:

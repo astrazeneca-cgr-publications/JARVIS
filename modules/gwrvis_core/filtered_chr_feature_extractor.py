@@ -491,6 +491,8 @@ if __name__ == '__main__':
 	# Read run parameters from config file and store into a dictionary
 	config_params = get_config_params(config_file)
 	print(config_params)
+	hg_version = config_params['hg_version']
+	grch = {'hg19': '37', 'hg38': '38'}
 
 	genomic_classes_files = {}
 	print('cwd:', os.getcwd())
@@ -514,7 +516,7 @@ if __name__ == '__main__':
 	# ----------------------
 
 
-	human_ref_genome_2bit = '../hg19/homo_sapiens_GRCh37_FASTA/hsa37.2bit'
+	human_ref_genome_2bit = '../' + hg_version + '/homo_sapiens_GRCh' + grch[hg_version] + '_FASTA/hsa' + grch[hg_version] +'.2bit'
 	data_dir = '../' + dataset + '/out/' + variants_table_dir
 	print('> data_dir: ' + data_dir)
 	filtered_vcf = data_dir + '/chr' + chrom + '_' + dataset + '_table.' + population + '.txt.filtered'

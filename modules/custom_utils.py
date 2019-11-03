@@ -169,3 +169,5 @@ if __name__ == '__main__':
 	config_file = sys.argv[1]
 	print(create_out_dir(config_file, create_dirs=False))
 	
+	# print config params
+	#print(get_config_params(config_file))	

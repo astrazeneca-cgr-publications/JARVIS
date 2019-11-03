@@ -7,11 +7,16 @@ import subprocess
 import os
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from custom_utils import create_out_dir
+from custom_utils import create_out_dir, get_config_params
 
 
 config_file = argv[1]
 input_classes_file = argv[2]
+
+run_params = get_config_params(config_file)
+hg_version = run_params['hg_version']
+grch = {'hg19': '37', 'hg38': '38'}
+
 
 # Read input classes to aggregate in current call
 input_classes = []
@@ -113,13 +118,13 @@ if 0:
 
 # get all ubiquitous Phantom5 enhancers
 ubiq_phantom5_file = tests_dir + '/ubiquitous_phantom5_enhancers.bed'
-cmd = 'intersectBed -a ' + tests_dir + '/full_enhancers.bed  -b ../hg19/bed/vista_enhancers_genes_list.bed > ' + ubiq_phantom5_file
+cmd = 'intersectBed -a ' + tests_dir + '/full_enhancers.bed  -b ../' + hg_version + '/bed/vista_enhancers_genes_list.bed > ' + ubiq_phantom5_file
 p1 = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 p1.wait()
 
 # get all non-ubiquitous Phantom5 enhancers
 non_ubiq_phantom5_file = tests_dir + '/non_ubiquitous_phantom5_enhancers.bed'
-cmd = 'subtractBed -a ' + tests_dir + '/full_enhancers.bed  -b ../hg19/bed/vista_enhancers_genes_list.bed > ' + non_ubiq_phantom5_file
+cmd = 'subtractBed -a ' + tests_dir + '/full_enhancers.bed  -b ../' + hg_version + '/bed/vista_enhancers_genes_list.bed > ' + non_ubiq_phantom5_file
 p2 = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 p2.wait()
 
@@ -152,12 +157,12 @@ fh.write('>> [MannwhitneyuResult] statistic: ' + str(res.statistic) + ', P-value
 
 # ********** Get ubiquitous lower/upper-top_percentile% enhancers in tests_dir **********
 ubiq_lower_bottom_file = tests_dir + '/ubiquitous_lower_bottom_enhancers.bed'
-cmd = 'intersectBed -a ' + tests_dir + '/enhancers_lower_bottom_perc.bed  -b ../hg19/bed/vista_enhancers_genes_list.bed > ' + ubiq_lower_bottom_file
+cmd = 'intersectBed -a ' + tests_dir + '/enhancers_lower_bottom_perc.bed  -b ../' + hg_version + '/bed/vista_enhancers_genes_list.bed > ' + ubiq_lower_bottom_file
 p1 = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 p1.wait()
 
 ubiq_upper_top_file = tests_dir + '/ubiquitous_upper_top_enhancers.bed'
-cmd = 'intersectBed -a ' + tests_dir + '/enhancers_upper_top_perc.bed  -b ../hg19/bed/vista_enhancers_genes_list.bed > ' + ubiq_upper_top_file
+cmd = 'intersectBed -a ' + tests_dir + '/enhancers_upper_top_perc.bed  -b ../' + hg_version + '/bed/vista_enhancers_genes_list.bed > ' + ubiq_upper_top_file
 p2 = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 p2.wait()
 

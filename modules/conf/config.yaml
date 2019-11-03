@@ -1,5 +1,6 @@
 run:
         dataset: gnomad    # e.g. gnomad, topmed
+        hg_version: hg19
         variants_table_dir: gnomad-filtered_variant_tables-all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions # filtered variant tables (based on population, variant filters and even high-conf-regions)
         win_len: 3000    # e.g. 500, 3000 (window length in nt)
         variant_filter: snv # type of variants to use: snv for SNVs, indels for INDELs, anything else (e.g. all) includes all

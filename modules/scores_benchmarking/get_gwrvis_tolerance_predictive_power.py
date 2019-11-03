@@ -8,11 +8,12 @@ from scipy import interp
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.metrics import roc_curve, auc
+from collections import Counter
 import sys
 import os
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from custom_utils import create_out_dir
+from custom_utils import create_out_dir, get_config_params
 
 
 
@@ -59,18 +60,19 @@ def compile_gwrvis_differential_df(intol_class, toler_class):
 
 
 	
-def run_logit_regression_with_cv(df):
+def run_logit_regression_with_cv(df, intol_class):
 
 
 	feature_cols = ['gwrvis']
 	X = df[feature_cols].values
 	y = df['gene_class'].values
 	
-	print(X)
-	print(y)
-	print(X.shape)
-	print(y.shape)
-	
+	#print(X)
+	#print(y)
+	#print(X.shape)
+	#print(y.shape)
+	print('class elements:', Counter(y))
+	intol_class_elems = dict(Counter(y))[1]
 	
 	# Run classifier with cross-validation and plot ROC curves
 	cv = StratifiedKFold(n_splits=10)
@@ -126,10 +128,13 @@ def run_logit_regression_with_cv(df):
 	discard_positive_str = ''
 	if discard_positive:
 		discard_positive_str = '.discard_positive'
+
+	cv_mean_auc = round(np.mean(aucs), 3)
 		
-	pdf_filename = full_genome_out_dir + '/Logistic_Regression_ROC_gwRVIS.AUC_' + str(round(np.mean(aucs), 3)) + discard_positive_str + '.pdf'
+	pdf_filename = full_genome_out_dir + '/LR_ROC_gwRVIS.intergenic_vs_' + intol_class + '.AUC_' + str(cv_mean_auc) + discard_positive_str + '.pdf'
 	fig.savefig(pdf_filename, bbox_inches='tight')
 	
+	return cv_mean_auc, intol_class_elems
 	
 	
 	
@@ -200,6 +205,8 @@ if __name__ == '__main__':
 	full_genome_out_dir = out_dir + '/full_genome_out'
 	#full_genome_out_dir = '../' + out_dir + '/full_genome_out'
 	
+	run_params = get_config_params(config_file)
+	win_len = run_params['win_len']
 
 	full_gwrvis_df = pd.read_csv(full_genome_out_dir + '/Whole_genome_gwRVIS_per_class.csv')
 	print(full_gwrvis_df.head())
@@ -211,20 +218,38 @@ if __name__ == '__main__':
 	#print('Df size (no outlier):', df.shape)
 
 
-	intol_class = 'ucne'
-	toler_class = 'intergenic'
-	if 'config.coding.yaml' in config_file:
-		intol_class = 'intolerant'
-		toler_class = 'tolerant'
-
-	df = compile_gwrvis_differential_df(intol_class, toler_class)
+	intolerant_classes = [x for x in full_gwrvis_df['genomic_class'].unique() if x != 'intergenic']
+	print(intolerant_classes)
 
 
-	# ### Logistic Regression
-	#df = df[ ~np.isnan(df.gwrvis) ]
+	mean_auc_per_intol_class = {}
 	
-	
-	run_logit_regression_with_cv(df)
-	
-	#model, X, y = run_logit_regression(df)
-	#plot_roc_curve(model, df, X)
+	for intol_class in intolerant_classes:
+		print('\nIntolerant class:', intol_class)
+		toler_class = 'intergenic'
+
+		if 'config.coding.yaml' in config_file:
+			intol_class = 'intolerant'
+			toler_class = 'tolerant'
+
+		df = compile_gwrvis_differential_df(intol_class, toler_class)
+
+
+		# ### Logistic Regression
+		#df = df[ ~np.isnan(df.gwrvis) ]
+		
+		
+		cv_mean_auc, intol_class_elems = run_logit_regression_with_cv(df, intol_class)
+		
+		print("Intergenic vs " + intol_class + ": " + str(cv_mean_auc))
+		mean_auc_per_intol_class[intol_class] = [cv_mean_auc, intol_class_elems]
+
+		# [Deprecated]
+		#model, X, y = run_logit_regression(df)
+		#plot_roc_curve(model, df, X)
+
+
+	with open(full_genome_out_dir + '/mean_auc_per_intol_class.W' + str(win_len) + '.txt', 'w') as out_fh:
+		out_fh.write('genomic_class\tauc\tclass_size\n')
+		for k in sorted(mean_auc_per_intol_class.keys()):
+			out_fh.write(k + '\t' + str(mean_auc_per_intol_class[k][0]) + '\t' + str(mean_auc_per_intol_class[k][1]) + '\n')
