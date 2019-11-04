@@ -561,7 +561,7 @@ if __name__ == '__main__':
 
 	ensembl_regulatory_files = []
 	for elem in regulatory_elements:
-		ensembl_regulatory_files.append('../ensembl/GRCh37-Regulatory_Features/' + cell_line + '.' + elem + '.sorted.bed')
+		ensembl_regulatory_files.append('../ensembl/GRCh' + grch[hg_version] + '-Regulatory_Features/' + cell_line + '.' + elem + '.sorted.bed')
 	# -------------------------------------------------------
 
 

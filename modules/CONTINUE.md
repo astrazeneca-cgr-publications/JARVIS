@@ -1,7 +1,6 @@
 *** FINAL TO_DO ***
 
-- Change all hg19 hardcoded references...
-- Update Ensembl annotations for chromatin structure, methylation, etc.
+- Update Ensembl annotations for chromatin structure, methylation, etc. (Look for 'Monocytes_CD14plus' in scripts)
 - Convert all scores and variant annotations to hg38 .......
 
 
@@ -25,6 +24,8 @@
 	Current --> Sort bed files by conservation (phastcons46way in pimates)
 	- Intersect with "full_gwrvis_and_regulatory_features.All_genomic_classes.tsv"
 
+
+- Play with MAF when using the new gnomAD release (r3.0)
 
 
 
@@ -90,3 +91,4 @@ DONE:
 - Build JARVIS model across all non-coding regions - and compare against other scores trained on all same regions as well (ideally with same batches in CV!) [DONE]
 - Sensitivity analysis with all classes [DONE - optimal win: 3kb] 
 - Create hg38/ annotation based on hg19 [DONE]
+- Change all hg19 hardcoded references... [DONE]

@@ -4,7 +4,7 @@ import subprocess
 import sys, os
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from custom_utils import create_out_dir
+from custom_utils import create_out_dir, get_config_params
 
 
 
@@ -51,7 +51,7 @@ def intersect_each_regulatory_feature(gwrvis_features_bed):
 	for regul_elem in regulatory_elements:
 		
 		print('\n> Extracting features for', regul_elem, '...')
-		ensembl_regul_file = '../ensembl/GRCh37-Regulatory_Features/' + cell_line + '.' + regul_elem + '.sorted.bed'
+		ensembl_regul_file = '../ensembl/GRCh' + grch[hg_version] +'-Regulatory_Features/' + cell_line + '.' + regul_elem + '.sorted.bed'
 
 	
 		tmp_feature_gwrvis_intersection = scratch_dir + '/gwrvis_' + regul_elem + '.feature_table.bed'
@@ -126,6 +126,9 @@ if __name__ == '__main__':
 	
 	# ------------ Initialisation ------------
 	out_dir = create_out_dir(config_file)
+	run_params = get_config_params(config_file)
+	hg_version = run_params['hg_version']
+	grch = {'hg19': '37', 'hg38': '38'}
 	
 	scratch_dir = '../scratch'
 	if not os.path.exists(scratch_dir):
