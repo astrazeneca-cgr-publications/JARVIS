@@ -17,33 +17,32 @@ gwrvis_core_dir=gwrvis_core
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-#./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
+./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
 
 
 
 echo "Perform logistic regression (common ~ all variants) to get gwRVIS scores"
-#python ${gwrvis_core_dir}/run_full_regression.py $config_file;
+python ${gwrvis_core_dir}/run_full_regression.py $config_file;
 
 
 echo "Convert window indexes (0-based) to real genomic coordinates"
-#python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
+python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
 
 
 
 
 echo "Get gwRVIS distribution by genomic class"
-#./${gwrvis_core_dir}/run_gwrvis_extraction_by_genomic_class.sh $config_file $input_classes;
+./${gwrvis_core_dir}/run_gwrvis_extraction_by_genomic_class.sh $config_file $input_classes;
 
 
 echo "Compile full feature table (gwrvis, primary sequence features and regulatory features)"
-#python ${gwrvis_core_dir}/compile_full_win_feature_table.py $config_file
+python ${gwrvis_core_dir}/compile_full_win_feature_table.py $config_file
 
 
 echo "Merge BED files by genomic class across all chromosomes"
 ./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 
 
-exit
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
