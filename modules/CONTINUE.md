@@ -1,41 +1,30 @@
 *** FINAL TO_DO ***
 
-- Conservation (phastcons46way primates -- extract most/least conserved nt) 
-	 tabix /projects/cgr/users/kclc950/gwRVIS/other_datasets/conservation/phastCons46way_primates/bed/chr16.phastCons46way.primates.high_conf_regions.bed.gz -B intergenic.full_table.bed  
-	 Use bed files in gwrvis_distribution (e.g. gwrvis.ucne.mutually_excl.bed) to subset most/least conserved regions by genomic class
-	- Label positive/negative data points as those that are most-conserved_&_most-intolerant vs least-conserved_&_most-tolerant
+>'CURRENT'
+Look into: "python scores_benchmarking/run_clinvar_benchmarking.py $config_file" -- How it can be adjusted for using feature table with 'conservation labels'
+	and "full_feature_table.clinvar_clinvar.bed"
 
 
-- Convert score annotations to hg38 .......
+
+- Label positive/negative data points as those that are both most-conserved_&_most-intolerant vs both least-conserved_&_most-tolerant
 
 
-- Run original Topmed (without liftover) with most recent annotation (hg38) and see if I get similar clinvar classifications with gnomad-3
+- Correlate gwRVIS results between Topmed hg19 and hg38
+- Correlate gwRVIS results between Topmed hg19 and gnomad r2.1.1 (hg19)
 
 
-- New gnomad version 3 (use updated annotations - liftunder probably not an option)
-
-- topmed (? Try gnomad 3.0 first and see if I ll stick with that eventually): try with hgmd/denovo/topmed_uniq; Then run jarvis for each of these too
-
-
-- Sliding window (during Review)
+Look into non-conserved regions but with high constraint 
+	- Correlation across all classes alltogether 
+	- Correlation within each class individually
 
 
-# "CURRENT":
-- Check status of: "./submit_all_jarvis_jobs.sh conf/config.yaml 1" and re-plot performance metrics with "jarvis/performance_estimation/process_performance_metrics.py"  - Introns failed (now re-running for structured and then sequences and both)
 
 
-- In ML benchmarking, remove NAs instead of imputing them with 0.5 (and count how many were discarded)
-
-- Create sets of 'most/least conserved' (as a proxy for 'pathogenic'/'benign') based on their gERP++ (or other) scores or based on the CADD datasets
-	Current --> Sort bed files by conservation (phastcons46way in pimates)
-	- Intersect with "full_gwrvis_and_regulatory_features.All_genomic_classes.tsv"
-
-
-- Play with MAF when using the new gnomAD release (r3.0)
-
+• Run "./submit_all_jarvis_jobs.sh conf/config.yaml 1" for introns and ccds for the final dataset-run
 
 
 • Validate JARVIS on non-coding benign vs pathogenic variants from denovodb (when trained with all of ClinVar and not using denovodb as a control set)
+	• Submit jobs for jarvis training with clinvar/hgmd pathogenic sets and clinvar/denovodb(non_SSC)/topmed_uniq benign variants
 	- Look at: 'benchmark_against_denovo_db.py' [DONE - but sample size is small and maybe not the best case for benchmarking]
 	- Consider aggregating denovo-db and Clinvar pathogenic for the training with CV to see results!
  
@@ -44,15 +33,10 @@
 
 
 
-• Submit jobs for jarvis training with clinvar/hgmd pathogenic sets and clinvar/denovodb(non_SSC)/topmed_uniq benign variants
-
-• Train JARVIS on UTR and predict on intergenic
 
 
 
 
-
-- Run everything again with TOPMED this time instead of gnomAD
 
 
 [!] Attention:
@@ -62,12 +46,15 @@
 
 
 Minor:
+- In ML benchmarking, remove NAs instead of imputing them with 0.5 (and count how many were discarded)
 - Check https://github.com/slundberg/shap for Feature Importance from CNNs.
 - Add a conservation score into Jarvis (when not trained based on gERP-labelling)
 - Compare AF of variants that are both in ClinVar and HGMD and of those that are only in HGMD.
 - Run grid-search for optimal nn (dnn / cnn) architecture selection -- need to create static splits of the batches for this task to be comparable.
 • Default  pos_neg_ratio = 1/1; Add this to config file as a parameter
+• Train JARVIS on UTR and predict on intergenic [Maybe / Maybe not]
 • Create clean instance of model for each fold in 'jarvis/variant_classification/classifiers.py' (--redundant as currently only Logistic Regression and Random Forest are to be used in this module)
+- Sliding window (during Review)
 
 
 
@@ -100,3 +87,9 @@ DONE:
 - Change all hg19 hardcoded references... [DONE]
 - Update Ensembl annotations for chromatin structure, methylation, etc. (Look for 'Monocytes_CD14plus' in scripts) [DONE]
 - Convert variant annotations to hg38 ....... [DONE]
+- Run original Topmed (without liftover) with most recent annotation (hg38) [DONE]
+- Convert score annotations to hg38 ....... [NOT_REQUIRED: I will be doing the benchmarking in hg19]
+- Conservation (phastcons46way primates -- extract most/least conserved nt) [DONE]
+- Create sets of 'most/least conserved' (as a proxy for 'pathogenic'/'benign') based on their primate conservation score (phastCons) [DONE]
+- Run everything again with TOPMED this time instead of gnomAD [DONE]
+- Check status of: "./submit_all_jarvis_jobs.sh conf/config.yaml 1" and re-plot performance metrics with "jarvis/performance_estimation/process_performance_metrics.py"  - Introns failed (now re-running for structured and then sequences and both) [DONE]

@@ -30,7 +30,11 @@ out_feature_table_dir=$ml_data_dir/feature_tables
 mkdir -p $out_feature_table_dir
 
 clinvar_feature_table_dir=$ml_data_dir/clinvar_feature_tables
-
+mkdir -p $clinvar_feature_table_dir
+conservation_feature_table_dir=$ml_data_dir/conservation_feature_tables
+mkdir -p $conservation_feature_table_dir
+tmp_conservation_out=$conservation_feature_table_dir/tmp
+mkdir -p $tmp_conservation_out
 
 # Output fle
 out_full_feature_table="${out_feature_table_dir}/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv"
@@ -114,10 +118,54 @@ function merge_feature_tables_from_all_classes {
 
 
 
+
+
+function add_conservation_annotation {
+
+	primate_conservation_dir="../other_datasets/conservation/phastCons46way_primates/bed-by_class"
+
+	for genomic_class in "${input_classes[@]}"; do
+		echo -e "\n> ${genomic_class}:"
+
+		most_conserved_file="$primate_conservation_dir/${genomic_class}.most_conserved.bed"
+		least_conserved_file="$primate_conservation_dir/${genomic_class}.least_conserved.bed"
+
+		# Get regions with ambiguous conservation profile (i.e. both conserved and non-conserved regions intersecting the same gwRVIS regions)
+		echo "Extracting regions with ambiguous conservation profile ..."
+		full_table="${out_feature_table_dir}/full_gwrvis_and_regulatory_features.${genomic_class}.tsv"
+		full_table_most_conserved="${tmp_conservation_out}/full_table.${genomic_class}.most_conserved.bed"
+		full_table_least_conserved="${tmp_conservation_out}/full_table.${genomic_class}.least_conserved.bed"
+
+		tail -n+2 $full_table | intersectBed -wa -a stdin -b $most_conserved_file > $full_table_most_conserved
+		tail -n+2 $full_table | intersectBed -wa -a stdin -b $least_conserved_file > $full_table_least_conserved
+
+		ambiguous_conserv_file="${tmp_conservation_out}/${genomic_class}.ambiguous_conservation.bed"
+		intersectBed -a $full_table_most_conserved -b $full_table_least_conserved > $ambiguous_conserv_file
+
+
+		# Create conservation annotation file for current genomic class -- without ambiguous conservation regions
+		echo "Annotate full feature table with unambiguous conservation labels ..."
+		concat_label_file="${tmp_conservation_out}/${genomic_class}.conservation_labels.bed"
+		cat $least_conserved_file $most_conserved_file | subtractBed -a stdin -b $ambiguous_conserv_file > $concat_label_file
+		#rm $least_conserved_file $most_conserved_file
+		echo "Output file: $concat_label_file"
+
+
+		# Annotate full feature table with unambiguous conservation annotations
+		echo "Intersecting with full feature table for $genomic_class class ..."
+		tail -n+2 $full_table | intersectBed -wb -a $concat_label_file -b stdin | cut --complement -f5,6,7 > $conservation_feature_table_dir/full_feature_table.conservation.${genomic_class}.bed 
+
+	done
+
+	cat $conservation_feature_table_dir/full_feature_table.conservation.*.bed > $conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.bed
+}
+
+
+
+
+
+
 function add_clinvar_annotation {
-
-	mkdir -p $clinvar_feature_table_dir
-
 
 	# First, subtract any benign variants from the current pathogenic file!
 	subtractBed -a ${variant_annot_dir}/${pathogenic_set}/${pathogenic_set}.pathogenic.bed -b ${variant_annot_dir}/${benign_set}/${benign_set}.benign.bed > $clinvar_feature_table_dir/clean.${pathogenic_set}.pathogenic.bed
@@ -167,11 +215,13 @@ function add_external_genome_wide_scores {
 
 # =============== MAIN RUN ================
 printf "\n\n------------\nMerging BED files by genomic class and retrieving respective feature table...\n"
-get_feature_table_by_genomic_class
+#get_feature_table_by_genomic_class
 
 printf "\n\n------------\nMerging feature tables from all genomic classes...\n"
-merge_feature_tables_from_all_classes
+#merge_feature_tables_from_all_classes
 
+add_conservation_annotation
+exit
 
 printf "\n\n------------\nAnnotating full feature table (already with genomic class annotation) with ClinVar pathogenic/bengign variants...\n"
 add_clinvar_annotation

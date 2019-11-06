@@ -279,6 +279,10 @@ class JarvisDataPreprocessing:
 		
 		#additional_features_df['clinvar_annot'].replace({'Pathogenic': 1, 'Benign': 0}, inplace=True)
 		additional_features_df['clinvar_annot'].replace(regex={r'.*Pathogenic.*': 1, r'.*Benign.*': 0}, inplace=True)
+		
+		# TODO: give 'clinvar_annot' column a more generic name 
+		# -- For conservation labels
+		additional_features_df['clinvar_annot'].replace(regex={r'.*Conserved.*': 1, r'.*Non_conserved.*': 0}, inplace=True)
 		print(additional_features_df.head())
 		print(additional_features_df.tail())
 

@@ -106,8 +106,12 @@ class ClassificationWrapper:
 		
 		
 		# Correct data types and convert Y-label strings to 1/0 values
-		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Pathogenic.*', '1', regex=True)
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Benign.*', '0', regex=True)
+		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Pathogenic.*', '1', regex=True)
+		
+		# -- For conservation labels
+		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Non_conserved.*', '0', regex=True)
+		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Conserved.*', '1', regex=True)
 		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
 	
 
