@@ -7,18 +7,19 @@
 #SBATCH -t 24:0:0           # Request 24 hours runtime
 
 
-if [ $# -ne 3 ]
+if [ $# -ne 4 ]
 then
-	printf "\n>> Expected call format: [sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir] [population]\n"
+	printf "\n>> Expected call format: [sbatch] keep_gwrvis_high_conf_regions.sh [dataset: gnomad|topmed] [input_filtered_dir] [population] [min_coverage_depth]\n"
 	exit
 fi
 
 dataset=$1
 input_filtered_dir=$2  #"gnomad-filtered_variant_tables-[all]-[filter_annot]"
 population=$3
+mindepth=$4
 
 # BED file with high confidence genomic regions
-include_file=../../../genomic-high-confidence-regions-hg38/high_conf_genomic_regions.bed.gz
+include_file=../../../genomic-high-confidence-regions-hg38/high_conf_genomic_regions.mindepth${mindepth}.bed.gz
 
 
 out=${input_filtered_dir}-high_conf_regions

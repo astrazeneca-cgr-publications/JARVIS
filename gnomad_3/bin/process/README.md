@@ -11,7 +11,7 @@ sbatch ./process_all_chromosomes.sh gnomad_3 1 1
 
 2. Keep VCF entries that belong to high confidence regions (pre-defined/built)
 ```
-keep_gwrvis_high_conf_regions.sh gnomad_3 [input_filtered_dir] all
+keep_gwrvis_high_conf_regions.sh gnomad_3 [input_filtered_dir] all 30
 ```
 
 - SCP job submission: `sbatch keep_gwrvis_high_conf_regions.sh [gnomad_3] [input_filtered_dir]`

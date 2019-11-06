@@ -508,7 +508,7 @@ if __name__ == '__main__':
 	dataset = config_params['dataset']		# e.g. 'gnomad'
 	population = config_params['population']	# e.g. 'all', 'FIN', etc.
 	win_len = config_params['win_len']		# e.g. 250 (window length in nt)
-	variant_filter = config_params['variant_filter']	# 'snv' or 'cnv', anythin else retains all
+	variant_filter = config_params['variant_filter']	# 'snv' or 'cnv', anything else retains all
 	kmer = config_params['kmer']			# 7 or 3
 	all_variants_upper_thres = config_params['all_variants_upper_thres']	# e.g. 200 (filter out windows with more than 200 variants before fitting regression)
 	MAF_thres = config_params['MAF_thres']	        # e.g. 0.0001 (Minor Allele Frequency)

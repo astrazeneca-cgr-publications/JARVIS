@@ -4,7 +4,7 @@
 #SBATCH -e err.wgs  # Set job error log 
 #SBATCH --cpus-per-task=5         # Request 5 CPUs (cores) on a single node 
 #SBATCH --mem=40G          # Request amount of memory 
-#SBATCH -t 48:00:0            # Request 24 hours runtime
+#SBATCH -t 24:00:0            # Request 24 hours runtime
 
 module load libpng/1.6.23-foss-2017a
 
@@ -17,16 +17,16 @@ gwrvis_core_dir=gwrvis_core
 
 echo "Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)"
 # (Most time-consuming part becasue of feature extraction for each window -- GC content, mut_rate, etc.)
-#./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
+./${gwrvis_core_dir}/parse_all_chromosomes.sh $config_file;
 
 
 
 echo "Perform logistic regression (common ~ all variants) to get gwRVIS scores"
-#python ${gwrvis_core_dir}/run_full_regression.py $config_file;
+python ${gwrvis_core_dir}/run_full_regression.py $config_file;
 
 
 echo "Convert window indexes (0-based) to real genomic coordinates"
-#python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
+python ${gwrvis_core_dir}/convert_window_indexes_to_genomic_coords.py $config_file;
 
 
 
@@ -84,7 +84,6 @@ python scores_benchmarking/benchmark_vs_original_orion.py $config_file
 
 
 
-
 # Under "jarvis_classification/"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis_classification/) ===="
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
@@ -92,13 +91,13 @@ model_type="RF"
 python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
 
 
-exit
 
 
 # Train JARVIS with structured data, sequences or both
 cv_repeats=5
 ./submit_all_jarvis_jobs.sh $config_file $cv_repeats
 
+exit
 
 
 

@@ -10,7 +10,7 @@
 # check input arguments
 if [ $# -lt 3 ]; then
 	echo "[Error]: incorrect number of input arguments."
-	echo ">> Expected call format: ./process_all_chr.sh [dataset: gnomad|gnomad_3|topmed] [vcf_dir: input dir with VCF files] [KEEP_PASS_ONLY: 0|1] [FILTER_SEGDUP: 0|1] [FILTER_LCR: 0|1] [population (optional): leave blank to consider all populations (otherwise: e.g. FIN, ASJ)]"
+	echo ">> Expected call format: ./process_all_chr.sh [dataset: gnomad|gnomad_3|topmed] [vcf_dir: input dir with VCF files] [KEEP_PASS_ONLY: 0|1] [FILTER_LCR: 0|1]"
 	exit
 fi
 

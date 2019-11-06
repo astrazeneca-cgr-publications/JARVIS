@@ -462,8 +462,10 @@ if __name__ == '__main__':
 	roc_curve_data_per_score = {}	
 	dens_plot_data_per_score = {}
 
-	#all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
-	all_scores = ['gwrvis'] # ['cadd']
+	if hg_version == 'hg19':
+		all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+	else:
+		all_scores = ['gwrvis'] # ['cadd']
 
 
 	for score in all_scores:

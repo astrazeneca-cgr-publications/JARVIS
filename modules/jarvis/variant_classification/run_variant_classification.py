@@ -281,12 +281,23 @@ if __name__ == '__main__':
 	config_file = sys.argv[1]
 	filter_ccds_overlapping_variants = bool(int(sys.argv[2]))
 	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
-	
+
+	run_params = get_config_params(config_file)
+	genomic_classes_log = run_params['genomic_classes']
+	pathogenic_set = run_params['pathogenic_set']
+	benign_set = run_params['benign_set']
+	print('Pathogenic set: ' + pathogenic_set)
+	print('Benign set: ' + benign_set)
+	patho_benign_sets = pathogenic_set + '_' + benign_set
+
 
 	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
 
-	#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-	all_base_scores = ['gwrvis', 'jarvis']
+	hg_version = run_params['hg_version']
+	if hg_version == 'hg19':
+		all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+	else:
+		all_base_scores = ['gwrvis', 'jarvis']
 
 	# Ad-hoc: exclude 'lincrna' when running for ncRVIS
 	#genomic_classes_lists =  [ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'], ['ccds'], ['intron'] ] 
@@ -296,13 +307,6 @@ if __name__ == '__main__':
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 	# regression -- default: False, treating it as a classification problem
 
-	run_params = get_config_params(config_file)
-	genomic_classes_log = run_params['genomic_classes']
-	pathogenic_set = run_params['pathogenic_set']
-	benign_set = run_params['benign_set']
-	print('Pathogenic set: ' + pathogenic_set)
-	print('Benign set: ' + benign_set)
-	patho_benign_sets = pathogenic_set + '_' + benign_set
 	
 	
 	

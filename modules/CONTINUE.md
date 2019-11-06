@@ -1,15 +1,21 @@
 *** FINAL TO_DO ***
 
-- Update Ensembl annotations for chromatin structure, methylation, etc. (Look for 'Monocytes_CD14plus' in scripts)
-- Convert all scores and variant annotations to hg38 .......
+- Conservation (phastcons46way primates -- extract most/least conserved nt) 
+	 tabix /projects/cgr/users/kclc950/gwRVIS/other_datasets/conservation/phastCons46way_primates/bed/chr16.phastCons46way.primates.high_conf_regions.bed.gz -B intergenic.full_table.bed  
+	 Use bed files in gwrvis_distribution (e.g. gwrvis.ucne.mutually_excl.bed) to subset most/least conserved regions by genomic class
+	- Label positive/negative data points as those that are most-conserved_&_most-intolerant vs least-conserved_&_most-tolerant
+
+
+- Convert score annotations to hg38 .......
+
+
+- Run original Topmed (without liftover) with most recent annotation (hg38) and see if I get similar clinvar classifications with gnomad-3
 
 
 - New gnomad version 3 (use updated annotations - liftunder probably not an option)
-	- "Continue from": gnomad_3/bin/process/keep_gwrvis_high_conf_regions.sh, as long as the "gnomad_3-filtered_variant_tables-all-PASS_ONLY-NO_LCR"-populating job is complete.
 
 - topmed (? Try gnomad 3.0 first and see if I ll stick with that eventually): try with hgmd/denovo/topmed_uniq; Then run jarvis for each of these too
 
-- Conservation (phastcons46way primates -- extract most/least conserved nt) 
 
 - Sliding window (during Review)
 
@@ -92,3 +98,5 @@ DONE:
 - Sensitivity analysis with all classes [DONE - optimal win: 3kb] 
 - Create hg38/ annotation based on hg19 [DONE]
 - Change all hg19 hardcoded references... [DONE]
+- Update Ensembl annotations for chromatin structure, methylation, etc. (Look for 'Monocytes_CD14plus' in scripts) [DONE]
+- Convert variant annotations to hg38 ....... [DONE]

@@ -17,12 +17,12 @@ def parse_info_fields(info_pairs_dict):
 
 	fields_to_retain = ['AC', 'AF', 'AN', 'DP']
 
-	# Also reconstruct 'AF' from 'AC' and 'AN' (absent in gnomad v3.0 ...):
+	# Also reconstruct 'AF' from 'AC' and 'AN' (absent in gnomad v3.0 ?):
 	# AF = AC / AN
-	try:
-		info_pairs_dict['AF'] = float(info_pairs_dict['AC']) / float(info_pairs_dict['AN'])
-	except:
-		info_pairs_dict['AF'] = 0
+	#try:
+	#	info_pairs_dict['AF'] = float(info_pairs_dict['AC']) / float(info_pairs_dict['AN'])
+	#except:
+	#	info_pairs_dict['AF'] = 0
 
 	for field in fields_to_retain:
 
@@ -30,8 +30,8 @@ def parse_info_fields(info_pairs_dict):
 		other_fields_str += '\t' + str(value)
 		#print(field, value)
 
-	if verbose:
-		print('other_fields_str:\n' + other_fields_str)
+	#if verbose:
+	#	print('other_fields_str:\n' + other_fields_str)
 
 
 	return other_fields_str
@@ -139,7 +139,9 @@ if __name__ == '__main__':
 				valid_entry = process_variant_entry(line, out_fh)
 
 				if dbg:
-					if valid_entry: cnt += 1
+					if valid_entry: 
+						cnt += 1
+						if verbose: print(line)
 
 			if dbg:
 				if cnt > 5: sys.exit()
