@@ -1,0 +1,7 @@
+genomic_class	auc	class_size
+ccds	0.642	188457
+intron	0.571	655840
+lincrna	0.513	21161
+ucne	0.732	3775
+utr	0.646	81270
+vista	0.673	1890
