@@ -207,6 +207,7 @@ if __name__ == '__main__':
 	
 	run_params = get_config_params(config_file)
 	win_len = run_params['win_len']
+	maf_thres = run_params['MAF_thres']
 
 	full_gwrvis_df = pd.read_csv(full_genome_out_dir + '/Whole_genome_gwRVIS_per_class.csv')
 	print(full_gwrvis_df.head())
@@ -249,7 +250,7 @@ if __name__ == '__main__':
 		#plot_roc_curve(model, df, X)
 
 
-	with open(full_genome_out_dir + '/mean_auc_per_intol_class.W' + str(win_len) + '.txt', 'w') as out_fh:
+	with open(full_genome_out_dir + '/mean_auc_per_intol_class.W' + str(win_len) + '.MAF' + str(maf_thres) + '.txt', 'w') as out_fh:
 		out_fh.write('genomic_class\tauc\tclass_size\n')
 		for k in sorted(mean_auc_per_intol_class.keys()):
 			out_fh.write(k + '\t' + str(mean_auc_per_intol_class[k][0]) + '\t' + str(mean_auc_per_intol_class[k][1]) + '\n')
