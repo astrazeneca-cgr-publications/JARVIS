@@ -1,9 +1,11 @@
 *** FINAL TO_DO ***
 
 >'CURRENT'
-Look into: "python scores_benchmarking/run_clinvar_benchmarking.py $config_file" -- How it can be adjusted for using feature table with 'conservation labels'
-	and "full_feature_table.clinvar_clinvar.bed"
+• "jarvis/variant_classification/run_variant_classification.py":
+	- Create conservation-specific files for each score: "/projects/cgr/users/kclc950/gwRVIS/other_datasets/genome-wide-scores/"
+	- For the most/least conserved sites -- probably create a bigger file per class, e.g. 100,000 that can then be subset for even fewer conservation sites.
 
+	- Do the same for "scores_benchmarking/run_clinvar_benchmarking.py"
 
 
 - Label positive/negative data points as those that are both most-conserved_&_most-intolerant vs both least-conserved_&_most-tolerant
@@ -55,6 +57,18 @@ Minor:
 • Train JARVIS on UTR and predict on intergenic [Maybe / Maybe not]
 • Create clean instance of model for each fold in 'jarvis/variant_classification/classifiers.py' (--redundant as currently only Logistic Regression and Random Forest are to be used in this module)
 - Sliding window (during Review)
+
+# > Train JARVIS with all HGMD pathogenic vs the ClinVar benign (or other set of benign variants). Then predict for all 3kb windows (with all the features already annotated) to rank them based on their probability score to be pathogenic. 	
+# 2. Add annotation for Histon marks/Methylation from other cell types too. 	
+# 3. Prioritise variants from denovo-db for neuro-developmental disorders  	
+# 4. Calculate gwRVIS with TOPMED (liftover TOPMED to GRCh37) and show correlation 	
+# 5. Calculate gwRVIS for different sub-populations: AFR vs EUR possibly? 	
+
+# Another project (almost): 	
+# - Predict most-intolerant vs most-tolerant from raw sequence only with CNNs (either as binary classification or regression). 	
+# The regression version may allow us to predict the gwRVIS score for regions that do not have variant data within a VCF. 	
+# ---------------------------------------------------------------------------------------	
+
 
 
 

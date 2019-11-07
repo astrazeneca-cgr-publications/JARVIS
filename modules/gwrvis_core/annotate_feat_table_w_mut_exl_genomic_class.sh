@@ -44,7 +44,8 @@ out_full_feature_table="${out_feature_table_dir}/full_gwrvis_and_regulatory_feat
 
 function add_header_to_bed_by_genomic_class () {
 
-	full_feature_table_by_genomic_class=$1
+	full_out_table=$1
+	is_conservation_table=$2
 
 	full_header=()
 	tmp_header=( $(cat $full_feature_table | head -1) )
@@ -63,10 +64,17 @@ function add_header_to_bed_by_genomic_class () {
 		fi
 	done
 
-	printf "%s\t" "${full_header[@]}" > ${full_feature_table_by_genomic_class}.header
-	sed -i 's/$/\n/' ${full_feature_table_by_genomic_class}.header
-	cat ${full_feature_table_by_genomic_class}.header ${full_feature_table_by_genomic_class}.tmp > ${full_feature_table_by_genomic_class}
-	rm ${full_feature_table_by_genomic_class}.header ${full_feature_table_by_genomic_class}.tmp
+	printf "%s\t" "${full_header[@]}" > ${full_out_table}.header
+
+	if [ "$is_conservation_table" -eq "1" ]; then
+		sed -i 's/gwrvis/conservation\_annot\tgwrvis/' ${full_out_table}.header
+	fi
+	sed -i 's/\t$//' ${full_out_table}.header
+	sed -i 's/$/\n/' ${full_out_table}.header
+	echo -e "\n${full_out_table}.header"
+
+	cat ${full_out_table}.header ${full_out_table}.tmp > ${full_out_table}
+	rm ${full_out_table}.header ${full_out_table}.tmp
 }
 
 
@@ -94,7 +102,7 @@ function get_feature_table_by_genomic_class {
 
 
 		printf "\nAdding header to feature table by class and saving into file"
-		add_header_to_bed_by_genomic_class $full_feature_table_by_genomic_class
+		add_header_to_bed_by_genomic_class $full_feature_table_by_genomic_class 0
 		printf "\nOutput file: $full_feature_table_by_genomic_class\n\n"
 		
 	done
@@ -124,7 +132,8 @@ function add_conservation_annotation {
 
 	primate_conservation_dir="../other_datasets/conservation/phastCons46way_primates/bed-by_class"
 
-	for genomic_class in "${input_classes[@]}"; do
+	#for genomic_class in "${input_classes[@]}"; do
+	for genomic_class in intron; do
 		echo -e "\n> ${genomic_class}:"
 
 		most_conserved_file="$primate_conservation_dir/${genomic_class}.most_conserved.bed"
@@ -157,7 +166,14 @@ function add_conservation_annotation {
 
 	done
 
-	cat $conservation_feature_table_dir/full_feature_table.conservation.*.bed > $conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.bed
+
+	full_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.bed"
+	rm -f $full_out_file
+	cat $conservation_feature_table_dir/full_feature_table.conservation.*.bed > ${full_out_file}.tmp
+
+	add_header_to_bed_by_genomic_class $full_out_file 1
+	printf "\nOutput file: $full_out_file\n\n"
+
 }
 
 
@@ -215,13 +231,12 @@ function add_external_genome_wide_scores {
 
 # =============== MAIN RUN ================
 printf "\n\n------------\nMerging BED files by genomic class and retrieving respective feature table...\n"
-#get_feature_table_by_genomic_class
+get_feature_table_by_genomic_class
 
 printf "\n\n------------\nMerging feature tables from all genomic classes...\n"
-#merge_feature_tables_from_all_classes
+merge_feature_tables_from_all_classes
 
 add_conservation_annotation
-exit
 
 printf "\n\n------------\nAnnotating full feature table (already with genomic class annotation) with ClinVar pathogenic/bengign variants...\n"
 add_clinvar_annotation

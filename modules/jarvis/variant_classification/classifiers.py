@@ -44,11 +44,10 @@ class DnnClassifier:
 class Classifier:
 	
 	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='DNN', 
-				 use_only_base_score=True, include_vcf_extracted_features=False, regression=False, exclude_base_score=False):
+				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False):
 				 
 		self.out_dir = out_dir
 		self.Y_label = Y_label
-		self.regression = regression
 		self.model_type = model_type
 		self.include_vcf_extracted_features = include_vcf_extracted_features
 		self.base_score = base_score
@@ -107,9 +106,7 @@ class Classifier:
 		"""
 			Initialise classifier model based on input base_score and model_type
 		"""
-	
-		#print('\n-----\nRegression:', self.regression)
-		
+			
 		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
 	
 	
