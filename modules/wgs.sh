@@ -91,13 +91,13 @@ model_type="RF"
 python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
 
 
+exit
 
 
 # Train JARVIS with structured data, sequences or both
 cv_repeats=5
 ./submit_all_jarvis_jobs.sh $config_file $cv_repeats
 
-exit
 
 
 
