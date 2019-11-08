@@ -1,6 +1,8 @@
 *** FINAL TO_DO ***
 
 >'CURRENT'
+- Try smaller/larger conservation sample
+
 • "jarvis/variant_classification/run_variant_classification.py":
 	- Create conservation-specific files for each score: "/projects/cgr/users/kclc950/gwRVIS/other_datasets/genome-wide-scores/"
 	- For the most/least conserved sites -- probably create a bigger file per class, e.g. 100,000 that can then be subset for even fewer conservation sites.

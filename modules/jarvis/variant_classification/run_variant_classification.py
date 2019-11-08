@@ -148,7 +148,6 @@ class ClassificationWrapper:
 		print(self.df.head())
 		print(self.df.tail())
 		print(self.df.shape)
-		#sys.exit()
 		
 
 		
@@ -186,8 +185,10 @@ class ClassificationWrapper:
 	
 		if self.base_score in ['gwrvis', 'jarvis']:
 			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.bed', sep='\t', low_memory=False)
-		#else:
-		#	self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
+		else:
+			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + self.base_score + '.bed', sep='\t', low_memory=False)
+			self.full_feature_table.dropna(inplace=True)
+
 		
 		self.df = self.full_feature_table.loc[ self.full_feature_table.genomic_class.isin(self.genomic_classes), :].copy()
 	
@@ -200,7 +201,6 @@ class ClassificationWrapper:
 		print(self.df.head())
 		print(self.df.tail())
 		print(self.df.shape)		
-		
 		
 		
 	def run(self):
@@ -260,7 +260,7 @@ def plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, cl
 	plt.show()
 	
 
-	pdf_filename = clinvar_ml_out_dir + '/' + '_'.join(genomic_classes) + '.all_scores_classification.pdf'
+	pdf_filename = clinvar_ml_out_dir + '/' + '_'.join(genomic_classes) + '.all_scores_classification.' + Y_label + '.pdf'
 	fig.savefig(pdf_filename, bbox_inches='tight')
 	
 
@@ -314,12 +314,17 @@ if __name__ == '__main__':
 	patho_benign_sets = pathogenic_set + '_' + benign_set
 
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
+	if Y_label == 'clinvar_annot':
+		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
+	elif Y_label == 'conservation_annot':
+		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['lincrna'], ['ccds'], ['intron'] ] 
 
+	
+	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
 		#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-		all_base_scores = ['gwrvis', 'jarvis'] 
+		all_base_scores = ['orion', 'gwrvis', 'jarvis'] 
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 

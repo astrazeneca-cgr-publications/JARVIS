@@ -46,6 +46,7 @@ function add_header_to_bed_by_genomic_class () {
 
 	full_out_table=$1
 	is_conservation_table=$2
+	append_score_colname=$3
 
 	full_header=()
 	tmp_header=( $(cat $full_feature_table | head -1) )
@@ -68,8 +69,12 @@ function add_header_to_bed_by_genomic_class () {
 
 	if [ "$is_conservation_table" -eq "1" ]; then
 		sed -i 's/gwrvis/conservation\_annot\tgwrvis/' ${full_out_table}.header
+		sed -i 's/\t$//' ${full_out_table}.header
 	fi
-	sed -i 's/\t$//' ${full_out_table}.header
+	if [ "$append_score_colname" -eq "1" ]; then
+		sed -i "s/$/\t${score}/" ${full_out_table}.header
+	fi
+
 	sed -i 's/$/\n/' ${full_out_table}.header
 	echo -e "\n${full_out_table}.header"
 
@@ -102,7 +107,7 @@ function get_feature_table_by_genomic_class {
 
 
 		printf "\nAdding header to feature table by class and saving into file"
-		add_header_to_bed_by_genomic_class $full_feature_table_by_genomic_class 0
+		add_header_to_bed_by_genomic_class $full_feature_table_by_genomic_class 0 0
 		printf "\nOutput file: $full_feature_table_by_genomic_class\n\n"
 		
 	done
@@ -132,8 +137,8 @@ function add_conservation_annotation {
 
 	primate_conservation_dir="../other_datasets/conservation/phastCons46way_primates/bed-by_class"
 
-	#for genomic_class in "${input_classes[@]}"; do
-	for genomic_class in intron; do
+	for genomic_class in "${input_classes[@]}"; do
+	#for genomic_class in intron; do
 		echo -e "\n> ${genomic_class}:"
 
 		most_conserved_file="$primate_conservation_dir/${genomic_class}.most_conserved.bed"
@@ -168,11 +173,31 @@ function add_conservation_annotation {
 
 
 	full_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.bed"
+
+	# Cleanup previously created files
 	rm -f $full_out_file
+	for score in orion; do
+		score_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.${score}.bed"
+		rm -f $score_out_file
+	done
+
 	cat $conservation_feature_table_dir/full_feature_table.conservation.*.bed > ${full_out_file}.tmp
 
-	add_header_to_bed_by_genomic_class $full_out_file 1
+	add_header_to_bed_by_genomic_class $full_out_file 1 0
 	printf "\nOutput file: $full_out_file\n\n"
+
+
+	# Get conservation-annotated tables for other genome-wide scores
+	for score in orion; do
+		echo -e "\nScore: $score"	
+
+		score_conservation_ref_file="../other_datasets/genome-wide-scores/${score}/${score}.conservation_annotation.bed"
+		score_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.${score}.bed"
+
+		tail -n+2 $full_out_file | intersectBed -wo -a stdin -b $score_conservation_ref_file | rev | cut --complement -f1,3,4,5 | rev > ${score_out_file}.tmp
+	
+		add_header_to_bed_by_genomic_class $score_out_file 1 1
+	done
 
 }
 

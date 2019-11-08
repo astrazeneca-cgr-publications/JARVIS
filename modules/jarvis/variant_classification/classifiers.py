@@ -167,7 +167,7 @@ class Classifier:
 		plt.legend(['train', 'test'], loc='upper left')
 		plt.show()
 		
-		fig1.savefig(self.out_dir + '/DNN_model_history.pdf', bbox_inches='tight')
+		fig1.savefig(self.out_dir + '/DNN_model_history.' + self.Y_label + '.pdf', bbox_inches='tight')
 
 		
 		
@@ -256,7 +256,7 @@ class Classifier:
 		
 		
 		pdf_filename = self.out_dir + '/' + self.model_type + '_ROC.' + self.score_print_name + \
-						'.AUC_' + str(self.mean_auc)
+						'.AUC_' + str(self.mean_auc) + '.' + self.Y_label
 						
 		if self.include_vcf_extracted_features:
 			pdf_filename += '.incl_vcf_features'
@@ -354,7 +354,7 @@ class Classifier:
 		importances_series.plot.bar()
 		plt.show()
 
-		pdf_filename = self.out_dir + '/RF_importance_scores.' + self.score_print_name + '.' + self.model_type
+		pdf_filename = self.out_dir + '/RF_importance_scores.' + self.score_print_name + '.' + self.model_type + '.' + self.Y_label
 
 		if self.include_vcf_extracted_features:
 			pdf_filename += '.incl_vcf_features'
