@@ -1,16 +1,32 @@
 *** FINAL TO_DO ***
 
 >'CURRENT'
-- Try smaller/larger conservation sample
+
+- Run convservation-based training using raw sequences too: './jarvis/deep_learn_raw_seq/train_nn_model.py'
+
+- For conseration-based training, discard regions with 0 phastCons value (non-conserved) -- Results are greate with a labelset_size of 10,000 and 50,000 (tested with these). I can stick with the 50,000 as my main to train my final models! ['DONE']
+- Probably train for each class independently, predict on each respective class (use propensity scores) and then merge all predicted and trained scores (again as propensity prediction probability scores).
+	- Then also try to classify ClinVar pathogenic from benign.
+
+-- Use intersection of regions from Orion and gwRVIS / JARVIS for the benchmarking [Not necessary].
+
+
+
+Minor:
+- Try smaller/larger conservation samplea ['DONE']
+- Create least_conserved samples excluding regions with "0.0" value ['DONE']
+- Add Ensembl annotation from a few more tissues?
+- Run MAF sensitivity analysis for gnomad 2.1.1 (submit jobs with master branch overnight)
+
 
 • "jarvis/variant_classification/run_variant_classification.py":
-	- Create conservation-specific files for each score: "/projects/cgr/users/kclc950/gwRVIS/other_datasets/genome-wide-scores/"
-	- For the most/least conserved sites -- probably create a bigger file per class, e.g. 100,000 that can then be subset for even fewer conservation sites.
+	- Create conservation-specific files for each score: "/projects/cgr/users/kclc950/gwRVIS/other_datasets/genome-wide-scores/"	['DONE': for Orion]
+	- For the most/least conserved sites -- probably create a bigger file per class, e.g. 100,000 that can then be subset for even fewer conservation sites. ['Redundant']
+	- Do the same for "scores_benchmarking/run_clinvar_benchmarking.py" ['Completely Redundant']
 
-	- Do the same for "scores_benchmarking/run_clinvar_benchmarking.py"
 
-
-- Label positive/negative data points as those that are both most-conserved_&_most-intolerant vs both least-conserved_&_most-tolerant
+- Label positive/negative data points as those that are both most-conserved_&_most-intolerant vs both least-conserved_&_most-tolerant (maybe not)
+- Check for regions that are not conserved but are highly-intolerant or vice-versa!
 
 
 - Correlate gwRVIS results between Topmed hg19 and hg38

@@ -80,6 +80,8 @@ class Classifier:
 		print('Features:', self.feature_cols)
 		print('Label:', self.Y_label)
 	
+		print(Counter(df[self.Y_label]))
+	
 		# BETA
 		# Retaining only most important features (improves AUC only by +0.001)
 		#self.feature_cols = ['gwrvis', 'gc_content', 'cpg', 'mut_rate', 'cpg_islands', 'H3K4me2']
@@ -92,7 +94,7 @@ class Classifier:
 		negative_set_size = (self.y == 0).sum()
 		pos_neg_ratio = 1/1
 
-		if positive_set_size / negative_set_size < pos_neg_ratio:
+		if (positive_set_size / negative_set_size < pos_neg_ratio) or (negative_set_size / positive_set_size < pos_neg_ratio):
 			print('\n> Fixing class imbalance ...')
 			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)

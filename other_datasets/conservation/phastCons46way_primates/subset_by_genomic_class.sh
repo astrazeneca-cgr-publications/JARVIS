@@ -3,7 +3,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=24:0:0
 
-out_dir="bed-by_class"
+out_dir="most_least_conserved_files_by_class"
 mkdir -p $out_dir
 
 

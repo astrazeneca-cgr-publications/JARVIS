@@ -11,3 +11,8 @@ Add:
 - JARVIS for UTR with structured already ranks pretty highly. Hopefully, by combining both structured and sequences it will exceed CADD performace too. -- It reaches almost the same level; can try a bit deeper CNN
 
 - Check results at 'denovodb_benchmarking-ssc/ .. /intergenic.all_scores.pdf'
+
+- Window-length and MAF sensitivity analisis (in misc/) have been performed
+
+
+- For conseration-based training, discard regions with 0 phastCons value (non-conserved) -- Results are greate with a labelset_size of 10,000 and 50,000 (tested with these). I can stick with the 50,000 as my main to train my final models!

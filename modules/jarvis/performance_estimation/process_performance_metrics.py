@@ -37,13 +37,16 @@ class MetricsBenchmark:
 
 
 		# > DNN metrics (JARVIS: structured, sequences & both)
-		self.jarvis_metrics = {}
-		for input_features in ['structured', 'sequences', 'both']:
-			with open(clinvar_feature_table_dir + '/jarvis_performance_metrics.' + input_features + '.' + self.genomic_class + '.pkl', 'rb') as handle:
-				self.jarvis_metrics['JARVIS-' + input_features] = pickle.load(handle)
+		try:
+			self.jarvis_metrics = {}
+			for input_features in ['structured', 'sequences', 'both']:
+				with open(clinvar_feature_table_dir + '/jarvis_performance_metrics.' + input_features + '.' + self.genomic_class + '.pkl', 'rb') as handle:
+					self.jarvis_metrics['JARVIS-' + input_features] = pickle.load(handle)
 
-		print(self.all_but_dnn_metrics.keys())
-		print(self.jarvis_metrics.keys())
+			print(self.all_but_dnn_metrics.keys())
+			print(self.jarvis_metrics.keys())
+		except:
+			print("No DNN-based metrics found.")
 
 
 

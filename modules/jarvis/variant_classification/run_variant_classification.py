@@ -183,16 +183,21 @@ class ClassificationWrapper:
 	
 	def read_conservation_feature_table(self):
 	
+		file_annot = "D" + str(labelset_size)
+		if discard_zero_values:
+			file_annot += ".no_zeros"
+	
 		if self.base_score in ['gwrvis', 'jarvis']:
-			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.bed', sep='\t', low_memory=False)
+			print(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed')
+			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed', sep='\t', low_memory=False)
 		else:
-			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + self.base_score + '.bed', sep='\t', low_memory=False)
+			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + self.base_score + '.' + file_annot + '.bed', sep='\t', low_memory=False)
 			self.full_feature_table.dropna(inplace=True)
 
 		
 		self.df = self.full_feature_table.loc[ self.full_feature_table.genomic_class.isin(self.genomic_classes), :].copy()
 	
-				# -- For conservation labels
+		# -- For conservation labels
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Non_conserved.*', '0', regex=True)
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Conserved.*', '1', regex=True)
 		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
@@ -200,7 +205,8 @@ class ClassificationWrapper:
 	
 		print(self.df.head())
 		print(self.df.tail())
-		print(self.df.shape)		
+		print(self.df.shape)
+		
 		
 		
 	def run(self):
@@ -305,8 +311,14 @@ if __name__ == '__main__':
 	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
 
 	run_params = get_config_params(config_file)
+	
 	genomic_classes_log = run_params['genomic_classes']
 	Y_label = run_params['Y_label']
+	labelset_size = int(run_params['labelset_size'])
+	discard_zero_values = bool(int(run_params['discard_zero_values']))
+	print("labelset_size:", labelset_size)
+	print("discard_zero_values:", discard_zero_values)
+	
 	pathogenic_set = run_params['pathogenic_set']
 	benign_set = run_params['benign_set']
 	print('Pathogenic set: ' + pathogenic_set)
@@ -317,14 +329,14 @@ if __name__ == '__main__':
 	if Y_label == 'clinvar_annot':
 		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
 	elif Y_label == 'conservation_annot':
-		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['lincrna'], ['ccds'], ['intron'] ] 
+		genomic_classes_lists =  [ ['ucne'], ['vista'], ['intergenic'], ['utr'], ['lincrna'], ['ccds'], ['intron'] ] 
 
 	
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
 		#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-		all_base_scores = ['orion', 'gwrvis', 'jarvis'] 
+		all_base_scores = ['orion', 'gwrvis', 'jarvis']
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -351,23 +363,25 @@ if __name__ == '__main__':
 
 			print('>>>>>>>  ' + base_score + '\n')
 
-			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
-												genomic_classes=genomic_classes,
-												Y_label=Y_label, 
-												include_vcf_extracted_features=False, 
-												exclude_base_score=False,
-												filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
-												
-			clf_wrapper.run()
-		
-			if clf_wrapper.mean_auc is not None:
-				score_list.append(clf_wrapper.score_print_name)
-				fpr_list.append(clf_wrapper.mean_fpr)
-				tpr_list.append(clf_wrapper.mean_tpr)
-				auc_list.append(clf_wrapper.mean_auc)
+			try:
+				clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
+													genomic_classes=genomic_classes,
+													Y_label=Y_label, 
+													include_vcf_extracted_features=False, 
+													exclude_base_score=False,
+													filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
+													
+				clf_wrapper.run()
+			
+				if clf_wrapper.mean_auc is not None:
+					score_list.append(clf_wrapper.score_print_name)
+					fpr_list.append(clf_wrapper.mean_fpr)
+					tpr_list.append(clf_wrapper.mean_tpr)
+					auc_list.append(clf_wrapper.mean_auc)
 
-			metrics_per_score[base_score] = clf_wrapper.metrics_list
-		
+				metrics_per_score[base_score] = clf_wrapper.metrics_list
+			except:
+				print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)
 		
