@@ -43,12 +43,14 @@ echo "Merge BED files by genomic class across all chromosomes"
 ./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 
 
+
+
 echo "Aggregate gwRVIS scores from all chromosomes"
 python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
 
 
 # [Ad-hoc] post-processing: enhancers
-#python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
+python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
 python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;

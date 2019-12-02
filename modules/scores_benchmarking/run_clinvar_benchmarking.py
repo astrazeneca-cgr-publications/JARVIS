@@ -287,8 +287,8 @@ class ScoreBenchmark:
 	def run(self):
 		pathogenic_file = self.intersect_clinvar('pathogenic')
 		benign_file = self.intersect_clinvar('benign')
-		#print('pathogenic_file:', pathogenic_file)
-		#print('benign_file:', benign_file)
+		print('pathogenic_file:', pathogenic_file)
+		print('benign_file:', benign_file)
 
 
 		pathogenic_df = pd.read_csv(pathogenic_file, header=None, sep='\t')
@@ -319,6 +319,12 @@ class ScoreBenchmark:
 			except Exception as e:
 				print('Insufficient data points for genomic class:', genomic_class)
 				continue
+		
+			print(pathogenic.head())
+			print(pathogenic.tail())
+			print(pathogenic.shape)
+			sys.exit()
+		
 
 			ret, dens_fig = self.plot_clinvar_densities(pathogenic, benign, genomic_class)
 			if ret == -1:
@@ -330,6 +336,14 @@ class ScoreBenchmark:
 			pp.savefig(roc_fig)
 			pp.savefig(dens_fig)
 			pp.close()
+
+
+
+
+
+
+
+
 
 
 def plot_multiple_roc_curves(roc_curve_data_per_score, out_dir):
@@ -463,7 +477,8 @@ if __name__ == '__main__':
 	dens_plot_data_per_score = {}
 
 	if hg_version == 'hg19':
-		all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+		#all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+		all_scores = ['gwrvis']
 	else:
 		all_scores = ['gwrvis'] # ['cadd']
 

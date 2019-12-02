@@ -22,7 +22,7 @@ class ClassificationWrapper:
 
 	def __init__(self, config_file, base_score='gwrvis', model_type='DNN', genomic_classes=None, 
 				Y_label='clinvar_annot', include_vcf_extracted_features=False, 
-				regression=False, exclude_base_score=False, filter_ccds_overlapping_variants=True):
+				exclude_base_score=False, filter_ccds_overlapping_variants=True):
 		
 		self.config_file = config_file
 		self.base_score = base_score
@@ -32,7 +32,6 @@ class ClassificationWrapper:
 		
 		self.Y_label = Y_label		
 		self.include_vcf_extracted_features = include_vcf_extracted_features
-		self.regression = regression
 		self.exclude_base_score = exclude_base_score
 		self.filter_ccds_overlapping_variants = filter_ccds_overlapping_variants
 		
@@ -47,12 +46,6 @@ class ClassificationWrapper:
 		if self.genomic_classes is None:
 			self.genomic_classes = []
 		
-		# If regression == True, then the target variable is 'gwrvis'
-		if self.regression:
-			self.Y_label = 'gwrvis'
-		else:
-			self.Y_label = 'clinvar_annot' # Default: for classification of pathogenic-vs-benign ClinVar variants
-	
 		# If using a score other than gwRVIS (e.g. CADD, phylop, etc.) 
 		# predict using only the score's values without any other features 
 		if self.base_score == 'jarvis':
@@ -69,6 +62,7 @@ class ClassificationWrapper:
 		self.ml_data_dir = self.out_dir + '/ml_data'
 		
 		self.clinvar_feature_table_dir = self.ml_data_dir + '/clinvar_feature_tables'
+		self.conservation_feature_table_dir = self.ml_data_dir + '/conservation_feature_tables'
 		
 		self.clinvar_ml_out_dir = self.ml_data_dir + '/clinvar-out'
 		if not os.path.exists(self.clinvar_ml_out_dir):
@@ -106,12 +100,9 @@ class ClassificationWrapper:
 		
 		
 		# Correct data types and convert Y-label strings to 1/0 values
-		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Pathogenic.*', '1', regex=True)
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Benign.*', '0', regex=True)
-		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
-	
-
-	
+		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Pathogenic.*', '1', regex=True)
+			
 	
 		if self.base_score in ['gwrvis', 'jarvis']:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.bed'
@@ -153,8 +144,13 @@ class ClassificationWrapper:
 			
 				self.df = pd.read_csv(clean_feature_file, sep='\t', header=None)
 				self.df.columns = original_columns
+		
+		print(self.df.head())
+		print(self.df.tail())
+		print(self.df.shape)
+		
 
-				
+		
 	
 	def run_classifier(self):
 	
@@ -167,7 +163,6 @@ class ClassificationWrapper:
 							model_type=self.model_type,
 							use_only_base_score=self.use_only_base_score,
 							include_vcf_extracted_features=self.include_vcf_extracted_features, 
-							regression=self.regression,
 							exclude_base_score=self.exclude_base_score)
 		
 		classifier.preprocess_data(self.df)
@@ -185,12 +180,45 @@ class ClassificationWrapper:
 		self.metrics_list = classifier.metrics_list
 		
 
+	
+	def read_conservation_feature_table(self):
+	
+		file_annot = "D" + str(labelset_size)
+		if discard_zero_values:
+			file_annot += ".no_zeros"
+	
+		if self.base_score in ['gwrvis', 'jarvis']:
+			print(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed')
+			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed', sep='\t', low_memory=False)
+		else:
+			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + self.base_score + '.' + file_annot + '.bed', sep='\t', low_memory=False)
+			self.full_feature_table.dropna(inplace=True)
+
+		
+		self.df = self.full_feature_table.loc[ self.full_feature_table.genomic_class.isin(self.genomic_classes), :].copy()
+	
+		# -- For conservation labels
+		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Non_conserved.*', '0', regex=True)
+		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Conserved.*', '1', regex=True)
+		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
+
+	
+		print(self.df.head())
+		print(self.df.tail())
+		print(self.df.shape)
+		
+		
 		
 	def run(self):
 	
-		self.read_input_data()
-		
-		self.subset_feat_table_df()
+		if self.Y_label == 'clinvar_annot':
+			# Clinvar-based classification
+			self.read_input_data()
+			self.subset_feat_table_df()
+			
+		elif self.Y_label == 'conservation_annot':
+			# Conservation-based classification
+			self.read_conservation_feature_table()
 		
 		self.run_classifier()
 		
@@ -238,7 +266,7 @@ def plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, cl
 	plt.show()
 	
 
-	pdf_filename = clinvar_ml_out_dir + '/' + '_'.join(genomic_classes) + '.all_scores_classification.pdf'
+	pdf_filename = clinvar_ml_out_dir + '/' + '_'.join(genomic_classes) + '.all_scores_classification.' + Y_label + '.pdf'
 	fig.savefig(pdf_filename, bbox_inches='tight')
 	
 
@@ -283,7 +311,14 @@ if __name__ == '__main__':
 	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
 
 	run_params = get_config_params(config_file)
+	
 	genomic_classes_log = run_params['genomic_classes']
+	Y_label = run_params['Y_label']
+	labelset_size = int(run_params['labelset_size'])
+	discard_zero_values = bool(int(run_params['discard_zero_values']))
+	print("labelset_size:", labelset_size)
+	print("discard_zero_values:", discard_zero_values)
+	
 	pathogenic_set = run_params['pathogenic_set']
 	benign_set = run_params['benign_set']
 	print('Pathogenic set: ' + pathogenic_set)
@@ -291,11 +326,17 @@ if __name__ == '__main__':
 	patho_benign_sets = pathogenic_set + '_' + benign_set
 
 
-	genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
+	if Y_label == 'clinvar_annot':
+		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
+	elif Y_label == 'conservation_annot':
+		genomic_classes_lists =  [ ['ucne'], ['vista'], ['intergenic'], ['utr'], ['lincrna'], ['ccds'], ['intron'] ] 
 
+	
+	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		all_base_scores = ['orion', 'gwrvis', 'jarvis']
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -305,7 +346,6 @@ if __name__ == '__main__':
 	
 
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
-	# regression -- default: False, treating it as a classification problem
 
 	
 	
@@ -323,58 +363,28 @@ if __name__ == '__main__':
 
 			print('>>>>>>>  ' + base_score + '\n')
 
-			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
-												genomic_classes=genomic_classes,
-												Y_label='clinvar_annot', 
-												include_vcf_extracted_features=False, 
-												regression=False,
-												exclude_base_score=False,
-												filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
-												
-			clf_wrapper.run()
-		
-			if clf_wrapper.mean_auc is not None:
-				score_list.append(clf_wrapper.score_print_name)
-				fpr_list.append(clf_wrapper.mean_fpr)
-				tpr_list.append(clf_wrapper.mean_tpr)
-				auc_list.append(clf_wrapper.mean_auc)
+			try:
+				clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
+													genomic_classes=genomic_classes,
+													Y_label=Y_label, 
+													include_vcf_extracted_features=False, 
+													exclude_base_score=False,
+													filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
+													
+				clf_wrapper.run()
+			
+				if clf_wrapper.mean_auc is not None:
+					score_list.append(clf_wrapper.score_print_name)
+					fpr_list.append(clf_wrapper.mean_fpr)
+					tpr_list.append(clf_wrapper.mean_tpr)
+					auc_list.append(clf_wrapper.mean_auc)
 
-			metrics_per_score[base_score] = clf_wrapper.metrics_list
-		
+				metrics_per_score[base_score] = clf_wrapper.metrics_list
+			except:
+				print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)
 		
 		check_and_save_performance_metrics(metrics_per_score, genomic_classes, clf_wrapper.clinvar_feature_table_dir)
 
 		
-		
-	
-	
-	# TODO:
-	# 1. Add HGMD as dataset and additional sets for control variants (those in TOPMED and not in gnomad - and having low MAF (any idea for the cut-off?))
-		# > Train JARVIS with all HGMD pathogenic vs the ClinVar benign (or other set of benign variants). Then predict for all 3kb windows (with all the features already annotated) to rank them based on their probability score to be pathogenic.
-	# 2. Add annotation for Histon marks/Methylation from other cell types too.
-	# 3. Prioritise variants from denovo-db for neuro-developmental disorders
-
-	# 4. Calculate gwRVIS with TOPMED (liftover TOPMED to GRCh37) and show correlation 
-	# 5. Calculate gwRVIS for different sub-populations: AFR vs EUR possibly?
-	
-	# TOPMED control - matched: i.e. in close proximity with HGMD hits
-	
-	# Then:
-	# - Add raw genomic sequence as a feature to JARVIS
-		# > Need to add DNN as classifier in that case
-		
-	
-	# [DONE]
-	# - JARVIS performance per non-coding class vs any other score (w/ RandomForest)  [DONE]
-	# - JARVIS performance across all non-coding classes compared to the other scores (still performs better :) ) [DONE]
-	# - Subset genomic region within the Classifier class [DONE]
-	# - Create another class here to be called for different scores, receiving the results and then providing aggregate plots. [DONE]
-	
-	
-	
-	# Another project (almost):
-	# - Predict most-intolerant vs most-tolerant from raw sequence only with CNNs (either as binary classification or regression).
-	# The regression version may allow us to predict the gwRVIS score for regions that do not have variant data within a VCF.
-	# ---------------------------------------------------------------------------------------	

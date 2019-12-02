@@ -44,11 +44,10 @@ class DnnClassifier:
 class Classifier:
 	
 	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='DNN', 
-				 use_only_base_score=True, include_vcf_extracted_features=False, regression=False, exclude_base_score=False):
+				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False):
 				 
 		self.out_dir = out_dir
 		self.Y_label = Y_label
-		self.regression = regression
 		self.model_type = model_type
 		self.include_vcf_extracted_features = include_vcf_extracted_features
 		self.base_score = base_score
@@ -81,6 +80,8 @@ class Classifier:
 		print('Features:', self.feature_cols)
 		print('Label:', self.Y_label)
 	
+		print(Counter(df[self.Y_label]))
+	
 		# BETA
 		# Retaining only most important features (improves AUC only by +0.001)
 		#self.feature_cols = ['gwrvis', 'gc_content', 'cpg', 'mut_rate', 'cpg_islands', 'H3K4me2']
@@ -93,7 +94,7 @@ class Classifier:
 		negative_set_size = (self.y == 0).sum()
 		pos_neg_ratio = 1/1
 
-		if positive_set_size / negative_set_size < pos_neg_ratio:
+		if (positive_set_size / negative_set_size < pos_neg_ratio) or (negative_set_size / positive_set_size < pos_neg_ratio):
 			print('\n> Fixing class imbalance ...')
 			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
@@ -107,9 +108,7 @@ class Classifier:
 		"""
 			Initialise classifier model based on input base_score and model_type
 		"""
-	
-		#print('\n-----\nRegression:', self.regression)
-		
+			
 		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
 	
 	
@@ -170,7 +169,7 @@ class Classifier:
 		plt.legend(['train', 'test'], loc='upper left')
 		plt.show()
 		
-		fig1.savefig(self.out_dir + '/DNN_model_history.pdf', bbox_inches='tight')
+		fig1.savefig(self.out_dir + '/DNN_model_history.' + self.Y_label + '.pdf', bbox_inches='tight')
 
 		
 		
@@ -259,7 +258,7 @@ class Classifier:
 		
 		
 		pdf_filename = self.out_dir + '/' + self.model_type + '_ROC.' + self.score_print_name + \
-						'.AUC_' + str(self.mean_auc)
+						'.AUC_' + str(self.mean_auc) + '.' + self.Y_label
 						
 		if self.include_vcf_extracted_features:
 			pdf_filename += '.incl_vcf_features'
@@ -357,7 +356,7 @@ class Classifier:
 		importances_series.plot.bar()
 		plt.show()
 
-		pdf_filename = self.out_dir + '/RF_importance_scores.' + self.score_print_name + '.' + self.model_type
+		pdf_filename = self.out_dir + '/RF_importance_scores.' + self.score_print_name + '.' + self.model_type + '.' + self.Y_label
 
 		if self.include_vcf_extracted_features:
 			pdf_filename += '.incl_vcf_features'
