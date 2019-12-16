@@ -138,83 +138,6 @@ function merge_feature_tables_from_all_classes {
 
 
 
-function add_conservation_annotation {
-
-
-	# Add D{labelset_size}[.no_zeros] annotation -- read it from config
-	file_annot="D${labelset_size}" 
-	if [ $discard_zero_values == "1" ]; then
-		file_annot="${file_annot}.no_zeros"
-	fi
-	primate_conservation_dir="../other_datasets/conservation/phastCons46way_primates/most_least_conserved_files_by_class/${file_annot}"
-		
-	for genomic_class in "${input_classes[@]}"; do
-	#for genomic_class in intron; do
-		echo -e "\n> ${genomic_class}:"
-
-		most_conserved_file="$primate_conservation_dir/${genomic_class}.most_conserved.${file_annot}.bed"
-		least_conserved_file="$primate_conservation_dir/${genomic_class}.least_conserved.${file_annot}.bed"
-
-		# Get regions with ambiguous conservation profile (i.e. both conserved and non-conserved regions intersecting the same gwRVIS regions)
-		echo "Extracting regions with ambiguous conservation profile ..."
-		full_table="${out_feature_table_dir}/full_gwrvis_and_regulatory_features.${genomic_class}.tsv"
-		full_table_most_conserved="${tmp_conservation_out}/full_table.${genomic_class}.most_conserved.${file_annot}.bed"
-		full_table_least_conserved="${tmp_conservation_out}/full_table.${genomic_class}.least_conserved.${file_annot}.bed"
-
-		tail -n+2 $full_table | intersectBed -wa -a stdin -b $most_conserved_file > $full_table_most_conserved
-		tail -n+2 $full_table | intersectBed -wa -a stdin -b $least_conserved_file > $full_table_least_conserved
-
-		ambiguous_conserv_file="${tmp_conservation_out}/${genomic_class}.ambiguous_conservation.${file_annot}.bed"
-		intersectBed -a $full_table_most_conserved -b $full_table_least_conserved > $ambiguous_conserv_file
-
-
-		# Create conservation annotation file for current genomic class -- without ambiguous conservation regions
-		echo "Annotate full feature table with unambiguous conservation labels ..."
-		concat_label_file="${tmp_conservation_out}/${genomic_class}.conservation_labels.${file_annot}.bed"
-		cat $least_conserved_file $most_conserved_file | subtractBed -a stdin -b $ambiguous_conserv_file > $concat_label_file
-		#rm $least_conserved_file $most_conserved_file
-		echo "Output file: $concat_label_file"
-
-
-		# Annotate full feature table with unambiguous conservation annotations
-		echo "Intersecting with full feature table for $genomic_class class ..."
-		tail -n+2 $full_table | intersectBed -wb -a $concat_label_file -b stdin | cut --complement -f5,6,7 > $conservation_feature_table_dir/full_feature_table.conservation.${genomic_class}.${file_annot}.bed 
-
-	done
-
-
-	full_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.${file_annot}.bed"
-
-	# Cleanup previously created files
-	rm -f $full_out_file
-	for score in orion; do
-		score_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.${score}.${file_annot}.bed"
-		rm -f $score_out_file
-	done
-	cat $conservation_feature_table_dir/full_feature_table.conservation.*.${file_annot}.bed > ${full_out_file}.tmp
-
-
-	add_header_to_bed_by_genomic_class $full_out_file 1 0
-	printf "\nOutput file: $full_out_file\n\n"
-
-
-	# Get conservation-annotated tables for other genome-wide scores
-	for score in orion; do
-		echo -e "\nScore: $score"	
-		score_conservation_ref_file="../other_datasets/genome-wide-scores/${score}/${score}.conservation_annotation.${file_annot}.bed"
-		score_out_file="$conservation_feature_table_dir/full_feature_table.conservation.All_genomic_classes.${score}.${file_annot}.bed"
-
-		tail -n+2 $full_out_file | intersectBed -wo -a stdin -b $score_conservation_ref_file | rev | cut --complement -f1,3,4,5 | rev > ${score_out_file}.tmp
-	
-		add_header_to_bed_by_genomic_class $score_out_file 1 1
-
-		echo "Out file: $score_out_file"
-	done
-
-}
-
-
-
 
 
 
@@ -247,7 +170,7 @@ function add_external_genome_wide_scores {
 
 	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
 
-	for score in phastCons46way phyloP46way cadd dann orion ncRVIS; do
+	for score in ncER_10bp cdts linsight phastCons46way phyloP46way cadd dann orion ncRVIS; do
 		echo $score
 
 		# compile on the fly table with pathogenic and benign variants per score based on the defined pathogenic/benign sets

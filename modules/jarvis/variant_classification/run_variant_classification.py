@@ -62,7 +62,6 @@ class ClassificationWrapper:
 		self.ml_data_dir = self.out_dir + '/ml_data'
 		
 		self.clinvar_feature_table_dir = self.ml_data_dir + '/clinvar_feature_tables'
-		self.conservation_feature_table_dir = self.ml_data_dir + '/conservation_feature_tables'
 		
 		self.clinvar_ml_out_dir = self.ml_data_dir + '/clinvar-out'
 		if not os.path.exists(self.clinvar_ml_out_dir):
@@ -181,33 +180,6 @@ class ClassificationWrapper:
 		
 
 	
-	def read_conservation_feature_table(self):
-	
-		file_annot = "D" + str(labelset_size)
-		if discard_zero_values:
-			file_annot += ".no_zeros"
-	
-		if self.base_score in ['gwrvis', 'jarvis']:
-			print(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed')
-			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed', sep='\t', low_memory=False)
-		else:
-			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + self.base_score + '.' + file_annot + '.bed', sep='\t', low_memory=False)
-			self.full_feature_table.dropna(inplace=True)
-
-		
-		self.df = self.full_feature_table.loc[ self.full_feature_table.genomic_class.isin(self.genomic_classes), :].copy()
-	
-		# -- For conservation labels
-		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Non_conserved.*', '0', regex=True)
-		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Conserved.*', '1', regex=True)
-		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
-
-	
-		print(self.df.head())
-		print(self.df.tail())
-		print(self.df.shape)
-		
-		
 		
 	def run(self):
 	
@@ -216,10 +188,6 @@ class ClassificationWrapper:
 			self.read_input_data()
 			self.subset_feat_table_df()
 			
-		elif self.Y_label == 'conservation_annot':
-			# Conservation-based classification
-			self.read_conservation_feature_table()
-		
 		self.run_classifier()
 		
 		
@@ -324,14 +292,12 @@ if __name__ == '__main__':
 
 	if Y_label == 'clinvar_annot':
 		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
-	elif Y_label == 'conservation_annot':
-		genomic_classes_lists =  [ ['ucne'], ['vista'], ['intergenic'], ['utr'], ['lincrna'], ['ccds'], ['intron'] ] 
 
 	
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
 		#all_base_scores = ['orion', 'gwrvis', 'jarvis']
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
