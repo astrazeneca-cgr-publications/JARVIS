@@ -268,13 +268,12 @@ function add_external_genome_wide_scores {
 
 # =============== MAIN RUN ================
 printf "\n\n------------\nMerging BED files by genomic class and retrieving respective feature table...\n"
-#get_feature_table_by_genomic_class
+get_feature_table_by_genomic_class
 
 printf "\n\n------------\nMerging feature tables from all genomic classes...\n"
-#merge_feature_tables_from_all_classes
+merge_feature_tables_from_all_classes
 
-add_conservation_annotation
-exit
+#add_conservation_annotation
 
 printf "\n\n------------\nAnnotating full feature table (already with genomic class annotation) with ClinVar pathogenic/bengign variants...\n"
 add_clinvar_annotation

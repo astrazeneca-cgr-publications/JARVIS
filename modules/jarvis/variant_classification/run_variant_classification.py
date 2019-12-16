@@ -314,10 +314,6 @@ if __name__ == '__main__':
 	
 	genomic_classes_log = run_params['genomic_classes']
 	Y_label = run_params['Y_label']
-	labelset_size = int(run_params['labelset_size'])
-	discard_zero_values = bool(int(run_params['discard_zero_values']))
-	print("labelset_size:", labelset_size)
-	print("discard_zero_values:", discard_zero_values)
 	
 	pathogenic_set = run_params['pathogenic_set']
 	benign_set = run_params['benign_set']
@@ -335,8 +331,8 @@ if __name__ == '__main__':
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-		all_base_scores = ['orion', 'gwrvis', 'jarvis']
+		all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		#all_base_scores = ['orion', 'gwrvis', 'jarvis']
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
