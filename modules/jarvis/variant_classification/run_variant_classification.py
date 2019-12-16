@@ -66,6 +66,11 @@ class ClassificationWrapper:
 		self.clinvar_ml_out_dir = self.ml_data_dir + '/clinvar-out'
 		if not os.path.exists(self.clinvar_ml_out_dir):
 			os.makedirs(self.clinvar_ml_out_dir)
+
+		
+		self.base_out_models_dir = self.ml_data_dir + '/models'
+		if not os.path.exists(self.base_out_models_dir): 			
+			os.makedirs(self.base_out_models_dir)
 	
 	
 	
@@ -156,9 +161,12 @@ class ClassificationWrapper:
 		classifier_out_dir = self.clinvar_ml_out_dir + '/' + '_'.join(self.genomic_classes)
 		if not os.path.exists(classifier_out_dir):
 			os.makedirs(classifier_out_dir)
+		out_models_dir = self.base_out_models_dir + '/' + '_'.join(self.genomic_classes)
+		if not os.path.exists(out_models_dir): 			
+			os.makedirs(out_models_dir)
 			
 	
-		classifier = Classifier(self.Y_label, classifier_out_dir, base_score=self.base_score,
+		classifier = Classifier(self.Y_label, classifier_out_dir, out_models_dir, base_score=self.base_score,
 							model_type=self.model_type,
 							use_only_base_score=self.use_only_base_score,
 							include_vcf_extracted_features=self.include_vcf_extracted_features, 
@@ -291,14 +299,14 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
+		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron'], ['ccds'], ['intron'] ] 
 
 	
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
 		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-		#all_base_scores = ['orion', 'gwrvis', 'jarvis']
+		#all_base_scores = ['jarvis']
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -325,7 +333,7 @@ if __name__ == '__main__':
 
 			print('>>>>>>>  ' + base_score + '\n')
 
-			try:
+			try:  # 16 lines in try
 				clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
 													genomic_classes=genomic_classes,
 													Y_label=Y_label, 

@@ -19,6 +19,7 @@ from imblearn.under_sampling import RandomUnderSampler
 
 import warnings
 warnings.filterwarnings("error")
+import pickle
 import sys
 import os
 
@@ -29,24 +30,15 @@ sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from custom_utils import create_out_dir
 	
 
-class DnnClassifier:
-
-	def __init__(self, input_dim):
-		self.model = Sequential()
-		self.model.add(Dense(128, input_dim=input_dim, activation='relu'))
-		self.model.add(Dense(128, input_dim=input_dim, activation='relu'))
-		self.model.add(Dense(1, activation='sigmoid'))
-		
-		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-		
 	
 
 class Classifier:
 	
-	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='DNN', 
+	def __init__(self, Y_label, out_dir, out_models_dir, base_score='gwrvis', model_type='RF', 
 				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False):
 				 
 		self.out_dir = out_dir
+		self.out_models_dir = out_models_dir
 		self.Y_label = Y_label
 		self.model_type = model_type
 		self.include_vcf_extracted_features = include_vcf_extracted_features
@@ -123,9 +115,6 @@ class Classifier:
 			elif self.model_type == 'Logistic':
 				self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
 			
-			elif self.model_type == 'DNN':
-				self.model = DnnClassifier(len(self.feature_cols)).model
-			
 		print('Model:', self.model_type, '\n')
 		
 		
@@ -148,30 +137,6 @@ class Classifier:
 	
 	
 	
-	def plot_dnn_model_history(self, history):
-	
-		# summarize history for accuracy
-		fig1, ax = plt.subplots(figsize=(10, 10))
-		plt.plot(history.history['acc'])
-		plt.plot(history.history['val_acc'])
-		plt.title('model accuracy')
-		plt.ylabel('accuracy')
-		plt.xlabel('epoch')
-		plt.legend(['train', 'test'], loc='upper left')
-		plt.show()
-		
-		# summarize history for loss
-		plt.plot(history.history['loss'])
-		plt.plot(history.history['val_loss'])
-		plt.title('model loss')
-		plt.ylabel('loss')
-		plt.xlabel('epoch')
-		plt.legend(['train', 'test'], loc='upper left')
-		plt.show()
-		
-		fig1.savefig(self.out_dir + '/DNN_model_history.' + self.Y_label + '.pdf', bbox_inches='tight')
-
-		
 		
 		
 	def run_classification_with_cv(self, cv_splits=5, cv_repeats=5):
@@ -187,33 +152,38 @@ class Classifier:
 		fig, ax = plt.subplots(figsize=(10, 10))
 
 
+		if self.base_score == 'gwrvis':
+			print(self.X.shape)
+			print('Features:', self.feature_cols)
+			print('================================================')
+
+	
 		# n-repeated CV
 		for n in range(cv_repeats):
 			print('CV - Repeat:', str(n+1))
 			fold = 0
 			for train, test in cv.split(self.X, self.y):
 
-				# TODO - FIX
-				# Create clean instance of model for each fold
 			
-				if self.model_type == 'DNN':
-					history = self.model.fit(self.X[train], self.y[train], epochs=30, batch_size=32, 
-									verbose=False, validation_split=0.1)
-					# Get prediction probabilities per class
-					probas_ = self.model.predict_proba(self.X[test])
+				probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 
-					# Compute ROC curve and area the curve
-					fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 0])
-								
-					# Plot training history for train/validation sets
-					self.plot_dnn_model_history(history)
+				# BETA
+				"""
+				if self.base_score == 'gwrvis':
+					# TODO:
+					self.file_annot = 'D3000.no_zeros'
+
+					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
 					
-				else:
-					probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
-					# Compute ROC curve and area the curve
-					fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+					#print("-- Loading pre-built model from file:", model_out_file)
+					with open(model_out_file, 'rb') as fh:     
+						self.model = pickle.load(fh)	
+					probas_ = self.model.predict_proba(self.X[test])
+				"""
+
+				# Compute ROC curve and area the curve
+				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
 					
-				
 				
 				tprs.append(interp(mean_fpr, fpr, tpr))
 				tprs[-1][0] = 0.0
