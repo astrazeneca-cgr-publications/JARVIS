@@ -8,6 +8,7 @@ from collections import Counter
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
 
 from scipy import interp
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV, LinearRegression
@@ -165,21 +166,30 @@ class Classifier:
 			for train, test in cv.split(self.X, self.y):
 
 			
-				probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+				#probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 
-				# BETA
-				"""
-				if self.base_score == 'gwrvis':
-					# TODO:
-					self.file_annot = 'D3000.no_zeros'
+				# BETA 
+				self.file_annot = 'D3000.no_zeros'
+				if self.score_print_name == 'gwRVIS': 
 
 					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
+					print(model_out_file)
 					
-					#print("-- Loading pre-built model from file:", model_out_file)
+					# scikit-learn model
 					with open(model_out_file, 'rb') as fh:     
 						self.model = pickle.load(fh)	
 					probas_ = self.model.predict_proba(self.X[test])
-				"""
+
+
+				elif self.score_print_name == 'JARVIS':
+					input_features = 'structured' 
+					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + input_features + '.' + self.file_annot + '.model'
+					
+					# keras
+					self.model = load_model(model_out_file)	
+					probas_ = self.model.predict(self.X[test])
+
+
 
 				# Compute ROC curve and area the curve
 				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])

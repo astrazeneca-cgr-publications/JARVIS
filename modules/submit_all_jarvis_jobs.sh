@@ -10,9 +10,8 @@ if [ "$#" -ne 2 ]; then
 fi
 
 
-declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
-#declare -a genomic_classes=("ccds" "intron")
-#declare -a genomic_classes=("intron")
+#declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
+declare -a genomic_classes=("intergenic")
 
 
 for gen_classes in "${genomic_classes[@]}"; do

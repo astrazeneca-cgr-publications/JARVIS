@@ -161,7 +161,7 @@ class ClassificationWrapper:
 		classifier_out_dir = self.clinvar_ml_out_dir + '/' + '_'.join(self.genomic_classes)
 		if not os.path.exists(classifier_out_dir):
 			os.makedirs(classifier_out_dir)
-		out_models_dir = self.base_out_models_dir + '/' + '_'.join(self.genomic_classes)
+		out_models_dir = self.base_out_models_dir + '/' + 'intergenic_utr_lincrna_ucne_vista_intron_ccds'  #+ '_'.join(self.genomic_classes)
 		if not os.path.exists(out_models_dir): 			
 			os.makedirs(out_models_dir)
 			
@@ -299,14 +299,15 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron'], ['ccds'], ['intron'] ] 
+		#genomic_classes_lists =  [ ['intergenic'], ['utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron'], ['ccds'], ['intron'] ] 
+		genomic_classes_lists =  [ ['intergenic'] ]  # TEMP
 
 	
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-		#all_base_scores = ['jarvis']
+		#all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		all_base_scores = ['jarvis']  # TEMP
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -333,25 +334,25 @@ if __name__ == '__main__':
 
 			print('>>>>>>>  ' + base_score + '\n')
 
-			try:  # 16 lines in try
-				clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
-													genomic_classes=genomic_classes,
-													Y_label=Y_label, 
-													include_vcf_extracted_features=False, 
-													exclude_base_score=False,
-													filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
-													
-				clf_wrapper.run()
-			
-				if clf_wrapper.mean_auc is not None:
-					score_list.append(clf_wrapper.score_print_name)
-					fpr_list.append(clf_wrapper.mean_fpr)
-					tpr_list.append(clf_wrapper.mean_tpr)
-					auc_list.append(clf_wrapper.mean_auc)
+			#try:  # 16 lines in try
+			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
+												genomic_classes=genomic_classes,
+												Y_label=Y_label, 
+												include_vcf_extracted_features=False, 
+												exclude_base_score=False,
+												filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
+												
+			clf_wrapper.run()
+		
+			if clf_wrapper.mean_auc is not None:
+				score_list.append(clf_wrapper.score_print_name)
+				fpr_list.append(clf_wrapper.mean_fpr)
+				tpr_list.append(clf_wrapper.mean_tpr)
+				auc_list.append(clf_wrapper.mean_auc)
 
-				metrics_per_score[base_score] = clf_wrapper.metrics_list
-			except:
-				print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
+			metrics_per_score[base_score] = clf_wrapper.metrics_list
+			#except:
+			#	print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)
 		
