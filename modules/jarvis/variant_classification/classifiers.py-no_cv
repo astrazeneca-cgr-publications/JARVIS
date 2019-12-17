@@ -160,12 +160,11 @@ class Classifier:
 
 	
 		# n-repeated CV
-		for n in range(cv_repeats):
+		for n in range(1):
 			print('CV - Repeat:', str(n+1))
 			fold = 0
-			for train, test in cv.split(self.X, self.y):
+			for _ in range(1):
 
-			
 				#probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 
 				# BETA 
@@ -178,7 +177,7 @@ class Classifier:
 					# scikit-learn model
 					with open(model_out_file, 'rb') as fh:     
 						self.model = pickle.load(fh)	
-					probas_ = self.model.predict_proba(self.X[test])
+					probas_ = self.model.predict_proba(self.X)
 
 
 				elif self.score_print_name == 'JARVIS':
@@ -188,12 +187,12 @@ class Classifier:
 					
 					# keras
 					self.model = load_model(model_out_file)	
-					probas_ = self.model.predict(self.X[test])
+					probas_ = self.model.predict(self.X)
 
 
 
 				# Compute ROC curve and area the curve
-				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+				fpr, tpr, thresholds = roc_curve(self.y, probas_[:, 1])
 					
 				
 				tprs.append(interp(mean_fpr, fpr, tpr))
@@ -205,7 +204,7 @@ class Classifier:
 
 				
 				# Evaluate predictions on test and get performance metrics
-				metrics = self.test_and_evaluate_model(probas_, self.y[test])
+				metrics = self.test_and_evaluate_model(probas_, self.y)
 				metrics['auc'] = roc_auc
 				metrics_list.append(metrics)		 
 						 

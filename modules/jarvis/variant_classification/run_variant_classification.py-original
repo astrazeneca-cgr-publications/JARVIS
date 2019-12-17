@@ -164,7 +164,7 @@ class ClassificationWrapper:
 
 		# @anchor-1
 		#out_models_dir = self.base_out_models_dir + '/' + 'intergenic_utr_lincrna_ucne_vista'  #+ '_'.join(self.genomic_classes)
-		out_models_dir = self.base_out_models_dir + '/' + 'intergenic_utr_lincrna_ucne_vista'  #+ '_'.join(self.genomic_classes)
+		out_models_dir = self.base_out_models_dir + '/' + 'intergenic'  #+ '_'.join(self.genomic_classes)
 		"""
 		    -- JARVIS:
 		       > "intergenic_utr_lincrna_ucne_vista" is the best model for 'utr'--D3000-struct (0.675)
@@ -319,7 +319,7 @@ if __name__ == '__main__':
 	if hg_version == 'hg19':
 		#all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
 		# @anchor-3
-		all_base_scores = ['jarvis'] #['jarvis']  # TEMP
+		all_base_scores = ['gwrvis'] #['jarvis']  # TEMP
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
