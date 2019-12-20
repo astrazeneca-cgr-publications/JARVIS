@@ -169,7 +169,7 @@ class Classifier:
 				#probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 
 				# BETA 
-				self.file_annot = 'D3000.no_zeros'
+				self.file_annot = 'D10000.no_zeros'
 				if self.score_print_name == 'gwRVIS': 
 
 					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'

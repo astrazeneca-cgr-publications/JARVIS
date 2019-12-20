@@ -16,7 +16,7 @@ logging.getLogger('tensorflow').disabled = True
 import sys, os 
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
 from tensorflow.keras.layers import Convolution1D, MaxPooling1D
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -209,13 +209,13 @@ class JarvisTraining:
 		if '_'.join(genomic_classes) == 'ccds':
 			cv_repeats = 1
 			n_splits = 10
-			batch_size = 1024
+			#batch_size = 1024
 			patience = 2
 
 		if '_'.join(genomic_classes) == 'intron':
 			cv_repeats = 2
 			n_splits = 10
-			batch_size = 128
+			#batch_size = 128
 			patience = 5
 		print("Batch size:", batch_size)
 		# -----------------------------------------------------
@@ -245,8 +245,10 @@ class JarvisTraining:
 			print('\n>> CV - Repeat:', str(n+1))
 
 			fold = 0
-			for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
+			#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
+			for _ in range(1):
 
+				"""
 				if use_fixed_cv_batches:
 					train_index, test_index = cv_data_dict[fold]
 				else:
@@ -263,56 +265,69 @@ class JarvisTraining:
 					seqs_train, seqs_test = seqs[train_index], seqs[test_index]
 					print('seqs_train:', seqs_train.shape)
 					print('seqs_test:', seqs_test.shape)
-
+				"""
 
 				if input_features == 'structured':
-					train_inputs = X_train
-					test_inputs = X_test
+					#train_inputs = X_train
+					#test_inputs = X_test
+					test_inputs = X
 				elif input_features == 'sequences':
-					train_inputs = seqs_train
-					test_inputs = seqs_test
+					#train_inputs = seqs_train
+					#test_inputs = seqs_test
+					test_inputs = seqs
 				elif input_features == 'both':
-					train_inputs = [X_train, seqs_train]
-					test_inputs = [X_test, seqs_test]
-
-
-				# -- Create new/clean model instance for each fold
-				# > Keras functional API
-				if input_features == 'structured':
-					# @ Feed-forward DNN (for structured features input only)
-					model = dnn_model(data_dict['X'].shape[1], nn_arch=nn_arch)	
-				elif input_features == 'sequences':
-					# @ CNN-CNN-FC-FC (for sequence features only)
-					#model = func_api_nn_models.cnn2_fc2(self.win_len)
-					model = sequence_model(self.win_len)
-				elif input_features == 'both':
-					# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
-					model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
-				model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-				print(model.summary())
-
-
-
-				# ---- Callbacks ----
-				checkpoint_dir = self.ml_data_dir + '/checkpoint_cv_models'
-				if not os.path.exists(checkpoint_dir):
-					os.makedirs(checkpoint_dir)
-				checkpoint_name = checkpoint_dir + '/jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '.best_model_with_cv.hdf5'
-				checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
-				patience = 10
-				#if input_features == 'structured':
-				#	patience = 20  # may lead to over-fitting
-				earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
-				# -------------------
+					#train_inputs = [X_train, seqs_train]
+					#test_inputs = [X_test, seqs_test]
+					test_inputs = [X, seqs]
+	
+				if False:
+					# -- Create new/clean model instance for each fold
+					# > Keras functional API
+					if input_features == 'structured':
+						# @ Feed-forward DNN (for structured features input only)
+						model = dnn_model(data_dict['X'].shape[1], nn_arch=nn_arch)	
+					elif input_features == 'sequences':
+						# @ CNN-CNN-FC-FC (for sequence features only)
+						#model = func_api_nn_models.cnn2_fc2(self.win_len)
+						model = sequence_model(self.win_len)
+					elif input_features == 'both':
+						# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
+						model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
+					model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+					print(model.summary())
 
 
 
-				history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
-					  shuffle=True,
-					  validation_split=validation_split, 
-					  callbacks=[checkpointer, earlystopper], 
-					  verbose=verbose)
-				#self.plot_history(history, fold_id=(fold+1))
+					# ---- Callbacks ----
+					checkpoint_dir = self.ml_data_dir + '/checkpoint_cv_models'
+					if not os.path.exists(checkpoint_dir):
+						os.makedirs(checkpoint_dir)
+					checkpoint_name = checkpoint_dir + '/jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '.best_model_with_cv.hdf5'
+					checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
+					patience = 10
+					#if input_features == 'structured':
+					#	patience = 20  # may lead to over-fitting
+					earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
+					# -------------------
+
+
+
+					history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
+						  shuffle=True,
+						  validation_split=validation_split, 
+						  callbacks=[checkpointer, earlystopper], 
+						  verbose=verbose)
+					#self.plot_history(history, fold_id=(fold+1))
+				else:
+					
+					labelset_size = 10000
+					# intergenic
+					model_out_file = "../out/topmed-conservation-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/" + '_'.join(genomic_classes) + "/JARVIS-" + input_features + ".D" + str(labelset_size) + ".no_zeros.model"
+					model = load_model(model_out_file)
+					print("Loaded saved model:", model_out_file)
+
+					y_test = y
+
 				
 				# Get prediction probabilities per class 				
 				#probas_ = model.predict_proba(X_test)

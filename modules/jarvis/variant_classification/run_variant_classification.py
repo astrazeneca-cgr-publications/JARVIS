@@ -164,7 +164,7 @@ class ClassificationWrapper:
 
 		# @anchor-1
 		#out_models_dir = self.base_out_models_dir + '/' + 'intergenic_utr_lincrna_ucne_vista'  #+ '_'.join(self.genomic_classes)
-		out_models_dir = self.base_out_models_dir + '/' + 'intergenic_utr_lincrna_ucne_vista'  #+ '_'.join(self.genomic_classes)
+		out_models_dir = self.base_out_models_dir + '/' + 'intergenic'  #+ '_'.join(self.genomic_classes)
 		"""
 		    -- JARVIS:
 		       > "intergenic_utr_lincrna_ucne_vista" is the best model for 'utr'--D3000-struct (0.675)
