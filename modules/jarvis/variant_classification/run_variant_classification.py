@@ -86,6 +86,7 @@ class ClassificationWrapper:
 		#print(self.full_feature_table.head())
 	
 
+
 	def subset_feat_table_df(self):
 		
 		print('> All genomic classes:', self.full_feature_table.genomic_class.unique())

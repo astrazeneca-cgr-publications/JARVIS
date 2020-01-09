@@ -180,7 +180,6 @@ class Classifier:
 						self.model = pickle.load(fh)	
 					probas_ = self.model.predict_proba(self.X[test])
 
-
 				elif self.score_print_name == 'JARVIS':
 					input_features = 'structured' 
 					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + input_features + '.' + self.file_annot + '.model'
