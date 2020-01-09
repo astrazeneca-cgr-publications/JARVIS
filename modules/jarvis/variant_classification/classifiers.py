@@ -36,7 +36,8 @@ from custom_utils import create_out_dir
 class Classifier:
 	
 	def __init__(self, Y_label, out_dir, out_models_dir, base_score='gwrvis', model_type='RF', 
-				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False):
+				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False, 
+				 use_pathogenicity_trained_model=False, use_conservation_trained_model=False):
 				 
 		self.out_dir = out_dir
 		self.out_models_dir = out_models_dir
@@ -46,6 +47,9 @@ class Classifier:
 		self.base_score = base_score
 		self.use_only_base_score = use_only_base_score
 		self.exclude_base_score = exclude_base_score
+		self.use_pathogenicity_trained_model = use_pathogenicity_trained_model
+		self.use_conservation_trained_model = use_conservation_trained_model
+		
 
 			
 	
@@ -70,8 +74,8 @@ class Classifier:
 				
 			self.feature_cols = [x for x in df.columns.values if x not in cols_to_drop ]
 		
-		print('Features:', self.feature_cols)
-		print('Label:', self.Y_label)
+		#print('Features:', self.feature_cols)
+		#print('Label:', self.Y_label)
 	
 		print(Counter(df[self.Y_label]))
 	
@@ -81,7 +85,7 @@ class Classifier:
 			
 		self.X = df[self.feature_cols].values
 		self.y = df[self.Y_label].astype(int).values
-
+		
 		# Fix class imbalance (with over/under-sampling minority/majority class)
 		positive_set_size = (self.y == 1).sum()
 		negative_set_size = (self.y == 0).sum()
@@ -93,7 +97,7 @@ class Classifier:
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
 			self.X, self.y = rus.fit_resample(self.X, self.y)
 			print('Balanced sets:', sorted(Counter(self.y).items()))
-			
+				
 		
 		
 	
@@ -166,30 +170,48 @@ class Classifier:
 			for train, test in cv.split(self.X, self.y):
 
 			
-				#probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
-
-				# BETA
-				self.file_annot = 'D10000.no_zeros' # -- file_annot is used only when loading/saving conservation-trained models
-				if self.score_print_name == 'gwRVIS': 
-
-					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
-					print(model_out_file)
+				if self.base_score not in ['gwrvis', 'jarvis']:
+					probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 					
-					# scikit-learn model
-					with open(model_out_file, 'rb') as fh:     
-						self.model = pickle.load(fh)	
-					probas_ = self.model.predict_proba(self.X[test])
-
-				elif self.score_print_name == 'JARVIS':
-					input_features = 'structured' 
-					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + input_features + '.' + self.file_annot + '.model'
-					print(model_out_file)
+				else:
+					# BETA
+					if self.use_conservation_trained_model:
 					
-					# keras
-					self.model = load_model(model_out_file)	
-					probas_ = self.model.predict(self.X[test])
+						self.file_annot = 'D3000.no_zeros' # -- file_annot is used only when loading/saving conservation-trained models
+						if self.score_print_name in ['gwRVIS']: 
 
+							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
+							print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
+							
+							# scikit-learn model
+							with open(model_out_file, 'rb') as fh:     
+								self.model = pickle.load(fh)	
+							probas_ = self.model.predict_proba(self.X[test])
 
+						elif self.score_print_name == 'JARVIS':
+							input_features = 'structured' 
+							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + input_features + '.' + self.file_annot + '.model'
+							print(model_out_file)
+							
+							# keras
+							self.model = load_model(model_out_file)	
+							probas_ = self.model.predict(self.X[test])
+
+					elif self.use_pathogenicity_trained_model:
+							
+							# -- At the moment use RF-based model for JARVIS (and LR for gwRVIS anyway)
+							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
+							print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
+							
+							# scikit-learn model
+							with open(model_out_file, 'rb') as fh:     
+								self.model = pickle.load(fh)	
+							probas_ = self.model.predict_proba(self.X[test])
+						
+					else:
+					
+						probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+						
 
 				# Compute ROC curve and area the curve
 				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
@@ -251,7 +273,9 @@ class Classifier:
 		
 		
 		if self.model_type == 'RF':
-			self.get_feature_importances()
+			# BETA -- pass when using DL model
+			pass
+			#self.get_feature_importances()
 
 		self.mean_tpr = mean_tpr
 		self.mean_fpr = mean_fpr
@@ -262,8 +286,9 @@ class Classifier:
 	
 	
 		# =========== TRAIN FULL MODEL FOR JARVIS and gwRVIS ===========
-		if self.base_score in ['gwrvis', 'jarvis']:
-
+		if self.base_score in ['gwrvis', 'jarvis'] and not (self.use_conservation_trained_model or self.use_pathogenicity_trained_model):
+		
+			# Save the model only when a pre-trained one has NOT been defined to be used for prediction
 			self.model.fit(self.X, self.y)
 			model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
 			with open(model_out_file, 'wb') as fh:

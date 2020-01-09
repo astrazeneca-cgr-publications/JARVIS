@@ -1,7 +1,7 @@
 from scipy.stats import mannwhitneyu
 import pandas as pd
 import numpy as np
-from sys import argv, exit
+import sys
 from scipy import stats
 import subprocess
 import os
@@ -10,8 +10,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from custom_utils import create_out_dir, get_config_params
 
 
-config_file = argv[1]
-input_classes_file = argv[2]
+config_file = sys.argv[1]
+input_classes_file = sys.argv[2]
 
 run_params = get_config_params(config_file)
 hg_version = run_params['hg_version']
