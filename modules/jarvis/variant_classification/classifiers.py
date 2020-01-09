@@ -168,8 +168,8 @@ class Classifier:
 			
 				#probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 
-				# BETA 
-				self.file_annot = 'D10000.no_zeros'
+				# BETA
+				self.file_annot = 'D10000.no_zeros' # -- file_annot is used only when loading/saving conservation-trained models
 				if self.score_print_name == 'gwRVIS': 
 
 					model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
@@ -260,6 +260,18 @@ class Classifier:
 		self.metrics_list = metrics_list
 		#print("\nMetrics: ", metrics_list)
 	
+	
+		# =========== TRAIN FULL MODEL FOR JARVIS and gwRVIS ===========
+		if self.base_score in ['gwrvis', 'jarvis']:
+
+			self.model.fit(self.X, self.y)
+			model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
+			with open(model_out_file, 'wb') as fh:
+				pickle.dump(self.model, fh)
+
+			print("Saved full model into:", model_out_file, '\n')
+			
+			
 	
 	
 	def get_metrics(self, test_flat, preds_flat, verbose=0):

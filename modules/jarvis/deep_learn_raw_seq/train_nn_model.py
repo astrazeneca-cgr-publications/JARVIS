@@ -173,6 +173,63 @@ class JarvisTraining:
 		return X, y, seqs
 	
 		
+	
+	
+	def train_full_model(self, X, y, seqs, input_features, batch_size, epochs, validation_split, patience, X_len, genomic_classes):			
+		"""
+		    TRAIN FULL MODEL FOR JARVIS
+		"""
+		if input_features == 'structured':
+			train_inputs = X
+			patience = 10
+		elif input_features == 'sequences':
+			train_inputs = seqs
+		elif input_features == 'both':
+			train_inputs = [X, seqs]
+
+
+		# > Keras functional API
+		if input_features == 'structured':
+			# @ Feed-forward DNN (for structured features input only)
+			model = dnn_model(X_len, nn_arch=nn_arch)	
+		elif input_features == 'sequences':
+			# @ CNN-CNN-FC-FC (for sequence features only)
+			model = sequence_model(self.win_len)
+		elif input_features == 'both':
+			# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
+			model = concat_model(X_len, nn_arch=nn_arch, win_len=self.win_len)
+
+		optimizer = 'adam' # Adam(lr=0.0001) #'adam'
+		model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+		print(model.summary())
+
+		# ---- Callbacks ----
+		checkpoint_dir = self.ml_data_dir + '/checkpoint_cv_models'
+		if not os.path.exists(checkpoint_dir):
+			os.makedirs(checkpoint_dir)
+		checkpoint_name = checkpoint_dir + '/jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '.full_best_model_with_cv.' + str(uuid.uuid4().hex) + '.hdf5'
+		checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, 
+					       save_weights_only=False, save_best_only=True, mode='auto')
+		patience = patience
+		earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
+		# -------------------
+
+		history = model.fit(train_inputs, y, batch_size=batch_size, epochs=epochs, 
+			  shuffle=True,
+			  validation_split=validation_split, 
+			  callbacks=[checkpointer, earlystopper], 
+			  verbose=verbose)
+		self.plot_history(history, fold_id='full_model')
+
+		model_out_file = self.out_dir + '/ml_data/models/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
+		#with open(model_out_file, 'wb') as fh:
+		#	pickle.dump(model, fh)
+		model.save(model_out_file)
+
+		print("Saved full model into:", model_out_file, '\n')
+		
+		
+		
 
 	def train_with_cv(self, data_dict, include_vcf_features, genomic_classes,
 			  n_splits=5, batch_size=16, epochs=40, validation_split=0,
@@ -239,167 +296,174 @@ class JarvisTraining:
 			with open(fixed_cv_batches_file, 'rb') as handle:
 				cv_data_dict = pickle.load(handle)
 
-				
-		# n-repeated CV
-		for n in range(cv_repeats):
-			print('\n>> CV - Repeat:', str(n+1))
+			
+			
+		if train_full_model:
+			self.train_full_model(X, y, seqs, input_features, batch_size, epochs, validation_split, patience, data_dict['X'].shape[1], genomic_classes)
 
-			fold = 0
-			#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
-			for _ in range(1):
+			
+			
+		if train_with_cv:
+			# n-repeated CV
+			for n in range(cv_repeats):
+				print('\n>> CV - Repeat:', str(n+1))
 
-				"""
-				if use_fixed_cv_batches:
-					train_index, test_index = cv_data_dict[fold]
-				else:
-					cv_data_dict[fold] = [train_index, test_index]
+				fold = 0
+				#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
+				for _ in range(1):
 
-				y_train, y_test = y[train_index], y[test_index]
-				X_train, X_test = X[train_index], X[test_index]
-				print('X_train:', X_train.shape)
-				print('y_train:', y_train.shape)
-				print('X_test:', X_test.shape)
-				print('y_test:', y_test.shape)
+					"""
+					if use_fixed_cv_batches:
+						train_index, test_index = cv_data_dict[fold]
+					else:
+						cv_data_dict[fold] = [train_index, test_index]
 
-				if input_features != 'structured':
-					seqs_train, seqs_test = seqs[train_index], seqs[test_index]
-					print('seqs_train:', seqs_train.shape)
-					print('seqs_test:', seqs_test.shape)
-				"""
+					y_train, y_test = y[train_index], y[test_index]
+					X_train, X_test = X[train_index], X[test_index]
+					print('X_train:', X_train.shape)
+					print('y_train:', y_train.shape)
+					print('X_test:', X_test.shape)
+					print('y_test:', y_test.shape)
 
-				if input_features == 'structured':
-					#train_inputs = X_train
-					#test_inputs = X_test
-					test_inputs = X
-				elif input_features == 'sequences':
-					#train_inputs = seqs_train
-					#test_inputs = seqs_test
-					test_inputs = seqs
-				elif input_features == 'both':
-					#train_inputs = [X_train, seqs_train]
-					#test_inputs = [X_test, seqs_test]
-					test_inputs = [X, seqs]
-	
-				if False:
-					# -- Create new/clean model instance for each fold
-					# > Keras functional API
+					if input_features != 'structured':
+						seqs_train, seqs_test = seqs[train_index], seqs[test_index]
+						print('seqs_train:', seqs_train.shape)
+						print('seqs_test:', seqs_test.shape)
+					"""
+
 					if input_features == 'structured':
-						# @ Feed-forward DNN (for structured features input only)
-						model = dnn_model(data_dict['X'].shape[1], nn_arch=nn_arch)	
+						#train_inputs = X_train
+						#test_inputs = X_test
+						test_inputs = X
 					elif input_features == 'sequences':
-						# @ CNN-CNN-FC-FC (for sequence features only)
-						#model = func_api_nn_models.cnn2_fc2(self.win_len)
-						model = sequence_model(self.win_len)
+						#train_inputs = seqs_train
+						#test_inputs = seqs_test
+						test_inputs = seqs
 					elif input_features == 'both':
-						# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
-						model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
-					model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-					print(model.summary())
+						#train_inputs = [X_train, seqs_train]
+						#test_inputs = [X_test, seqs_test]
+						test_inputs = [X, seqs]
+		
+					if False:
+						# -- Create new/clean model instance for each fold
+						# > Keras functional API
+						if input_features == 'structured':
+							# @ Feed-forward DNN (for structured features input only)
+							model = dnn_model(data_dict['X'].shape[1], nn_arch=nn_arch)	
+						elif input_features == 'sequences':
+							# @ CNN-CNN-FC-FC (for sequence features only)
+							#model = func_api_nn_models.cnn2_fc2(self.win_len)
+							model = sequence_model(self.win_len)
+						elif input_features == 'both':
+							# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
+							model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
+						model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+						print(model.summary())
 
 
 
-					# ---- Callbacks ----
-					checkpoint_dir = self.ml_data_dir + '/checkpoint_cv_models'
-					if not os.path.exists(checkpoint_dir):
-						os.makedirs(checkpoint_dir)
-					checkpoint_name = checkpoint_dir + '/jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '.best_model_with_cv.hdf5'
-					checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
-					patience = 10
-					#if input_features == 'structured':
-					#	patience = 20  # may lead to over-fitting
-					earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
-					# -------------------
+						# ---- Callbacks ----
+						checkpoint_dir = self.ml_data_dir + '/checkpoint_cv_models'
+						if not os.path.exists(checkpoint_dir):
+							os.makedirs(checkpoint_dir)
+						checkpoint_name = checkpoint_dir + '/jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '.best_model_with_cv.hdf5'
+						checkpointer = ModelCheckpoint(checkpoint_name, monitor='val_loss', verbose=verbose, save_best_only=True, mode='auto')
+						patience = 10
+						#if input_features == 'structured':
+						#	patience = 20  # may lead to over-fitting
+						earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
+						# -------------------
 
 
 
-					history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
-						  shuffle=True,
-						  validation_split=validation_split, 
-						  callbacks=[checkpointer, earlystopper], 
-						  verbose=verbose)
-					#self.plot_history(history, fold_id=(fold+1))
-				else:
+						history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
+							  shuffle=True,
+							  validation_split=validation_split, 
+							  callbacks=[checkpointer, earlystopper], 
+							  verbose=verbose)
+						#self.plot_history(history, fold_id=(fold+1))
+					else:
+						
+						labelset_size = 10000
+						# intergenic
+						model_out_file = "../out/topmed-conservation-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/" + '_'.join(genomic_classes) + "/JARVIS-" + input_features + ".D" + str(labelset_size) + ".no_zeros.model"
+						model = load_model(model_out_file)
+						print("Loaded saved model:", model_out_file)
+
+						y_test = y
+
 					
-					labelset_size = 10000
-					# intergenic
-					model_out_file = "../out/topmed-conservation-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/" + '_'.join(genomic_classes) + "/JARVIS-" + input_features + ".D" + str(labelset_size) + ".no_zeros.model"
-					model = load_model(model_out_file)
-					print("Loaded saved model:", model_out_file)
+					# Get prediction probabilities per class 				
+					#probas_ = model.predict_proba(X_test)
+					probas_ = model.predict(test_inputs)  # for Keras functional API
 
-					y_test = y
-
-				
-				# Get prediction probabilities per class 				
-				#probas_ = model.predict_proba(X_test)
-				probas_ = model.predict(test_inputs)  # for Keras functional API
-
-				
-				
-				# Compute ROC curve and area the curve 				
-				fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
+					
+					
+					# Compute ROC curve and area the curve 				
+					fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
 
 
-				tprs.append(interp(mean_fpr, fpr, tpr)) 
-				tprs[-1][0] = 0.0 
-				roc_auc = round(auc(fpr, tpr), 3) 	
-				print('Fold-', str(fold+1), ' - AUC: ', roc_auc, '\n')
-				aucs.append(roc_auc)
-				plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (fold, roc_auc))
+					tprs.append(interp(mean_fpr, fpr, tpr)) 
+					tprs[-1][0] = 0.0 
+					roc_auc = round(auc(fpr, tpr), 3) 	
+					print('Fold-', str(fold+1), ' - AUC: ', roc_auc, '\n')
+					aucs.append(roc_auc)
+					plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (fold, roc_auc))
 
 
-				# Evaluate predictions on test and get performance metrics
-				metrics = self.test_and_evaluate_model(probas_, y_test)
-				metrics['auc'] = roc_auc
-				metrics_list.append(metrics)
-				
-				fold += 1
-				
-				
-		# Save CV batches to a pickle file
-		if not use_fixed_cv_batches:
-			print("\nSaving CV batches to a pickle file...")
-			with open(fixed_cv_batches_file, 'wb') as handle:
-				pickle.dump(cv_data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-	
-
-
-		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
+					# Evaluate predictions on test and get performance metrics
+					metrics = self.test_and_evaluate_model(probas_, y_test)
+					metrics['auc'] = roc_auc
+					metrics_list.append(metrics)
+					
+					fold += 1
+					
+					
+			# Save CV batches to a pickle file
+			if not use_fixed_cv_batches:
+				print("\nSaving CV batches to a pickle file...")
+				with open(fixed_cv_batches_file, 'wb') as handle:
+					pickle.dump(cv_data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 		
-		
-		mean_tpr = np.mean(tprs, axis=0)
-		mean_tpr[-1] = 1.0
-		self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
-		std_auc = np.std(aucs)
-		plt.plot(mean_fpr, mean_tpr, color='b',
-				 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
-				 lw=2, alpha=.8)
 
-		std_tpr = np.std(tprs, axis=0)
-		tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
-		tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-		plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
-						 label=r'$\pm$ 1 std. dev.')
 
-		plt.xlim([-0.05, 1.05])
-		plt.ylim([-0.05, 1.05])
-		plt.xlabel('False Positive Rate')
-		plt.ylabel('True Positive Rate')
-		plt.title('[' + ','.join(genomic_classes) + ']: ' + str(n_splits) + '-fold Cross-Validation ROC Curve')
-		plt.legend(loc="lower right")
-		#plt.show()
-		#plt.close()
-		
-		
-		pdf_filename = self.out_dir + '/Jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
-		if include_vcf_features:
-			pdf_filename += '.incl_vcf_features'
-		pdf_filename += '.pdf'
-		
-		fig.savefig(pdf_filename, bbox_inches='tight')
-		
-		print('Mean AUC:', self.mean_auc)
-		self.metrics_list = metrics_list
-		print("\nMetrics: ", metrics_list)
+			plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
+			
+			
+			mean_tpr = np.mean(tprs, axis=0)
+			mean_tpr[-1] = 1.0
+			self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
+			std_auc = np.std(aucs)
+			plt.plot(mean_fpr, mean_tpr, color='b',
+					 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
+					 lw=2, alpha=.8)
+
+			std_tpr = np.std(tprs, axis=0)
+			tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+			tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+			plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
+							 label=r'$\pm$ 1 std. dev.')
+
+			plt.xlim([-0.05, 1.05])
+			plt.ylim([-0.05, 1.05])
+			plt.xlabel('False Positive Rate')
+			plt.ylabel('True Positive Rate')
+			plt.title('[' + ','.join(genomic_classes) + ']: ' + str(n_splits) + '-fold Cross-Validation ROC Curve')
+			plt.legend(loc="lower right")
+			#plt.show()
+			#plt.close()
+			
+			
+			pdf_filename = self.out_dir + '/Jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
+			if include_vcf_features:
+				pdf_filename += '.incl_vcf_features'
+			pdf_filename += '.pdf'
+			
+			fig.savefig(pdf_filename, bbox_inches='tight')
+			
+			print('Mean AUC:', self.mean_auc)
+			self.metrics_list = metrics_list
+			print("\nMetrics: ", metrics_list)
 
 		
 
@@ -523,6 +587,10 @@ if __name__ == '__main__':
 	include_vcf_features = False
 
 
+	# ----------------------
+	train_full_model = False
+	train_with_cv = True
+	# ----------------------
 
 
 	jarvis_trainer = JarvisTraining(config_file, include_vcf_features)
