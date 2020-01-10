@@ -8,9 +8,9 @@ run:
         population: all    # e.g. all (default), FIN, etc.
         filter_zero_variants_wins: 0        # [deprecated] exclude windows with zero variants from CDF and density plots'
         filter_ccds_variants: False     # default: False (use True to exclude CCDS variants affecting gwRVIS calculation)
-        run_identifier: ncER-training  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
+        run_identifier: HGMD_pathogenic  # output_dir suffix, e.g. -gnomad-sufficient-coverage-min_depth20-FILTERED_variants 
         Y_label: clinvar_annot
-        pathogenic_set: ncER-training
+        pathogenic_set: HGMD
         benign_set: denovodb
 fixed:
         kmer: 7          # mutability rate based on k-mer: 7 or 3

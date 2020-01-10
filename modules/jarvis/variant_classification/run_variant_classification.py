@@ -314,7 +314,8 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists =  [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron'], ['ccds'], ['intron'] ] 
+		genomic_classes_lists =  [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] 
+		#, ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['ccds'], ['intron'] ]    #['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron']
 		# @anchor-2
 		#genomic_classes_lists =  [ ['intergenic'] ]  # TEMP
 
@@ -338,7 +339,7 @@ if __name__ == '__main__':
 	
 	# *************************************
 	use_pathogenicity_trained_model=False
-	use_conservation_trained_model=True
+	use_conservation_trained_model=False
 	# *************************************
 	
 	
