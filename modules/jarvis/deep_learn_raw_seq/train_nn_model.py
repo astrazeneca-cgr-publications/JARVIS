@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import pickle
+import uuid
 
 from scipy import interp
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
@@ -54,8 +55,9 @@ class JarvisTraining:
 
 
 		self.data_dict_file = self.ml_data_dir + '/jarvis_data.pkl'
-		if not os.path.exists(self.data_dict_file):
-			print("Preparing training data - calling JarvisDataPreprocessing object...")
+		# @anchor
+		if not os.path.exists(self.data_dict_file) or (use_conservation_trained_model or use_pathogenicity_trained_model):
+			print("\nPreparing training data - calling JarvisDataPreprocessing object...")
 			data_preprocessor = JarvisDataPreprocessing(config_file)
 			
 			# Extract raw sequences from input variant windows and combine with original feature set         
@@ -72,6 +74,7 @@ class JarvisTraining:
 		self.out_dir = custom_utils.create_out_dir(self.config_file)
 		self.ml_data_dir = self.out_dir + '/ml_data'
 		self.clinvar_feature_table_dir = self.ml_data_dir + '/clinvar_feature_tables'
+		self.out_models_dir = self.ml_data_dir + '/models'
 		
 
 
@@ -219,9 +222,9 @@ class JarvisTraining:
 			  validation_split=validation_split, 
 			  callbacks=[checkpointer, earlystopper], 
 			  verbose=verbose)
-		self.plot_history(history, fold_id='full_model')
+		#self.plot_history(history, fold_id='full_model')
 
-		model_out_file = self.out_dir + '/ml_data/models/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
+		model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
 		#with open(model_out_file, 'wb') as fh:
 		#	pickle.dump(model, fh)
 		model.save(model_out_file)
@@ -232,7 +235,7 @@ class JarvisTraining:
 		
 
 	def train_with_cv(self, data_dict, include_vcf_features, genomic_classes,
-			  n_splits=5, batch_size=16, epochs=40, validation_split=0,
+			  n_splits=5, batch_size=16, epochs=40, validation_split=0, patience=10,
 			  use_multiprocessing=True, verbose=0, input_features='structured', cv_repeats=5):
 		""" 
 			Arg 'input_features' may take 1 of 3 possible values:
@@ -309,9 +312,28 @@ class JarvisTraining:
 				print('\n>> CV - Repeat:', str(n+1))
 
 				fold = 0
-				#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #SK-fold requires non one-hot encoded y-data
+				#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
 				for _ in range(1):
 
+					"""
+						> Use that for prediction on a test set
+						-- preceded by: for _ in range(1)
+					"""
+					if input_features == 'structured':
+						test_inputs = X
+						y_test = y
+					elif input_features == 'sequences':
+						test_inputs = seqs
+						y_test = y
+					elif input_features == 'both':
+						test_inputs = [X, seqs]
+						y_test = y
+					
+					
+					"""
+						> Use that for generalised performance with cross-validation
+						-- preceded by: for train_index, test_index in skf.split(X, np.argmax(y, axis=1))
+					"""
 					"""
 					if use_fixed_cv_batches:
 						train_index, test_index = cv_data_dict[fold]
@@ -329,22 +351,37 @@ class JarvisTraining:
 						seqs_train, seqs_test = seqs[train_index], seqs[test_index]
 						print('seqs_train:', seqs_train.shape)
 						print('seqs_test:', seqs_test.shape)
-					"""
-
+					
 					if input_features == 'structured':
-						#train_inputs = X_train
-						#test_inputs = X_test
-						test_inputs = X
+						train_inputs = X_train
+						test_inputs = X_test
 					elif input_features == 'sequences':
-						#train_inputs = seqs_train
-						#test_inputs = seqs_test
-						test_inputs = seqs
+						train_inputs = seqs_train
+						test_inputs = seqs_test
 					elif input_features == 'both':
-						#train_inputs = [X_train, seqs_train]
-						#test_inputs = [X_test, seqs_test]
-						test_inputs = [X, seqs]
+						train_inputs = [X_train, seqs_train]
+						test_inputs = [X_test, seqs_test]
+					"""
+	
+						
+					
 		
-					if False:
+					if use_conservation_trained_model or use_pathogenicity_trained_model:
+						
+						if use_conservation_trained_model:
+							self.file_annot = 'D3000.no_zeros'
+							model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
+					
+						elif use_pathogenicity_trained_model:
+							model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
+					
+						model = load_model(model_out_file)
+						print("Loaded saved model:", model_out_file)
+
+						#y_test = y
+					
+					
+					else:
 						# -- Create new/clean model instance for each fold
 						# > Keras functional API
 						if input_features == 'structured':
@@ -359,7 +396,6 @@ class JarvisTraining:
 							model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
 						model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 						print(model.summary())
-
 
 
 						# ---- Callbacks ----
@@ -382,22 +418,14 @@ class JarvisTraining:
 							  callbacks=[checkpointer, earlystopper], 
 							  verbose=verbose)
 						#self.plot_history(history, fold_id=(fold+1))
-					else:
-						
-						labelset_size = 10000
-						# intergenic
-						model_out_file = "../out/topmed-conservation-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/" + '_'.join(genomic_classes) + "/JARVIS-" + input_features + ".D" + str(labelset_size) + ".no_zeros.model"
-						model = load_model(model_out_file)
-						print("Loaded saved model:", model_out_file)
-
-						y_test = y
-
+					
 					
 					# Get prediction probabilities per class 				
 					#probas_ = model.predict_proba(X_test)
 					probas_ = model.predict(test_inputs)  # for Keras functional API
-
 					
+					print("probas_:", probas_.shape)
+					print("y_test:", y_test.shape)
 					
 					# Compute ROC curve and area the curve 				
 					fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
@@ -465,6 +493,8 @@ class JarvisTraining:
 			self.metrics_list = metrics_list
 			print("\nMetrics: ", metrics_list)
 
+		
+		
 		
 
 	def plot_history(self, history, fold_id=0):
@@ -583,15 +613,21 @@ if __name__ == '__main__':
 	genomic_classes = genomic_classes.split(',')	
 	use_fixed_cv_batches = bool(int(sys.argv[4]))
 	cv_repeats = int(sys.argv[5])
-
 	include_vcf_features = False
 
 
 	# ----------------------
-	train_full_model = False
 	train_with_cv = True
+	train_full_model = False
 	# ----------------------
 
+	# -- Compatible only with: train_with_cv = True
+	# *************************************
+	use_pathogenicity_trained_model=True
+	use_conservation_trained_model=False
+	# *************************************
+	
+	
 
 	jarvis_trainer = JarvisTraining(config_file, include_vcf_features)
 
@@ -628,5 +664,6 @@ if __name__ == '__main__':
 				     input_features=input_features, verbose=verbose, cv_repeats=cv_repeats)
 					 
 					 
-	check_and_save_performance_metrics(jarvis_trainer.metrics_list, genomic_classes, jarvis_trainer.clinvar_feature_table_dir, input_features)
+	if train_with_cv:
+		check_and_save_performance_metrics(jarvis_trainer.metrics_list, genomic_classes, jarvis_trainer.clinvar_feature_table_dir, input_features)
 

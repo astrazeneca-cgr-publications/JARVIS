@@ -37,16 +37,13 @@ echo "Get gwRVIS distribution by genomic class"
 
 echo "Compile full feature table (gwrvis, primary sequence features and regulatory features)"
 #python ${gwrvis_core_dir}/compile_full_win_feature_table.py $config_file
-
 ## <<======  Up to this point output common with BASE_OUTDIR 
 
 
 
 echo "Merge BED files by genomic class across all chromosomes"
-./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
+#./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 #exit
-
-
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
@@ -57,10 +54,10 @@ echo "Aggregate gwRVIS scores from all chromosomes"
 ##python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
-#python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
+python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
 
 
-#python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
+python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
 
 
 
@@ -72,13 +69,14 @@ echo "Get gwRVIS distribution by genomic class across the entire genome"
 printf "\n\n==== Benchmarking for gwRVIS itself and against other scores (scores_benchmarking/) ===="
 
 echo "> Run Logistic regression for gwRVIS tolerance predictive power"
-#python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 0
-#python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
-
+python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 0
+python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
+exit
 
 
 echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
-#python scores_benchmarking/run_clinvar_benchmarking.py $config_file
+python scores_benchmarking/run_clinvar_benchmarking.py $config_file
+exit
 
 # [To become depecreated]
 echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
@@ -93,16 +91,14 @@ echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis/variant_classification/) ===="
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
 model_type="RF"
-python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
-
-
-exit
+#python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
+#exit
 
 
 # Train JARVIS with structured data, sequences or both
-cv_repeats=5
+cv_repeats=1
 ./submit_all_jarvis_jobs.sh $config_file $cv_repeats
-
+exit
 
 
 

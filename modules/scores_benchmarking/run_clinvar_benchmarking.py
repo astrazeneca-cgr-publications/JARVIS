@@ -164,15 +164,22 @@ class ScoreBenchmark:
 		positive_set_size = (y == 1).sum()
 		negative_set_size = (y == 0).sum()
 		print('Positive / Negative size:', positive_set_size, '/', negative_set_size)
+			
 		
+		if self.score == 'ncRVIS':
+			if positive_set_size / negative_set_size > pos_neg_ratio:
+				print('\n> Fixing class imbalance ...')
+				print('Imbalanced sets: ', sorted(Counter(y).items()))
+				rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
+				X, y = rus.fit_resample(X, y)
 
-		if positive_set_size / negative_set_size < pos_neg_ratio:
+		elif positive_set_size / negative_set_size != pos_neg_ratio:
 			print('\n> Fixing class imbalance ...')
 			print('Imbalanced sets: ', sorted(Counter(y).items()))
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
 			X, y = rus.fit_resample(X, y)
-			print('Balanced sets:', sorted(Counter(y).items()))
-			#print('Sampled indices:', rus.sample_indices_)
+		
+		print('Balanced sets:', sorted(Counter(y).items()))
 		
 		return X, y
 		
@@ -308,6 +315,10 @@ class ScoreBenchmark:
 		genomic_classes = list(set(pathogenic_df['genomic_class']) & set(benign_df['genomic_class']))
 		genomic_classes = [g for g in genomic_classes if g not in ['vista', 'ucne']]
 
+		if 'ncRVIS' in all_scores:
+			genomic_classes = [g for g in genomic_classes if g != 'ccds']
+		
+		print(genomic_classes)
 
 		for genomic_class in genomic_classes:
 			print('\nGenomic class:', genomic_class)
@@ -323,7 +334,7 @@ class ScoreBenchmark:
 			print(pathogenic.head())
 			print(pathogenic.tail())
 			print(pathogenic.shape)
-			sys.exit()
+			#sys.exit()
 		
 
 			ret, dens_fig = self.plot_clinvar_densities(pathogenic, benign, genomic_class)
@@ -477,8 +488,8 @@ if __name__ == '__main__':
 	dens_plot_data_per_score = {}
 
 	if hg_version == 'hg19':
-		#all_scores = ['dann', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
-		all_scores = ['gwrvis']
+		all_scores = ['ncRVIS', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+		#all_scores = ['gwrvis']
 	else:
 		all_scores = ['gwrvis'] # ['cadd']
 
@@ -489,7 +500,7 @@ if __name__ == '__main__':
 		score_obj = ScoreBenchmark(score, out_dir)
 		score_obj.run()
 
-
+		
 		print(score_obj.roc_curve_data_per_class.keys())
 
 		roc_curve_data_per_score[score] = score_obj.roc_curve_data_per_class

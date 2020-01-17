@@ -2,7 +2,7 @@ run:
         dataset: topmed # e.g. gnomad, topmed
         hg_version: hg19
         variants_table_dir: topmed-high_confidence-filtered_variant_tables-SNV_only-FILTERED # filtered variant tables (based on population, variant filters and even high-conf-regions)
-        win_len: 3000    # e.g. 500, 3000 (window length in nt)
+        win_len: 1000    # e.g. 500, 3000 (window length in nt)
         variant_filter: snv # type of variants to use: snv for SNVs, indels for INDELs, anything else (e.g. all) includes all
         MAF_thres: 0.001  # e.g. 0.0001 (Minor Allele Frequency) 
         population: all    # e.g. all (default), FIN, etc.

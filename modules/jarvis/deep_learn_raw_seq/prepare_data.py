@@ -35,7 +35,7 @@ class JarvisDataPreprocessing:
 
 		self.patho_benign_sets = pathogenic_set + '_' + benign_set
 		self.win_len = config_params['win_len']
-
+		self.Y_label = config_params['Y_label']
 
 		# ==== Define dir structure ====
 		out_dir = custom_utils.create_out_dir(config_file)
@@ -277,12 +277,12 @@ class JarvisDataPreprocessing:
 
 
 		
-		#additional_features_df['clinvar_annot'].replace({'Pathogenic': 1, 'Benign': 0}, inplace=True)
-		additional_features_df['clinvar_annot'].replace(regex={r'.*Pathogenic.*': 1, r'.*Benign.*': 0}, inplace=True)
-		
-		# TODO: give 'clinvar_annot' column a more generic name 
-		# -- For conservation labels
-		additional_features_df['clinvar_annot'].replace(regex={r'.*Conserved.*': 1, r'.*Non_conserved.*': 0}, inplace=True)
+		if self.Y_label == 'conservation_annot':
+			# - For conservation labels
+			additional_features_df[self.Y_label].replace(regex={r'.*Conserved.*': 1, r'.*Non_conserved.*': 0}, inplace=True)
+		else:
+			# - For pathogenicity labels
+			additional_features_df[self.Y_label].replace(regex={r'.*Pathogenic.*': 1, r'.*Benign.*': 0}, inplace=True)
 		print(additional_features_df.head())
 		print(additional_features_df.tail())
 
@@ -322,10 +322,10 @@ class JarvisDataPreprocessing:
 		print('global_index:', global_index)
 
 		# Get y label
-		y = additional_features_df['clinvar_annot'].values
+		y = additional_features_df[self.Y_label].values
 		y = np.reshape(y, (y.shape[0], 1))
 		y = tf.keras.utils.to_categorical(y)
-		additional_features_df.drop(['clinvar_annot'], inplace=True, axis=1)
+		additional_features_df.drop([self.Y_label], inplace=True, axis=1)
 		print('y:', y)
 
 		# Get main features (X)
