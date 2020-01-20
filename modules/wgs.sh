@@ -42,7 +42,7 @@ echo "Compile full feature table (gwrvis, primary sequence features and regulato
 
 
 echo "Merge BED files by genomic class across all chromosomes"
-#./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
+./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 #exit
 
 
@@ -71,12 +71,12 @@ printf "\n\n==== Benchmarking for gwRVIS itself and against other scores (scores
 echo "> Run Logistic regression for gwRVIS tolerance predictive power"
 python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 0
 python scores_benchmarking/get_gwrvis_tolerance_predictive_power.py $config_file 1 # filtering-out gwRVIS > 0, i.e. positive selection windows
-exit
+#exit
 
 
 echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
 python scores_benchmarking/run_clinvar_benchmarking.py $config_file
-exit
+#exit
 
 # [To become depecreated]
 echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
@@ -91,8 +91,8 @@ echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis/variant_classification/) ===="
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
 model_type="RF"
-#python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
-#exit
+python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
+exit
 
 
 # Train JARVIS with structured data, sequences or both

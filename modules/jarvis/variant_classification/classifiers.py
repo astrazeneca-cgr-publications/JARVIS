@@ -144,7 +144,7 @@ class Classifier:
 	
 		
 		
-	def run_classification_with_cv(self, cv_splits=5, cv_repeats=2):
+	def run_classification_with_cv(self, cv_splits=5, cv_repeats=3):
 		
 		cv = StratifiedKFold(n_splits=cv_splits)
 		

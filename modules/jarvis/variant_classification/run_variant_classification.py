@@ -314,7 +314,7 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists =  [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] 
+		genomic_classes_lists =  [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
 		#, ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['ccds'], ['intron'] ]    #['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron']
 		# @anchor-2
 		#genomic_classes_lists =  [ ['intergenic'] ]  # TEMP
