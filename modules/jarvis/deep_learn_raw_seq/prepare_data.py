@@ -118,10 +118,10 @@ class JarvisDataPreprocessing:
 				else:
 					valid_global_win_ids.append(tmp_win_id)
 					
-				# A = [1, 0, 0, 0]
-				# T = [0, 0, 0, 1]
-				# G = [0, 0, 1, 0]
-				# C = [0, 1, 0, 0]
+				# A=[1, 0, 0, 0]
+				# T=[0, 0, 0, 1]
+				# G=[0, 0, 1, 0]
+				# C=[0, 1, 0, 0]
 				onehot_seq = self.onehot_encoded_seq(seq)
 				all_onehot_seqs[tmp_win_id] = onehot_seq
 				# DEBUG

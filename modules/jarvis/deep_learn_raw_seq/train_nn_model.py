@@ -56,7 +56,7 @@ class JarvisTraining:
 
 		self.data_dict_file = self.ml_data_dir + '/jarvis_data.pkl'
 		# @anchor
-		if not os.path.exists(self.data_dict_file) or (use_conservation_trained_model or use_pathogenicity_trained_model):
+		if not os.path.exists(self.data_dict_file): # or (use_conservation_trained_model or use_pathogenicity_trained_model):
 			print("\nPreparing training data - calling JarvisDataPreprocessing object...")
 			data_preprocessor = JarvisDataPreprocessing(config_file)
 			
@@ -312,12 +312,13 @@ class JarvisTraining:
 				print('\n>> CV - Repeat:', str(n+1))
 
 				fold = 0
-				#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
-				for _ in range(1):
+				for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
+				#for _ in range(1):
 
 					"""
 						> Use that for prediction on a test set
 						-- preceded by: for _ in range(1)
+					"""
 					"""
 					if input_features == 'structured':
 						test_inputs = X
@@ -328,12 +329,11 @@ class JarvisTraining:
 					elif input_features == 'both':
 						test_inputs = [X, seqs]
 						y_test = y
-					
+					"""
 					
 					"""
 						> Use that for generalised performance with cross-validation
 						-- preceded by: for train_index, test_index in skf.split(X, np.argmax(y, axis=1))
-					"""
 					"""
 					if use_fixed_cv_batches:
 						train_index, test_index = cv_data_dict[fold]
@@ -361,7 +361,7 @@ class JarvisTraining:
 					elif input_features == 'both':
 						train_inputs = [X_train, seqs_train]
 						test_inputs = [X_test, seqs_test]
-					"""
+					
 	
 						
 					
@@ -623,7 +623,7 @@ if __name__ == '__main__':
 
 	# -- Compatible only with: train_with_cv = True
 	# *************************************
-	use_pathogenicity_trained_model=True
+	use_pathogenicity_trained_model=False
 	use_conservation_trained_model=False
 	# *************************************
 	
