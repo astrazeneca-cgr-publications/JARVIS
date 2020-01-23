@@ -55,12 +55,17 @@ class Classifier:
 	
 	def preprocess_data(self, df):
 	
+	
 		if self.use_only_base_score:		
 			df.dropna(inplace=True)
 			self.feature_cols = [self.base_score]
 		
 		else:
+			#cols_to_drop = ['chr', 'start', 'end', 'genomic_class', self.Y_label, 'clinvar_annot']
+
 			cols_to_drop = ['chr', 'start', 'end', 'genomic_class', self.Y_label, 'clinvar_annot']
+			
+
 	
 			vcf_dependent_cols = ['common_variants', 'common_vs_all_variants_ratio', 
 								  'all_variants', 'mean_ac', 'mean_af', 'bin_1', 
@@ -83,14 +88,20 @@ class Classifier:
 		# Retaining only most important features (improves AUC only by +0.001)
 		#self.feature_cols = ['gwrvis', 'gc_content', 'cpg', 'mut_rate', 'cpg_islands', 'H3K4me2']
 			
+		#print(df.loc[ df[self.Y_label] == '1', :])
+		
+		
 		self.X = df[self.feature_cols].values
 		self.y = df[self.Y_label].astype(int).values
+		
 		
 		# Fix class imbalance (with over/under-sampling minority/majority class)
 		positive_set_size = (self.y == 1).sum()
 		negative_set_size = (self.y == 0).sum()
 		pos_neg_ratio = 1/1
 
+		
+		
 		if (positive_set_size / negative_set_size < pos_neg_ratio) or (negative_set_size / positive_set_size < pos_neg_ratio):
 			print('\n> Fixing class imbalance ...')
 			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
@@ -98,7 +109,7 @@ class Classifier:
 			self.X, self.y = rus.fit_resample(self.X, self.y)
 			print('Balanced sets:', sorted(Counter(self.y).items()))
 				
-		
+				
 		
 	
 	def init_model(self):

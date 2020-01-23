@@ -81,10 +81,10 @@ class ClassificationWrapper:
 		else:
 			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
-		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
-		#print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
-		#print(self.full_feature_table.head())
-	
+		print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
+		print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
+		print(self.full_feature_table.head())
+
 
 
 	def subset_feat_table_df(self):
@@ -109,7 +109,8 @@ class ClassificationWrapper:
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Pathogenic.*', '1', regex=True)
 			
 	
-		if self.base_score in ['gwrvis', 'jarvis']:
+		# TEMP -- deprecated, especially when using ncER-training (it doesn't contain CCDS variants anyway): set to "if False"
+		if False: #self.base_score in ['gwrvis', 'jarvis']:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.bed'
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.clean.bed'
 
@@ -120,6 +121,9 @@ class ClassificationWrapper:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.genomic_classes) + '.clean.bed'
 			
+			
+		print(cur_full_feature_file)
+		
 		self.df.to_csv(cur_full_feature_file, sep='\t', index=False, header=False)
 
 		
@@ -314,10 +318,10 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists =  [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
-		#, ['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'intron'], ['ccds'], ['intron'] ]    #['intergenic', 'utr', 'lincrna', 'ucne', 'vista', 'ccds', 'intron']
+		genomic_classes_lists = [ ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] # [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] #, ['ccds'], ['intron'] ] 
+		
 		# @anchor-2
-		#genomic_classes_lists =  [ ['intergenic'] ]  # TEMP
+		#genomic_classes_lists =  [ ['utr'] ]   # TEMP
 
 	
 	

@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH -t 48:0:0
+#SBATCH -t 24:0:0
 #SBATCH -n 1
 #SBATCH --mem=4G
 
-declare -a pathogenic_resources=(ncER-training ncER-gwas_catalog ncER-test ncER-mendelian ncER-generalization_other ncER-generalization_ncRNA)
+#declare -a pathogenic_resources=(ncER-training ncER-gwas_catalog ncER-test ncER-mendelian ncER-generalization_other ncER-generalization_ncRNA)
 #declare -a pathogenic_resources=(clinvar hgmd)
+declare -a pathogenic_resources=(ncER-training-full)
 #declare -a benign_resources=(clinvar denovodb denovodb_nonSSC topmed_uniq)
 
 full_score_ref_file="All_chromosomes.phastCons46way.bed.bgz"

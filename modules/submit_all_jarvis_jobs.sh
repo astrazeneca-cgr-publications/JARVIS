@@ -10,8 +10,8 @@ if [ "$#" -ne 2 ]; then
 fi
 
 
-declare -a genomic_classes=("intergenic" "utr" "lincrna" "intergenic,utr,lincrna,ucne,vista" "ccds" "intron")
-#declare -a genomic_classes=("intergenic")
+declare -a genomic_classes=("intergenic" "utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
+#declare -a genomic_classes=("ccds" "intron")
 
 
 for gen_classes in "${genomic_classes[@]}"; do
@@ -23,7 +23,7 @@ for gen_classes in "${genomic_classes[@]}"; do
 	mem="24G"
 	t="24:0:0"
 	if [ "$gen_classes" == "ccds" ] || [ "$gen_classes" == "intron" ]; then
-		ncores=10
+		ncores=4
 		mem="24G"
 		t="48:0:0"
 	fi

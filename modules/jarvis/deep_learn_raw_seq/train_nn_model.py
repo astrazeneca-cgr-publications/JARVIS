@@ -598,9 +598,9 @@ def check_and_save_performance_metrics(metrics_list, genomic_classes, clinvar_fe
 		pickle.dump(metrics_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
 		
 	print('Metrics saved at:', metrics_out_file)
-		
-		
-		
+	
+	
+	
 
 
 if __name__ == '__main__':

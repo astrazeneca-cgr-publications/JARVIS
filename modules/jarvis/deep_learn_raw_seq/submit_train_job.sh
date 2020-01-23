@@ -1,7 +1,7 @@
 #!/bin/bash 
 #SBATCH -t 24:0:0           # Request 24 hours runtime
 #SBATCH --mem-per-cpu=24G	# default values - may be overriden during sbatch call
-#SBATCH --cpus-per-task=2 #4	# default values - may be overriden during sbatch call
+#SBATCH --cpus-per-task=4	# default values - may be overriden during sbatch call
 
 config_file=$1
 genomic_classes=$2  	# comma-separated if more than 1

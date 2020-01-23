@@ -161,7 +161,15 @@ function add_clinvar_annotation {
 	# clenaup tmp files
 	rm $clinvar_feature_table_dir/*.tmp
 
-	printf "\nOutput file with all annotations: $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed\n"
+	out_file="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
+	printf "\nOutput file with all annotations: $out_file\n"
+	cp $out_file ${out_file}.with_duplicates_in_windows
+
+
+	# -- Keep only one entry for windows with multiple variants
+	python deduplicate_overlapping_non_coding_variants.py $out_file 
+	printf "\nOutput file with all annotations (without duplicates): $out_file\n"
+
 }
 
 
