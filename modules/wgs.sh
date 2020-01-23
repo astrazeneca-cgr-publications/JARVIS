@@ -47,7 +47,7 @@ echo "Merge BED files by genomic class across all chromosomes"
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
-#python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
+python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
 
 
 # [Ad-hoc] post-processing: enhancers
@@ -56,7 +56,7 @@ echo "Aggregate gwRVIS scores from all chromosomes"
 echo "Get gwRVIS distribution by genomic class across the entire genome"
 python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
 
-#python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
+python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
 
 
 
@@ -74,7 +74,7 @@ echo "> Run Logistic regression for gwRVIS tolerance predictive power"
 
 
 echo "> Run benchmark against clinvar/hgmd (pathogenic/benign)"
-#python scores_benchmarking/run_clinvar_benchmarking.py $config_file
+python scores_benchmarking/run_clinvar_benchmarking.py $config_file
 #exit
 
 # [To become depecreated]
