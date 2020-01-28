@@ -296,6 +296,7 @@ class JarvisDataPreprocessing:
 		additional_features_df.reset_index(drop=True, inplace=True)
 		additional_features_df['global_index'] = additional_features_df.index.values
 
+		
 		print(additional_features_df.head())
 		print(additional_features_df.tail())
 		print(filtered_onehot_seqs.shape)

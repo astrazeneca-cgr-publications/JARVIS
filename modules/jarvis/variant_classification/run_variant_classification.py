@@ -342,7 +342,7 @@ if __name__ == '__main__':
 	
 	
 	# *************************************
-	use_pathogenicity_trained_model=False
+	use_pathogenicity_trained_model=True
 	use_conservation_trained_model=False
 	# *************************************
 	

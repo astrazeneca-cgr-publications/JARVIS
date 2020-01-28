@@ -2,13 +2,13 @@
 #SBATCH -t 24:0:0           # Request 24 hours runtime
 
 ## GPU
-#SBATCH --partition=gpu 
-#SBATCH --mem-per-cpu=24G    #40G	 
-#SBATCH --gres=gpu:volta:2
+##SBATCH --partition=gpu 
+##SBATCH --mem-per-cpu=24G    #40G	 
+##SBATCH --gres=gpu:volta:2
 
 ## CPU
-##SBATCH --mem-per-cpu=24G	# default values - may be overriden during sbatch call
-##SBATCH --cpus-per-task=4	# default values - may be overriden during sbatch call
+#SBATCH --mem-per-cpu=24G	# default values - may be overriden during sbatch call
+#SBATCH --cpus-per-task=4	# default values - may be overriden during sbatch call
 
 config_file=$1
 genomic_classes=$2  	# comma-separated if more than 1
