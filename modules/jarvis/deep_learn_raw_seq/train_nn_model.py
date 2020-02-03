@@ -54,11 +54,16 @@ class JarvisTraining:
 		print(self.out_dir)
 
 
-		self.data_dict_file = self.ml_data_dir + '/jarvis_data.pkl'
+		jarvis_pkl_file = self.ml_data_dir + '/jarvis_data.pkl'
+		if predict_on_test_set:
+			jarvis_pkl_file = self.ml_data_dir + '/jarvis_data.' + str(test_indexes[0]) + '_' + str(test_indexes[1]) + '.pkl'
+		self.data_dict_file = jarvis_pkl_file
+		
+		
 		# @anchor
 		if not os.path.exists(self.data_dict_file): # or (use_conservation_trained_model or use_pathogenicity_trained_model):
 			print("\nPreparing training data - calling JarvisDataPreprocessing object...")
-			data_preprocessor = JarvisDataPreprocessing(config_file)
+			data_preprocessor = JarvisDataPreprocessing(config_file, predict_on_test_set=predict_on_test_set, test_indexes=test_indexes)
 			
 			# Extract raw sequences from input variant windows and combine with original feature set         
 			additional_features_df, filtered_onehot_seqs = data_preprocessor.compile_feature_table_incl_raw_seqs()        
@@ -91,7 +96,7 @@ class JarvisTraining:
 				break
 				
 			except:
-				print("Failed to read jarvis_data.pkl (attempt - " + str(cnt) + "). Retrying...")
+				print("Failed to read " + self.data_dict_file  + " (attempt - " + str(cnt) + "). Retrying...")
 				
 			cnt += 1
 			
@@ -103,7 +108,7 @@ class JarvisTraining:
 
 	def inspect_input_data(self, data_dict):
 
-		print('\n> All data:')
+		print('\n> Inspecting input data:')
 		print('X:', data_dict['X'].shape)
 		print('vcf_features:', data_dict['vcf_features'].shape)
 		print('y:', data_dict['y'].shape)
@@ -275,6 +280,69 @@ class JarvisTraining:
 			seqs = data_dict['seqs'].copy()
 		else:
 			seqs = None
+			
+			
+			
+		if predict_on_test_set:
+
+			if input_features == 'structured':
+				test_inputs = X
+				y_test = y
+			elif input_features == 'sequences':
+				test_inputs = seqs
+				y_test = y
+			elif input_features == 'both':
+				test_inputs = [X, seqs]
+				y_test = y
+			
+
+				
+			if use_conservation_trained_model:
+				self.file_annot = 'D3000.no_zeros'
+				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
+				print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
+		
+			elif use_pathogenicity_trained_model:
+				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
+				print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
+		
+			model = load_model(model_out_file)
+			print("Loaded saved model:", model_out_file)
+			
+			
+			# Get prediction probabilities per class 				
+			#probas_ = model.predict_proba(X_test)
+			probas_ = model.predict(test_inputs)  # for Keras functional API
+			
+			print("probas_:", probas_.shape)
+			print("y_test:", y_test.shape)
+			
+			
+			pred_scores = probas_[:, 1]
+			print(pred_scores[:20])
+			
+			
+			valid_full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.valid_windows.' + str(test_indexes[0]) + '_' + str(test_indexes[1])
+			tmp_df = pd.read_csv(valid_full_feature_table_file, sep='\t')
+			tmp_df = tmp_df[['chr', 'start', 'end', 'genomic_class', 'gwrvis']]
+			tmp_df['jarvis'] = pred_scores
+			
+			# Save full feature table (valid windows only) with JARVIS scores into a file
+			jarvis_scores_out_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.jarvis_prediction_scores.' + str(test_indexes[0]) + '_' + str(test_indexes[1])
+			tmp_df.to_csv(jarvis_scores_out_file, sep='\t', header=True, index=False)
+			
+			#with open(pred_scores_out_file, 'w') as fh:
+			#	for score in pred_scores:
+			#		fh.write(str(score) + '\n')
+			
+			print("Saved full feature table with JARVIS prediction scores into: ", jarvis_scores_out_file)
+			
+			return
+			
+			
+			
+			
+			
 		
 		X, y, seqs = self.fix_class_imbalance(X, y, seqs)
 		
@@ -316,10 +384,8 @@ class JarvisTraining:
 			
 		if train_full_model:
 			self.train_full_model(X, y, seqs, input_features, batch_size, epochs, validation_split, patience, data_dict['X'].shape[1], genomic_classes)
-
 			
-			
-		if train_with_cv:
+		elif train_with_cv:
 			# n-repeated CV
 			for n in range(cv_repeats):
 				print('\n>> CV - Repeat:', str(n+1))
@@ -629,11 +695,20 @@ if __name__ == '__main__':
 	use_fixed_cv_batches = bool(int(sys.argv[4]))
 	cv_repeats = int(sys.argv[5])
 	include_vcf_features = False
-
+	test_indexes = []
 
 	# ----------------------
-	train_with_cv = True     # get generalised performance with cross-validation
+	train_with_cv = False     # get generalised performance with cross-validation
 	train_full_model = False   # train full model (to later use on an unseen test set)
+	predict_on_test_set = True
+	#test_indexes = [0, 200000]
+	#test_indexes = [200001, 400000]
+	#test_indexes = [400001, 600000]
+	#test_indexes = [600001, 800000]
+	#test_indexes = [800001, 1000000]
+	#test_indexes = [1000001, 1200000]
+	test_indexes = [1200001, 1400000]
+	
 	
 	
 	# -- Compatible only with: train_with_cv = True
@@ -651,6 +726,12 @@ if __name__ == '__main__':
 	if use_pathogenicity_trained_model or use_conservation_trained_model:
 		train_with_cv = True
 		train_full_model = False
+		
+	if predict_on_test_set:
+		train_with_cv = False
+		train_full_model = False
+		if not test_indexes:
+			sys.exit("[Error] - no test_indexes have been provided. Please retry e.g. with test_indexes = [0, 100000]")
 	# ----------------------
 
 	
@@ -664,10 +745,14 @@ if __name__ == '__main__':
 	# Print input data shapes for sanity check check for consistency
 	jarvis_trainer.inspect_input_data(data_dict)
 
-	# Filter data by genomic class
-	filtered_data_dict = jarvis_trainer.filter_data_by_genomic_class(data_dict, genomic_classes)
-	print(filtered_data_dict)
 
+	# Filter data by genomic class
+	if not predict_on_test_set:
+		filtered_data_dict = jarvis_trainer.filter_data_by_genomic_class(data_dict, genomic_classes)
+		print(filtered_data_dict)
+	else:
+		filtered_data_dict = data_dict
+		
 
 	# [Deprecated] Train using only structured features (i.e. without raw sequence data)	
 	#model = create_feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[32, 32]) 

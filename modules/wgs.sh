@@ -43,7 +43,7 @@ echo "Compile full feature table (gwrvis, primary sequence features and regulato
 
 echo "Merge BED files by genomic class across all chromosomes"
 ./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
-#exit
+exit
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"

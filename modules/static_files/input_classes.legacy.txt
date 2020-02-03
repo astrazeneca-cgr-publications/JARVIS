@@ -8,11 +8,11 @@ intolerant
 ccds
 vista
 #vista-phantom
-#phantom-enh
+phantom-enh
 utr
-pathogenic
+#pathogenic
 #mirna
-mature_mirna
+#mature_mirna
 #mirna_seeds
 #mirna_targets
 #phastCons

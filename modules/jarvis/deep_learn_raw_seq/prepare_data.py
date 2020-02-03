@@ -20,7 +20,7 @@ import custom_utils
 
 class JarvisDataPreprocessing:
 
-	def __init__(self, config_file):
+	def __init__(self, config_file, predict_on_test_set=False, test_indexes=[]):
 
 		print("Initialising new JarvisDataPreprocessing object...")
 
@@ -57,6 +57,23 @@ class JarvisDataPreprocessing:
 		self.all_gwrvis_bed_file = gwrvis_scores_dir + '/full_genome.all_gwrvis.bed'
 		self.full_feature_table_file = self.feature_tables_dir + '/full_feature_table.' + self.patho_benign_sets + '.bed'
 
+		self.predict_on_test_set = predict_on_test_set
+		self.test_indexes = test_indexes
+		if self.predict_on_test_set:
+			# Pre-process full table: add 'clinvar_annot' column with placeholder 'Benign' values for consistent processing
+			tmp_full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv'
+			tmp_df = pd.read_csv(tmp_full_feature_table_file, sep='\t')
+			tmp_df.insert(3, 'clinvar_annot', 'Benign')
+			tmp_df.drop( tmp_df.columns[len(tmp_df.columns)-1], axis=1, inplace=True)
+			
+			tmp_df = tmp_df.iloc[ self.test_indexes[0]:self.test_indexes[1], : ]
+			print(tmp_df.head())
+			print(tmp_df.tail())
+			print(tmp_df.shape)
+			
+			self.full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.for_prediction.' + str(self.test_indexes[0]) + '_' + str(self.test_indexes[1])
+			tmp_df.to_csv(self.full_feature_table_file, sep='\t', header=True, index=False)
+		
 		print("Succesfully created new JarvisDataPreprocessing object!")
 
 
@@ -98,7 +115,7 @@ class JarvisDataPreprocessing:
 
 		print("One-hot encoding of fixed-length genomic windows...")
 
-		# These will just be the indexes in the entire feature/gwriv_index data frames 
+		# These will just be the indexes in the entire feature/gwrvis_index data frames 
 		valid_global_win_ids = []
 
 		num_lines = sum(1 for line in open(seq_file))
@@ -142,7 +159,11 @@ class JarvisDataPreprocessing:
 
 	def get_additional_feature_df(self, additional_features_file, additional_features_columns):
 
+		print('\n', additional_features_file)
 		additional_features_df = pd.read_csv(additional_features_file, sep='\t', header=None, index_col=None)
+		print(additional_features_df.head())
+		
+		print(additional_features_columns)
 		
 		additional_features_columns = ['win_index'] + additional_features_columns
 		additional_features_df.columns = additional_features_columns
@@ -214,17 +235,31 @@ class JarvisDataPreprocessing:
 	def filter_invalid_entries(self, gwrvis_and_index_df, additional_features_df, valid_global_win_ids):
 
 		print("Filtering invalid entries from 'gwrvis_and_index_df' and 'additional_features_df' ...")
-		print('gwrvis_and_index_df:', gwrvis_and_index_df.shape)
+		print('(original) gwrvis_and_index_df:', gwrvis_and_index_df.shape)
 		print(gwrvis_and_index_df.head())
 		print(gwrvis_and_index_df.tail())
 
-		print('additional_features_df:', additional_features_df.shape)
+		print('(original) additional_features_df:', additional_features_df.shape)
 		print(additional_features_df.head())
 		print(additional_features_df.tail())
 
 
 		gwrvis_and_index_df = gwrvis_and_index_df.iloc[ valid_global_win_ids, :]
 		additional_features_df = additional_features_df.iloc[ valid_global_win_ids, :]
+		
+		
+		if self.predict_on_test_set:
+			# Save full feature table with valid global win indexes only
+		
+			tmp_df = pd.read_csv(self.full_feature_table_file, sep='\t')
+			tmp_df = tmp_df.iloc[valid_global_win_ids, :]
+		
+		
+			valid_full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.valid_windows.' + str(self.test_indexes[0]) + '_' + str(self.test_indexes[1])
+			tmp_df.to_csv(valid_full_feature_table_file, sep='\t', header=True, index=False)
+		
+		
+		
 		
 		return gwrvis_and_index_df, additional_features_df
 
@@ -354,7 +389,11 @@ class JarvisDataPreprocessing:
 
 	def save_data_to_files(self, data_dict):
 
-		out_file = self.ml_data_dir + '/jarvis_data.pkl'
+		if not self.predict_on_test_set:
+			out_file = self.ml_data_dir + '/jarvis_data.pkl'
+		else:
+			out_file = self.ml_data_dir + '/jarvis_data.' + str(self.test_indexes[0]) + '_' + str(self.test_indexes[1]) + '.pkl'
+		
 		# Save data dict to a pickle file
 		pkl_out = open(out_file, 'wb')
 		pickle.dump(data_dict, pkl_out, protocol=4)
