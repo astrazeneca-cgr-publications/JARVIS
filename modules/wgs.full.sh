@@ -58,9 +58,6 @@ python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_cla
 
 
 python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
-exit
-
-
 
 
 
@@ -84,7 +81,7 @@ echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
 ##python scores_benchmarking/benchmark_against_denovo_db.py $config_file
 
 python scores_benchmarking/benchmark_vs_original_orion.py $config_file
-
+exit
 
 
 

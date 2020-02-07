@@ -285,8 +285,8 @@ class Classifier:
 		
 		if self.model_type == 'RF':
 			# BETA -- pass when using DL model
-			pass
-			#self.get_feature_importances()
+			#pass
+			self.get_feature_importances()
 
 		self.mean_tpr = mean_tpr
 		self.mean_fpr = mean_fpr

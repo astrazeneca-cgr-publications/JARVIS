@@ -1,0 +1,17 @@
+TF_binding_site	0.000000
+Enhancer	0.002622
+Open_chromatin	0.005309
+H3K36me3	0.007886
+H3K27ac	0.009195
+H3K4me1	0.011318
+H4K20me1	0.012158
+H3K9ac	0.013404
+H3K4me3	0.019670
+H3K27me3	0.023490
+CTCF_Binding_Site	0.023689
+H3K4me2	0.040855
+cpg_islands	0.113864
+mut_rate	0.128661
+gwrvis	0.181380
+cpg	0.188160
+gc_content	0.218338

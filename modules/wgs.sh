@@ -43,12 +43,10 @@ echo "Compile full feature table (gwrvis, primary sequence features and regulato
 
 echo "Merge BED files by genomic class across all chromosomes"
 ./${gwrvis_core_dir}/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
-exit
 
 
 echo "Aggregate gwRVIS scores from all chromosomes"
 #python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes;
-
 
 
 # [Ad-hoc] post-processing: enhancers
@@ -58,7 +56,6 @@ echo "Get gwRVIS distribution by genomic class across the entire genome"
 #python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
 
 #python ${gwrvis_core_dir}/make_ggridges_plots.py -c $config_file; # [slightly redundant]
-
 
 
 

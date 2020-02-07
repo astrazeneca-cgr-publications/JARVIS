@@ -329,7 +329,7 @@ if __name__ == '__main__':
 	if hg_version == 'hg19':
 		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
 		# @anchor-3
-		#all_base_scores = ['jarvis'] #['jarvis']  # TEMP
+		#all_base_scores = ['jarvis'] 
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -342,7 +342,7 @@ if __name__ == '__main__':
 	
 	
 	# *************************************
-	use_pathogenicity_trained_model=True
+	use_pathogenicity_trained_model=False #True
 	use_conservation_trained_model=False
 	# *************************************
 	
