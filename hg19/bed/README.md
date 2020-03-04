@@ -1,5 +1,10 @@
 ### QC for intervals distribution
 
+
+#### Get CCDS regions with Gene Names
+zcat gencode.v$v.annotation.gtf.gz | awk 'BEGIN{OFS="\t";} $3=="CDS" {print $1,$4-1,$5,$18}' | sed -e 's/\"//g' -e 's/;//g' | sortBed | mergeBed -i - -c 4 -o distinct > ccds_regions_with_gene_names.merged.bed
+
+
 #### CCDS
 v=19
 wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz

@@ -43,6 +43,12 @@ def plot_gwrvis_distr(input_file):
 	mean_non_ccds = str(round(np.mean(non_ccds_scores), 3))
 	mean_sample_ccds = str(round(np.mean(sample_ccds_scores), 3))
 
+
+	print("Median ccds:", np.median(ccds_scores))
+	print("Median non-ccds:", np.median(non_ccds_scores))
+	print("Median sample-ccds:", np.median(sample_ccds_scores))
+
+
 	fig, ax = plt.subplots(figsize=(10, 10))
 
 	sns.distplot(ccds_scores, hist=False, kde=True, label='CCDS (' + str(len(ccds_scores)) + ') Mean: ' + mean_ccds)
