@@ -28,7 +28,7 @@ def parse_info_fields(info_pairs_dict):
 
 		value = info_pairs_dict[field]
 		other_fields_str += '\t' + str(value)
-		#print(field, value)
+		print(field, value)
 
 	#if verbose:
 	#	print('other_fields_str:\n' + other_fields_str)
@@ -81,7 +81,7 @@ def process_variant_entry(line, out_fh):
 
 	# - Parse paired "field=value" fields
 	info_pairs_dict = dict([ f.split('=') for f in INFO.split(';') if '=' in f])
-	#print(info_pairs_dict)
+	print(info_pairs_dict)
 
 
 	info_str = ''
@@ -99,16 +99,17 @@ def process_variant_entry(line, out_fh):
 
 	out_fh.write(full_out_str)
 	
-
 	return valid_entry
+
+
 
 
 
 if __name__ == '__main__':
 
 	# ======================
-	dbg=False
-	verbose=False 
+	dbg=True
+	verbose=True 
 	# ======================
 
 	dataset = sys.argv[1]
