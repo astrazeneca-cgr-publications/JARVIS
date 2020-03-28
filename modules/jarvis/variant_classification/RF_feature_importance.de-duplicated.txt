@@ -1,0 +1,447 @@
+Record features across fixed and tiled genomic windows (e.g. common/all variants, mut. rate, CpG islands, GC content, etc.)
+Perform logistic regression (common ~ all variants) to get gwRVIS scores
+Convert window indexes (0-based) to real genomic coordinates
+Get gwRVIS distribution by genomic class
+Compile full feature table (gwrvis, primary sequence features and regulatory features)
+Merge BED files by genomic class across all chromosomes
+Out dir: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED
+Pathogenic set: *clinvar*
+Benign set: *denovodb*
+hg version: *hg19*
+labelset_size: **
+discard_zero_values: **
+
+
+------------
+Merging BED files by genomic class and retrieving respective feature table...
+
+>>> ucne:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.ucne.mutually_excl.bed
+[ucne] Total nt length: 1049379
+- Retrieving feature table for ucne ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.ucne.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.ucne.tsv
+
+
+>>> ccds:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.ccds.mutually_excl.bed
+[ccds] Total nt length: 33689869
+- Retrieving feature table for ccds ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.ccds.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.ccds.tsv
+
+
+>>> vista:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.vista.mutually_excl.bed
+[vista] Total nt length: 1977486
+- Retrieving feature table for vista ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.vista.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.vista.tsv
+
+
+>>> utr:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.utr.mutually_excl.bed
+[utr] Total nt length: 40081923
+- Retrieving feature table for utr ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.utr.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.utr.tsv
+
+
+>>> lincrna:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.lincrna.mutually_excl.bed
+[lincrna] Total nt length: 8129686
+- Retrieving feature table for lincrna ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.lincrna.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.lincrna.tsv
+
+
+>>> intron:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.intron.mutually_excl.bed
+[intron] Total nt length: 1381274615
+- Retrieving feature table for intron ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.intron.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.intron.tsv
+
+
+>>> intergenic:
+- Getting full genomic class BED file across all chromosomes ... (mutually exclusive with other classes):
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/gwrvis_distribution/gwrvis.intergenic.mutually_excl.bed
+[intergenic] Total nt length: 1287784427
+- Retrieving feature table for intergenic ...
+- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value
+Adding header to feature table by class and saving into file
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.intergenic.tsv.header
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.intergenic.tsv
+
+
+
+------------
+Merging feature tables from all genomic classes...
+
+Merging feature tables from all genomic classes ...
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv
+
+
+------------
+Annotating full feature table (already with genomic class annotation) with ClinVar pathogenic/bengign variants...
+
+Output file with all annotations: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+(102666, 33)
+(36543, 33)
+
+Output file with all annotations (without duplicates): ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+
+
+------------
+Adding external genome-wide scores (phastCons46way, phyloP46way, CADD, Orion)...
+ncER_10bp
+cdts
+linsight
+phastCons46way
+phyloP46way
+cadd
+dann
+orion
+ncRVIS
+
+Output file: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+Aggregate gwRVIS scores from all chromosomes
+Get gwRVIS distribution by genomic class across the entire genome
+
+
+==== Benchmarking for gwRVIS itself and against other scores (scores_benchmarking/) ====> Run Logistic regression for gwRVIS tolerance predictive power
+> Run benchmark against clinvar/hgmd (pathogenic/benign)
+> Run benchmark against denovo-db phenotypes (cases/controls)
+
+
+==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis/variant_classification/) ====Pathogenic set: clinvar
+Benign set: denovodb
+
+**********************************************************************
+>>				lincrna
+**********************************************************************
+
+>>>>>>>  jarvis
+
+>All features (prior to pre-processing):
+ Index(['chr', 'start', 'end', 'clinvar_annot', 'gwrvis', 'genomic_class',
+       'common_variants', 'common_vs_all_variants_ratio', 'all_variants',
+       'mean_ac', 'mean_af', 'bin_1', 'bin_2', 'bin_3', 'bin_4', 'bin_5',
+       'bin_6', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands',
+       'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site',
+       'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2',
+       'H3K4me3', 'H3K36me3'],
+      dtype='object')
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+    chr   start     end clinvar_annot  ...  H3K4me1 H3K4me2  H3K4me3  H3K36me3
+0  chr1  949522  949523    Pathogenic  ...        1       1        1         0
+1  chr1  957604  957605    Pathogenic  ...        1       0        0         0
+2  chr1  976733  976734    Pathogenic  ...        1       1        0         0
+3  chr1  985852  985853    Pathogenic  ...        0       0        0         0
+4  chr1  987154  987155    Pathogenic  ...        0       0        0         0
+
+[5 rows x 33 columns]
+> All genomic classes: ['ccds' 'intron' 'utr' 'intergenic' 'lincrna' 'intolerant' 'vista'
+ 'tolerant' 'phantom-enh' 'ucne']
+> Filtered genomic classes: ['lincrna']
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.jarvis.lincrna.bed
+Counter({'0': 83, '1': 6})
+
+> Fixing class imbalance ...
+Imbalanced sets:  [(0, 83), (1, 6)]
+Balanced sets: [(0, 6), (1, 6)]
+Model: RF 
+
+(12, 17)
+Features: ['gwrvis', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands', 'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site', 'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2', 'H3K4me3', 'H3K36me3']
+================================================
+CV - Repeat: 1
+CV - Repeat: 2
+CV - Repeat: 3
+Mean AUC: 0.92
+
+> Feature importances:
+TF_binding_site      0.000000
+Open_chromatin       0.000000
+Enhancer             0.000000
+H3K4me3              0.019779
+H3K4me1              0.035835
+H3K36me3             0.043430
+H3K9ac               0.052510
+H3K27ac              0.055902
+CTCF_Binding_Site    0.060189
+H3K4me2              0.069516
+H3K27me3             0.075594
+cpg_islands          0.080986
+cpg                  0.083632
+H4K20me1             0.085360
+mut_rate             0.095206
+gwrvis               0.102546
+gc_content           0.139516
+dtype: float64
+=====================
+
+
+Saved full model into: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/lincrna/JARVIS-RF.model 
+
+
+> jarvis
+Avg. accuracy : 0.7
+Avg. sensitivity : 0.8
+Avg. precision : 0.7
+Avg. specificity : 0.6
+Avg. auc : 0.925
+Metrics saved at: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/all_but_dnn_performance_metrics.lincrna.pkl
+
+**********************************************************************
+>>				intergenic
+**********************************************************************
+
+>>>>>>>  jarvis
+
+>All features (prior to pre-processing):
+ Index(['chr', 'start', 'end', 'clinvar_annot', 'gwrvis', 'genomic_class',
+       'common_variants', 'common_vs_all_variants_ratio', 'all_variants',
+       'mean_ac', 'mean_af', 'bin_1', 'bin_2', 'bin_3', 'bin_4', 'bin_5',
+       'bin_6', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands',
+       'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site',
+       'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2',
+       'H3K4me3', 'H3K36me3'],
+      dtype='object')
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+    chr   start     end clinvar_annot  ...  H3K4me1 H3K4me2  H3K4me3  H3K36me3
+0  chr1  949522  949523    Pathogenic  ...        1       1        1         0
+1  chr1  957604  957605    Pathogenic  ...        1       0        0         0
+2  chr1  976733  976734    Pathogenic  ...        1       1        0         0
+3  chr1  985852  985853    Pathogenic  ...        0       0        0         0
+4  chr1  987154  987155    Pathogenic  ...        0       0        0         0
+
+[5 rows x 33 columns]
+> All genomic classes: ['ccds' 'intron' 'utr' 'intergenic' 'lincrna' 'intolerant' 'vista'
+ 'tolerant' 'phantom-enh' 'ucne']
+> Filtered genomic classes: ['intergenic']
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.jarvis.intergenic.bed
+Counter({'0': 10672, '1': 22})
+
+> Fixing class imbalance ...
+Imbalanced sets:  [(0, 10672), (1, 22)]
+Balanced sets: [(0, 22), (1, 22)]
+Model: RF 
+
+(44, 17)
+Features: ['gwrvis', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands', 'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site', 'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2', 'H3K4me3', 'H3K36me3']
+================================================
+CV - Repeat: 1
+CV - Repeat: 2
+CV - Repeat: 3
+Mean AUC: 0.909
+
+> Feature importances:
+H4K20me1             0.000000
+Open_chromatin       0.000000
+H3K27ac              0.000043
+H3K36me3             0.000392
+TF_binding_site      0.001349
+H3K9ac               0.004423
+Enhancer             0.008084
+H3K4me3              0.013504
+H3K27me3             0.032957
+gwrvis               0.050363
+CTCF_Binding_Site    0.053985
+H3K4me2              0.062934
+cpg_islands          0.102726
+H3K4me1              0.145078
+cpg                  0.165960
+mut_rate             0.178705
+gc_content           0.179497
+dtype: float64
+=====================
+
+
+Saved full model into: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic/JARVIS-RF.model 
+
+
+> jarvis
+Avg. accuracy : 0.81
+Avg. sensitivity : 0.77
+Avg. precision : 0.8933333333333333
+Avg. specificity : 0.85
+Avg. auc : 0.9124
+Metrics saved at: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/all_but_dnn_performance_metrics.intergenic.pkl
+
+**********************************************************************
+>>				utr
+**********************************************************************
+
+>>>>>>>  jarvis
+
+>All features (prior to pre-processing):
+ Index(['chr', 'start', 'end', 'clinvar_annot', 'gwrvis', 'genomic_class',
+       'common_variants', 'common_vs_all_variants_ratio', 'all_variants',
+       'mean_ac', 'mean_af', 'bin_1', 'bin_2', 'bin_3', 'bin_4', 'bin_5',
+       'bin_6', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands',
+       'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site',
+       'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2',
+       'H3K4me3', 'H3K36me3'],
+      dtype='object')
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+    chr   start     end clinvar_annot  ...  H3K4me1 H3K4me2  H3K4me3  H3K36me3
+0  chr1  949522  949523    Pathogenic  ...        1       1        1         0
+1  chr1  957604  957605    Pathogenic  ...        1       0        0         0
+2  chr1  976733  976734    Pathogenic  ...        1       1        0         0
+3  chr1  985852  985853    Pathogenic  ...        0       0        0         0
+4  chr1  987154  987155    Pathogenic  ...        0       0        0         0
+
+[5 rows x 33 columns]
+> All genomic classes: ['ccds' 'intron' 'utr' 'intergenic' 'lincrna' 'intolerant' 'vista'
+ 'tolerant' 'phantom-enh' 'ucne']
+> Filtered genomic classes: ['utr']
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.jarvis.utr.bed
+Counter({'0': 377, '1': 125})
+
+> Fixing class imbalance ...
+Imbalanced sets:  [(0, 377), (1, 125)]
+Balanced sets: [(0, 125), (1, 125)]
+Model: RF 
+
+(250, 17)
+Features: ['gwrvis', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands', 'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site', 'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2', 'H3K4me3', 'H3K36me3']
+================================================
+CV - Repeat: 1
+CV - Repeat: 2
+CV - Repeat: 3
+Mean AUC: 0.613
+
+> Feature importances:
+H3K4me2              0.000796
+H3K4me1              0.006379
+Enhancer             0.011238
+TF_binding_site      0.013317
+H3K9ac               0.013880
+H3K27me3             0.017652
+H3K27ac              0.024042
+H3K4me3              0.026246
+H3K36me3             0.029068
+H4K20me1             0.032488
+Open_chromatin       0.034050
+CTCF_Binding_Site    0.039634
+gc_content           0.109325
+mut_rate             0.116136
+cpg                  0.169141
+gwrvis               0.169736
+cpg_islands          0.186872
+dtype: float64
+=====================
+
+
+Saved full model into: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/utr/JARVIS-RF.model 
+
+
+> jarvis
+Avg. accuracy : 0.576
+Avg. sensitivity : 0.576
+Avg. precision : 0.5763586956521738
+Avg. specificity : 0.5760000000000002
+Avg. auc : 0.6129999999999999
+Metrics saved at: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/all_but_dnn_performance_metrics.utr.pkl
+
+**********************************************************************
+>>				intergenic utr lincrna ucne vista
+**********************************************************************
+
+>>>>>>>  jarvis
+
+>All features (prior to pre-processing):
+ Index(['chr', 'start', 'end', 'clinvar_annot', 'gwrvis', 'genomic_class',
+       'common_variants', 'common_vs_all_variants_ratio', 'all_variants',
+       'mean_ac', 'mean_af', 'bin_1', 'bin_2', 'bin_3', 'bin_4', 'bin_5',
+       'bin_6', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands',
+       'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site',
+       'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2',
+       'H3K4me3', 'H3K36me3'],
+      dtype='object')
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.bed
+    chr   start     end clinvar_annot  ...  H3K4me1 H3K4me2  H3K4me3  H3K36me3
+0  chr1  949522  949523    Pathogenic  ...        1       1        1         0
+1  chr1  957604  957605    Pathogenic  ...        1       0        0         0
+2  chr1  976733  976734    Pathogenic  ...        1       1        0         0
+3  chr1  985852  985853    Pathogenic  ...        0       0        0         0
+4  chr1  987154  987155    Pathogenic  ...        0       0        0         0
+
+[5 rows x 33 columns]
+> All genomic classes: ['ccds' 'intron' 'utr' 'intergenic' 'lincrna' 'intolerant' 'vista'
+ 'tolerant' 'phantom-enh' 'ucne']
+> Filtered genomic classes: ['utr' 'intergenic' 'lincrna' 'vista' 'ucne']
+../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/full_feature_table.clinvar_denovodb.jarvis.intergenic_utr_lincrna_ucne_vista.bed
+Counter({'0': 11153, '1': 155})
+
+> Fixing class imbalance ...
+Imbalanced sets:  [(0, 11153), (1, 155)]
+Balanced sets: [(0, 155), (1, 155)]
+Model: RF 
+
+(310, 17)
+Features: ['gwrvis', 'mut_rate', 'gc_content', 'cpg', 'cpg_islands', 'CTCF_Binding_Site', 'Enhancer', 'Open_chromatin', 'TF_binding_site', 'H3K27ac', 'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1', 'H3K4me2', 'H3K4me3', 'H3K36me3']
+================================================
+CV - Repeat: 1
+CV - Repeat: 2
+CV - Repeat: 3
+Mean AUC: 0.884
+
+> Feature importances:
+TF_binding_site      0.000000
+H3K27me3             0.000371
+Enhancer             0.001637
+Open_chromatin       0.001745
+H3K27ac              0.004765
+H4K20me1             0.012525
+CTCF_Binding_Site    0.016362
+H3K9ac               0.016743
+H3K4me3              0.022518
+gwrvis               0.041603
+gc_content           0.043432
+H3K4me2              0.091040
+H3K4me1              0.113727
+H3K36me3             0.128899
+mut_rate             0.163369
+cpg_islands          0.168432
+cpg                  0.172831
+dtype: float64
+=====================
+
+
+Saved full model into: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista/JARVIS-RF.model 
+
+
+> jarvis
+Avg. accuracy : 0.7870967741935483
+Avg. sensitivity : 0.6838709677419356
+Avg. precision : 0.8624295269947445
+Avg. specificity : 0.8903225806451611
+Avg. auc : 0.8862000000000001
+Metrics saved at: ../out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/clinvar_feature_tables/all_but_dnn_performance_metrics.intergenic_utr_lincrna_ucne_vista.pkl
