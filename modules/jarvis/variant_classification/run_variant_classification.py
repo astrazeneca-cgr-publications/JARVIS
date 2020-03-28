@@ -62,11 +62,15 @@ class ClassificationWrapper:
 		self.ml_data_dir = self.out_dir + '/ml_data'
 		
 		self.clinvar_feature_table_dir = self.ml_data_dir + '/clinvar_feature_tables'
-		self.conservation_feature_table_dir = self.ml_data_dir + '/conservation_feature_tables'
 		
 		self.clinvar_ml_out_dir = self.ml_data_dir + '/clinvar-out'
 		if not os.path.exists(self.clinvar_ml_out_dir):
 			os.makedirs(self.clinvar_ml_out_dir)
+
+		
+		self.base_out_models_dir = self.ml_data_dir + '/models'
+		if not os.path.exists(self.base_out_models_dir): 			
+			os.makedirs(self.base_out_models_dir)
 	
 	
 	
@@ -77,10 +81,11 @@ class ClassificationWrapper:
 		else:
 			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
-		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
-		#print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
-		#print(self.full_feature_table.head())
-	
+		print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
+		print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
+		print(self.full_feature_table.head())
+
+
 
 	def subset_feat_table_df(self):
 		
@@ -104,7 +109,8 @@ class ClassificationWrapper:
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Pathogenic.*', '1', regex=True)
 			
 	
-		if self.base_score in ['gwrvis', 'jarvis']:
+		# TEMP -- deprecated, especially when using ncER-training (it doesn't contain CCDS variants anyway): set to "if False"
+		if False: #self.base_score in ['gwrvis', 'jarvis']:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.bed'
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + '_'.join(self.genomic_classes) + '.clean.bed'
 
@@ -115,6 +121,9 @@ class ClassificationWrapper:
 			cur_full_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.	genomic_classes) + '.bed'
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.genomic_classes) + '.clean.bed'
 			
+			
+		print(cur_full_feature_file)
+		
 		self.df.to_csv(cur_full_feature_file, sep='\t', index=False, header=False)
 
 		
@@ -145,9 +154,9 @@ class ClassificationWrapper:
 				self.df = pd.read_csv(clean_feature_file, sep='\t', header=None)
 				self.df.columns = original_columns
 		
-		print(self.df.head())
-		print(self.df.tail())
-		print(self.df.shape)
+		#print(self.df.head())
+		#print(self.df.tail())
+		#print(self.df.shape)
 		
 
 		
@@ -157,13 +166,28 @@ class ClassificationWrapper:
 		classifier_out_dir = self.clinvar_ml_out_dir + '/' + '_'.join(self.genomic_classes)
 		if not os.path.exists(classifier_out_dir):
 			os.makedirs(classifier_out_dir)
+
+		# @anchor-1
+		#out_models_dir = self.base_out_models_dir + '/' + 'intergenic_utr_lincrna_ucne_vista'  #+ '_'.join(self.genomic_classes)
+		out_models_dir = self.base_out_models_dir + '/' + '_'.join(self.genomic_classes)
+		"""
+		    -- JARVIS:
+		       > "intergenic_utr_lincrna_ucne_vista" is the best model for 'utr'--D3000-struct (0.675)
+		       > "intergenic_utr_lincrna_ucne_vista" is the best model for 'intergenic,utr'--D3000-struct (0.649)
+		       > "ccds" is (probably) the best model for 'ccds'--D3000-struct (0.565)
+
+		"""
+		if not os.path.exists(out_models_dir): 			
+			os.makedirs(out_models_dir)
 			
 	
-		classifier = Classifier(self.Y_label, classifier_out_dir, base_score=self.base_score,
+		classifier = Classifier(self.Y_label, classifier_out_dir, out_models_dir, base_score=self.base_score,
 							model_type=self.model_type,
 							use_only_base_score=self.use_only_base_score,
 							include_vcf_extracted_features=self.include_vcf_extracted_features, 
-							exclude_base_score=self.exclude_base_score)
+							exclude_base_score=self.exclude_base_score,
+							use_pathogenicity_trained_model=use_pathogenicity_trained_model, 
+							use_conservation_trained_model=use_conservation_trained_model)
 		
 		classifier.preprocess_data(self.df)
 		
@@ -181,33 +205,6 @@ class ClassificationWrapper:
 		
 
 	
-	def read_conservation_feature_table(self):
-	
-		file_annot = "D" + str(labelset_size)
-		if discard_zero_values:
-			file_annot += ".no_zeros"
-	
-		if self.base_score in ['gwrvis', 'jarvis']:
-			print(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed')
-			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + file_annot + '.bed', sep='\t', low_memory=False)
-		else:
-			self.full_feature_table = pd.read_csv(self.conservation_feature_table_dir + '/full_feature_table.conservation.All_genomic_classes.' + self.base_score + '.' + file_annot + '.bed', sep='\t', low_memory=False)
-			self.full_feature_table.dropna(inplace=True)
-
-		
-		self.df = self.full_feature_table.loc[ self.full_feature_table.genomic_class.isin(self.genomic_classes), :].copy()
-	
-		# -- For conservation labels
-		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Non_conserved.*', '0', regex=True)
-		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Conserved.*', '1', regex=True)
-		self.df[self.Y_label] = self.df[self.Y_label].apply(pd.to_numeric, errors='coerce')
-
-	
-		print(self.df.head())
-		print(self.df.tail())
-		print(self.df.shape)
-		
-		
 		
 	def run(self):
 	
@@ -216,10 +213,6 @@ class ClassificationWrapper:
 			self.read_input_data()
 			self.subset_feat_table_df()
 			
-		elif self.Y_label == 'conservation_annot':
-			# Conservation-based classification
-			self.read_conservation_feature_table()
-		
 		self.run_classifier()
 		
 		
@@ -269,6 +262,8 @@ def plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, cl
 	pdf_filename = clinvar_ml_out_dir + '/' + '_'.join(genomic_classes) + '.all_scores_classification.' + Y_label + '.pdf'
 	fig.savefig(pdf_filename, bbox_inches='tight')
 	
+	plt.close()
+	
 
 	
 	
@@ -308,16 +303,12 @@ if __name__ == '__main__':
 
 	config_file = sys.argv[1]
 	filter_ccds_overlapping_variants = bool(int(sys.argv[2]))
-	model_type = sys.argv[3] #'DNN' (default) # 'RF (RandomForest)', 'Logistic', 'DNN'
+	model_type = sys.argv[3] #'DNN' (default), 'RF (RandomForest)', 'Logistic'
 
 	run_params = get_config_params(config_file)
 	
 	genomic_classes_log = run_params['genomic_classes']
 	Y_label = run_params['Y_label']
-	labelset_size = int(run_params['labelset_size'])
-	discard_zero_values = bool(int(run_params['discard_zero_values']))
-	print("labelset_size:", labelset_size)
-	print("discard_zero_values:", discard_zero_values)
 	
 	pathogenic_set = run_params['pathogenic_set']
 	benign_set = run_params['benign_set']
@@ -327,16 +318,18 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists =  [ ['intergenic'], ['utr'], ['intergenic', 'utr'], ['lincrna'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'], ['ccds'], ['intron'] ] 
-	elif Y_label == 'conservation_annot':
-		genomic_classes_lists =  [ ['ucne'], ['vista'], ['intergenic'], ['utr'], ['lincrna'], ['ccds'], ['intron'] ] 
+		genomic_classes_lists = [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] #, ['ccds'], ['intron'] ] 
+		
+		# @anchor-2
+		#genomic_classes_lists =  [ ['utr'] ]   # TEMP
 
 	
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		#all_base_scores = ['gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
-		all_base_scores = ['orion', 'gwrvis', 'jarvis']
+		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		# @anchor-3
+		#all_base_scores = ['jarvis'] 
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -344,9 +337,14 @@ if __name__ == '__main__':
 	#genomic_classes_lists =  [ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'], ['ccds'], ['intron'] ] 
 	#all_base_scores = ['ncRVIS'] 
 	
-
 	# include_vcf_extracted_features -- default: False (including it for UTRs doesn't improve)
 
+	
+	
+	# *************************************
+	use_pathogenicity_trained_model=False #True
+	use_conservation_trained_model=False
+	# *************************************
 	
 	
 	
@@ -363,7 +361,7 @@ if __name__ == '__main__':
 
 			print('>>>>>>>  ' + base_score + '\n')
 
-			try:
+			try:  # 16 lines in try
 				clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
 													genomic_classes=genomic_classes,
 													Y_label=Y_label, 

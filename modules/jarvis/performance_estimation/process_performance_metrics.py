@@ -32,6 +32,11 @@ class MetricsBenchmark:
 		# > All but DNN metrics (also includes JARVIS trained with RF; Random Forests)
 		with open(clinvar_feature_table_dir + '/all_but_dnn_performance_metrics.' + self.genomic_class + '.pkl', 'rb') as handle:
 			self.all_but_dnn_metrics = pickle.load(handle)
+
+		if not self.all_but_dnn_metrics:
+			print("[Warning] empty metrics dictionary - ignoring class " + self.genomic_class)
+			return -1
+
 		# replace 'jarvis' name with 'JARVIS-rf' (rf: random forest)
 		self.all_but_dnn_metrics['JARVIS-rf'] = self.all_but_dnn_metrics.pop('jarvis')
 
@@ -47,6 +52,8 @@ class MetricsBenchmark:
 			print(self.jarvis_metrics.keys())
 		except:
 			print("No DNN-based metrics found.")
+
+		return 0
 
 
 
@@ -103,14 +110,19 @@ class MetricsBenchmark:
 		#print(list(all_but_dnn_df.keys()))
 		#print(list(jarvis_df.keys()))
 
-		self.all_scores = sorted(all_but_dnn_df.score.unique().tolist() + jarvis_df.score.unique().tolist())
+		if DL_MODELS:
+			self.all_scores = sorted(all_but_dnn_df.score.unique().tolist() + jarvis_df.score.unique().tolist())
+			cur_df = pd.concat([all_but_dnn_df, jarvis_df])
+		else:
+			self.all_scores = sorted(all_but_dnn_df.score.unique().tolist())
+			cur_df = pd.concat([all_but_dnn_df])
+		
 		self.cur_palette = dict(zip(self.all_scores, self.hex_colors[:len(self.all_scores)]))
-
-
-		cur_df = pd.concat([all_but_dnn_df, jarvis_df])
 		cur_df.reset_index(inplace=True, drop=True)
 		#print(cur_df)
 		#print(cur_df.shape)
+
+
 
 		ordered_classes_df = self.get_order_of_genomic_classes(cur_df, order='mean')
 		#print(ordered_classes_df)
@@ -144,13 +156,19 @@ class MetricsBenchmark:
 def infer_avail_genomic_classes():
 
 	# Infer all run genomic_classes from "jarvis_performance_metrics.[*].[genomic_classes].pkl files
-	jarvis_metric_files = glob(clinvar_feature_table_dir + '/jarvis_performance_metrics.both.*.pkl')
+	if DL_MODELS:
+		jarvis_metric_files = glob(clinvar_feature_table_dir + '/jarvis_performance_metrics.both.*.pkl')
+	else:
+		jarvis_metric_files = glob(clinvar_feature_table_dir + '/all_but_dnn_performance_metrics.*.pkl')
+
 	print('All metrics files (with both features run complete):', jarvis_metric_files)
 
 	genomic_classes = []
 	for f in jarvis_metric_files:
 		vals = f.split('.')
 		genomic_classes.append(vals[-2])
+
+	#genomic_classes = ['intergenic', 'utr', 'intergenic_utr_lincrna_ucne_vista']
 
 	return genomic_classes 
 
@@ -159,6 +177,8 @@ def infer_avail_genomic_classes():
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
+	DL_MODELS = bool(int(sys.argv[2]))
+
 
 	# Read dir structure
 	out_dir = custom_utils.create_out_dir(config_file)
@@ -174,7 +194,9 @@ if __name__ == '__main__':
 		print('\n> Genomic class:', genomic_class)
 
 		bench = MetricsBenchmark(config_file, genomic_class)
-		bench.read_metrics_from_saved_files()
+		ret = bench.read_metrics_from_saved_files()
+		if ret == -1:
+			continue
 
 		metrics = bench.all_but_dnn_metrics['gwrvis'][0].keys()
 

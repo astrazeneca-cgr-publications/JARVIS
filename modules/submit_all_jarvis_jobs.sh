@@ -10,9 +10,13 @@ if [ "$#" -ne 2 ]; then
 fi
 
 
-declare -a genomic_classes=("intergenic" "utr" "intergenic,utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
+declare -a genomic_classes=("intergenic" "utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
+#declare -a genomic_classes=("intergenic")
+#declare -a genomic_classes=("utr" "lincrna" "intergenic,utr,lincrna,ucne,vista") 
 #declare -a genomic_classes=("ccds" "intron")
-#declare -a genomic_classes=("intron")
+
+# -- Create jarvis_data.pkl to be used in all other runs without conflicts
+python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file structured intergenic 0 $cv_repeats
 
 
 for gen_classes in "${genomic_classes[@]}"; do
@@ -24,7 +28,7 @@ for gen_classes in "${genomic_classes[@]}"; do
 	mem="24G"
 	t="24:0:0"
 	if [ "$gen_classes" == "ccds" ] || [ "$gen_classes" == "intron" ]; then
-		ncores=10
+		ncores=4
 		mem="24G"
 		t="48:0:0"
 	fi

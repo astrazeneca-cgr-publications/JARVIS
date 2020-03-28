@@ -8,6 +8,7 @@ from collections import Counter
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
 
 from scipy import interp
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV, LinearRegression
@@ -19,6 +20,7 @@ from imblearn.under_sampling import RandomUnderSampler
 
 import warnings
 warnings.filterwarnings("error")
+import pickle
 import sys
 import os
 
@@ -29,41 +31,41 @@ sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from custom_utils import create_out_dir
 	
 
-class DnnClassifier:
-
-	def __init__(self, input_dim):
-		self.model = Sequential()
-		self.model.add(Dense(128, input_dim=input_dim, activation='relu'))
-		self.model.add(Dense(128, input_dim=input_dim, activation='relu'))
-		self.model.add(Dense(1, activation='sigmoid'))
-		
-		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-		
 	
 
 class Classifier:
 	
-	def __init__(self, Y_label, out_dir, base_score='gwrvis', model_type='DNN', 
-				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False):
+	def __init__(self, Y_label, out_dir, out_models_dir, base_score='gwrvis', model_type='RF', 
+				 use_only_base_score=True, include_vcf_extracted_features=False, exclude_base_score=False, 
+				 use_pathogenicity_trained_model=False, use_conservation_trained_model=False):
 				 
 		self.out_dir = out_dir
+		self.out_models_dir = out_models_dir
 		self.Y_label = Y_label
 		self.model_type = model_type
 		self.include_vcf_extracted_features = include_vcf_extracted_features
 		self.base_score = base_score
 		self.use_only_base_score = use_only_base_score
 		self.exclude_base_score = exclude_base_score
+		self.use_pathogenicity_trained_model = use_pathogenicity_trained_model
+		self.use_conservation_trained_model = use_conservation_trained_model
+		
 
 			
 	
 	def preprocess_data(self, df):
+	
 	
 		if self.use_only_base_score:		
 			df.dropna(inplace=True)
 			self.feature_cols = [self.base_score]
 		
 		else:
+			#cols_to_drop = ['chr', 'start', 'end', 'genomic_class', self.Y_label, 'clinvar_annot']
+
 			cols_to_drop = ['chr', 'start', 'end', 'genomic_class', self.Y_label, 'clinvar_annot']
+			
+
 	
 			vcf_dependent_cols = ['common_variants', 'common_vs_all_variants_ratio', 
 								  'all_variants', 'mean_ac', 'mean_af', 'bin_1', 
@@ -77,8 +79,8 @@ class Classifier:
 				
 			self.feature_cols = [x for x in df.columns.values if x not in cols_to_drop ]
 		
-		print('Features:', self.feature_cols)
-		print('Label:', self.Y_label)
+		#print('Features:', self.feature_cols)
+		#print('Label:', self.Y_label)
 	
 		print(Counter(df[self.Y_label]))
 	
@@ -86,22 +88,28 @@ class Classifier:
 		# Retaining only most important features (improves AUC only by +0.001)
 		#self.feature_cols = ['gwrvis', 'gc_content', 'cpg', 'mut_rate', 'cpg_islands', 'H3K4me2']
 			
+		#print(df.loc[ df[self.Y_label] == '1', :])
+		
+		
 		self.X = df[self.feature_cols].values
 		self.y = df[self.Y_label].astype(int).values
-
+		
+		
 		# Fix class imbalance (with over/under-sampling minority/majority class)
 		positive_set_size = (self.y == 1).sum()
 		negative_set_size = (self.y == 0).sum()
 		pos_neg_ratio = 1/1
 
+		
+		
 		if (positive_set_size / negative_set_size < pos_neg_ratio) or (negative_set_size / positive_set_size < pos_neg_ratio):
 			print('\n> Fixing class imbalance ...')
 			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
 			self.X, self.y = rus.fit_resample(self.X, self.y)
 			print('Balanced sets:', sorted(Counter(self.y).items()))
-			
-		
+				
+				
 		
 	
 	def init_model(self):
@@ -122,9 +130,6 @@ class Classifier:
 				
 			elif self.model_type == 'Logistic':
 				self.model = LogisticRegression(C=1e9, solver='lbfgs', max_iter=10000)
-			
-			elif self.model_type == 'DNN':
-				self.model = DnnClassifier(len(self.feature_cols)).model
 			
 		print('Model:', self.model_type, '\n')
 		
@@ -148,33 +153,9 @@ class Classifier:
 	
 	
 	
-	def plot_dnn_model_history(self, history):
-	
-		# summarize history for accuracy
-		fig1, ax = plt.subplots(figsize=(10, 10))
-		plt.plot(history.history['acc'])
-		plt.plot(history.history['val_acc'])
-		plt.title('model accuracy')
-		plt.ylabel('accuracy')
-		plt.xlabel('epoch')
-		plt.legend(['train', 'test'], loc='upper left')
-		plt.show()
-		
-		# summarize history for loss
-		plt.plot(history.history['loss'])
-		plt.plot(history.history['val_loss'])
-		plt.title('model loss')
-		plt.ylabel('loss')
-		plt.xlabel('epoch')
-		plt.legend(['train', 'test'], loc='upper left')
-		plt.show()
-		
-		fig1.savefig(self.out_dir + '/DNN_model_history.' + self.Y_label + '.pdf', bbox_inches='tight')
-
 		
 		
-		
-	def run_classification_with_cv(self, cv_splits=5, cv_repeats=5):
+	def run_classification_with_cv(self, cv_splits=5, cv_repeats=3):
 		
 		cv = StratifiedKFold(n_splits=cv_splits)
 		
@@ -187,33 +168,65 @@ class Classifier:
 		fig, ax = plt.subplots(figsize=(10, 10))
 
 
+		if self.base_score == 'gwrvis':
+			print(self.X.shape)
+			print('Features:', self.feature_cols)
+			print('================================================')
+
+	
 		# n-repeated CV
 		for n in range(cv_repeats):
 			print('CV - Repeat:', str(n+1))
 			fold = 0
 			for train, test in cv.split(self.X, self.y):
 
-				# TODO - FIX
-				# Create clean instance of model for each fold
 			
-				if self.model_type == 'DNN':
-					history = self.model.fit(self.X[train], self.y[train], epochs=30, batch_size=32, 
-									verbose=False, validation_split=0.1)
-					# Get prediction probabilities per class
-					probas_ = self.model.predict_proba(self.X[test])
-
-					# Compute ROC curve and area the curve
-					fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 0])
-								
-					# Plot training history for train/validation sets
-					self.plot_dnn_model_history(history)
+				if self.base_score not in ['gwrvis', 'jarvis']:
+					probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 					
 				else:
-					probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
-					# Compute ROC curve and area the curve
-					fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+					# BETA
+					if self.use_conservation_trained_model:
 					
-				
+						self.file_annot = 'D3000.no_zeros' # -- file_annot is used only when loading/saving conservation-trained models
+						if self.score_print_name in ['gwRVIS']: 
+
+							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
+							print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
+							
+							# scikit-learn model
+							with open(model_out_file, 'rb') as fh:     
+								self.model = pickle.load(fh)	
+							probas_ = self.model.predict_proba(self.X[test])
+
+						elif self.score_print_name == 'JARVIS':
+							input_features = 'structured' 
+							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + input_features + '.' + self.file_annot + '.model'
+							print(model_out_file)
+							
+							# keras
+							self.model = load_model(model_out_file)	
+							probas_ = self.model.predict(self.X[test])
+
+					elif self.use_pathogenicity_trained_model:
+							
+							# -- At the moment use RF-based model for JARVIS (and LR for gwRVIS anyway)
+							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
+							print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
+							
+							# scikit-learn model
+							with open(model_out_file, 'rb') as fh:     
+								self.model = pickle.load(fh)	
+							probas_ = self.model.predict_proba(self.X[test])
+						
+					else:
+					
+						probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
+						
+
+				# Compute ROC curve and area the curve
+				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
+					
 				
 				tprs.append(interp(mean_fpr, fpr, tpr))
 				tprs[-1][0] = 0.0
@@ -271,6 +284,8 @@ class Classifier:
 		
 		
 		if self.model_type == 'RF':
+			# BETA -- pass when using DL model
+			#pass
 			self.get_feature_importances()
 
 		self.mean_tpr = mean_tpr
@@ -280,6 +295,19 @@ class Classifier:
 		self.metrics_list = metrics_list
 		#print("\nMetrics: ", metrics_list)
 	
+	
+		# =========== TRAIN FULL MODEL FOR JARVIS and gwRVIS ===========
+		if self.base_score in ['gwrvis', 'jarvis'] and not (self.use_conservation_trained_model or self.use_pathogenicity_trained_model):
+		
+			# Save the model only when a pre-trained one has NOT been defined to be used for prediction
+			self.model.fit(self.X, self.y)
+			model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
+			with open(model_out_file, 'wb') as fh:
+				pickle.dump(self.model, fh)
+
+			print("Saved full model into:", model_out_file, '\n')
+			
+			
 	
 	
 	def get_metrics(self, test_flat, preds_flat, verbose=0):
