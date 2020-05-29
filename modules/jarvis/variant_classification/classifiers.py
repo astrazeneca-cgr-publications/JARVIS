@@ -117,7 +117,7 @@ class Classifier:
 			Initialise classifier model based on input base_score and model_type
 		"""
 			
-		rf_params = dict(n_estimators=100, max_depth=2, random_state=0)
+		rf_params = dict(n_estimators=200, max_depth=3, random_state=0)
 	
 	
 		# Use logistic regression for all scores except for JARVIS
@@ -283,7 +283,7 @@ class Classifier:
 		print('Mean AUC:', self.mean_auc)
 		
 		
-		if self.model_type == 'RF':
+		if self.model_type in ['RF', 'Logistic']:
 			# BETA -- pass when using DL model
 			#pass
 			self.get_feature_importances()
@@ -377,7 +377,7 @@ class Classifier:
 		
 		importances_series = pd.Series(importances, index=self.feature_cols)
 		importances_series.sort_values(inplace=True)
-		print(importances_series)
+		print('Feature importance:\n', importances_series)
 		
 		fig, ax = plt.subplots(figsize=(14, 10))
 		

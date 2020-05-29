@@ -81,9 +81,9 @@ class ClassificationWrapper:
 		else:
 			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
-		print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
-		print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
-		print(self.full_feature_table.head())
+		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
+		#print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
+		#print(self.full_feature_table.head())
 
 
 
@@ -100,9 +100,38 @@ class ClassificationWrapper:
 		
 		print('> Filtered genomic classes:', self.df.genomic_class.unique())
 		
+
+
 		# Drop NAs
 		self.df.dropna(inplace=True)
+
+
+		# BETA: assess performance withouth gwRVIS
+		if self.base_score == 'jarvis':
+			#self.df.drop(['gwrvis'], axis=1, inplace=True)
 		
+			#if 'phastCons_primate' in self.df.columns:
+			#	self.df.drop(['phastCons_primate'], axis=1, inplace=True)
+			pass
+				
+
+
+		# Impute missing phastCons scores with median
+		if 'phastCons_primate' in self.df.columns:
+			#print(self.df.shape)
+			#print(self.df.info())
+			#print('-----------------\n')
+
+			median_phastcons_primate = self.df.loc[ self.df['phastCons_primate'] != '.', 'phastCons_primate'].astype(float).tolist()
+			#print(median_phastcons_primate)
+			#print('len median_phastcons_primate:', len(median_phastcons_primate))
+			#print('median:', np.median(median_phastcons_primate))
+
+
+			self.df['phastCons_primate'] = self.df['phastCons_primate'].apply(lambda x: np.median(median_phastcons_primate)  if x == '.' else float(x))
+			#print(self.df.shape)
+			#print(self.df.info())
+			
 		
 		# Correct data types and convert Y-label strings to 1/0 values
 		self.df[self.Y_label] = self.df[self.Y_label].astype(str).str.replace('Benign.*', '0', regex=True)
@@ -122,7 +151,7 @@ class ClassificationWrapper:
 			clean_feature_file = self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + "." + '_'.join(self.genomic_classes) + '.clean.bed'
 			
 			
-		print(cur_full_feature_file)
+		#print(cur_full_feature_file)
 		
 		self.df.to_csv(cur_full_feature_file, sep='\t', index=False, header=False)
 
@@ -189,7 +218,18 @@ class ClassificationWrapper:
 							use_pathogenicity_trained_model=use_pathogenicity_trained_model, 
 							use_conservation_trained_model=use_conservation_trained_model)
 		
+
+		print(self.df)
+		
+
 		classifier.preprocess_data(self.df)
+		print(self.df.info())
+
+
+		features_df = self.df.drop(['chr', 'start', 'end', 'clinvar_annot'], axis=1)
+		print(features_df.corr())
+
+		sys.exit()
 		
 		classifier.init_model()
 		
@@ -318,18 +358,18 @@ if __name__ == '__main__':
 
 
 	if Y_label == 'clinvar_annot':
-		genomic_classes_lists = [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] #, ['ccds'], ['intron'] ] 
+		#genomic_classes_lists = [ ['lincrna'], ['intergenic'], ['utr'], ['intergenic', 'utr', 'lincrna', 'ucne', 'vista']] #, ['ccds'], ['intron'] ] 
 		
 		# @anchor-2
-		#genomic_classes_lists =  [ ['utr'] ]   # TEMP
+		genomic_classes_lists =  [ ['intergenic', 'utr', 'lincrna', 'ucne', 'vista'] ]   # TEMP
 
 	
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion'] 
+		#all_base_scores = ['cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']	# 'ncER_10bp'
 		# @anchor-3
-		#all_base_scores = ['jarvis'] 
+		all_base_scores = ['jarvis'] 
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -361,25 +401,25 @@ if __name__ == '__main__':
 
 			print('>>>>>>>  ' + base_score + '\n')
 
-			try:  # 16 lines in try
-				clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
-													genomic_classes=genomic_classes,
-													Y_label=Y_label, 
-													include_vcf_extracted_features=False, 
-													exclude_base_score=False,
-													filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
-													
-				clf_wrapper.run()
-			
-				if clf_wrapper.mean_auc is not None:
-					score_list.append(clf_wrapper.score_print_name)
-					fpr_list.append(clf_wrapper.mean_fpr)
-					tpr_list.append(clf_wrapper.mean_tpr)
-					auc_list.append(clf_wrapper.mean_auc)
+			#try:  # 16 lines in try
+			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
+												genomic_classes=genomic_classes,
+												Y_label=Y_label, 
+												include_vcf_extracted_features=False, 
+												exclude_base_score=False,
+												filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
+												
+			clf_wrapper.run()
+		
+			if clf_wrapper.mean_auc is not None:
+				score_list.append(clf_wrapper.score_print_name)
+				fpr_list.append(clf_wrapper.mean_fpr)
+				tpr_list.append(clf_wrapper.mean_tpr)
+				auc_list.append(clf_wrapper.mean_auc)
 
-				metrics_per_score[base_score] = clf_wrapper.metrics_list
-			except:
-				print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
+			metrics_per_score[base_score] = clf_wrapper.metrics_list
+			#except:
+			#	print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)
 		

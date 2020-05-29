@@ -62,6 +62,7 @@ class JarvisTraining:
 		
 		# @anchor
 		if not os.path.exists(self.data_dict_file): # or (use_conservation_trained_model or use_pathogenicity_trained_model):
+		#if True:
 			print("\nPreparing training data - calling JarvisDataPreprocessing object...")
 			data_preprocessor = JarvisDataPreprocessing(config_file, predict_on_test_set=predict_on_test_set, test_indexes=test_indexes)
 			
@@ -209,6 +210,8 @@ class JarvisTraining:
 			train_inputs = [X, seqs]
 
 
+
+
 		# > Keras functional API
 		if input_features == 'structured':
 			# @ Feed-forward DNN (for structured features input only)
@@ -298,7 +301,7 @@ class JarvisTraining:
 
 				
 			if use_conservation_trained_model:
-				self.file_annot = 'D3000.no_zeros'
+				self.file_annot = 'D1000.no_zeros'
 				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
 				print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
 		
@@ -391,12 +394,13 @@ class JarvisTraining:
 				print('\n>> CV - Repeat:', str(n+1))
 
 				fold = 0
-				#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
-				for _ in range(1):
+				for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
+				#for _ in range(1):
 
 					"""
 						> Use that for prediction on a test set
 						-- preceded by: for _ in range(1)
+					"""
 					"""
 					if input_features == 'structured':
 						test_inputs = X
@@ -407,12 +411,15 @@ class JarvisTraining:
 					elif input_features == 'both':
 						test_inputs = [X, seqs]
 						y_test = y
-					
+					"""
+
+
+
 					"""
 						> Use that for generalised performance with cross-validation
 						-- preceded by: for train_index, test_index in skf.split(X, np.argmax(y, axis=1))
 					"""
-					"""
+					#"""
 					if use_fixed_cv_batches:
 						train_index, test_index = cv_data_dict[fold]
 					else:
@@ -439,7 +446,7 @@ class JarvisTraining:
 					elif input_features == 'both':
 						train_inputs = [X_train, seqs_train]
 						test_inputs = [X_test, seqs_test]
-					"""
+					#"""
 				
 	
 						
@@ -448,7 +455,7 @@ class JarvisTraining:
 					if use_conservation_trained_model or use_pathogenicity_trained_model:
 						
 						if use_conservation_trained_model:
-							self.file_annot = 'D3000.no_zeros'
+							self.file_annot = 'D1000.no_zeros'
 							model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
 							print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
 					
@@ -491,6 +498,8 @@ class JarvisTraining:
 						earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
 						# -------------------
 
+						#print('train_input:', train_inputs)
+						#print('y_train:', y_train)
 
 
 						history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
@@ -698,9 +707,9 @@ if __name__ == '__main__':
 	test_indexes = []
 
 	# ----------------------
-	train_with_cv = False     # get generalised performance with cross-validation
+	train_with_cv = True #False     # get generalised performance with cross-validation
 	train_full_model = False   # train full model (to later use on an unseen test set)
-	predict_on_test_set = True
+	predict_on_test_set = False #True
 	#test_indexes = [0, 200000]
 	#test_indexes = [200001, 400000]
 	#test_indexes = [400001, 600000]
@@ -713,7 +722,7 @@ if __name__ == '__main__':
 	
 	# -- Compatible only with: train_with_cv = True
 	# *************************************
-	use_pathogenicity_trained_model=True
+	use_pathogenicity_trained_model=False #True
 	use_conservation_trained_model=False
 	# *************************************
 	

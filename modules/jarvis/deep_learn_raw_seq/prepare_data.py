@@ -331,9 +331,17 @@ class JarvisDataPreprocessing:
 		additional_features_df.reset_index(drop=True, inplace=True)
 		additional_features_df['global_index'] = additional_features_df.index.values
 
+
+		# Impute NA data with medians
+		cols_to_impute = ['phastCons_primate']
+		for col in cols_to_impute:
+			tmp_median = additional_features_df.loc[ additional_features_df[col] != '.', col].astype(float).tolist()
+			additional_features_df[col] = additional_features_df[col].apply(lambda x: np.median(tmp_median)  if x == '.' else float(x))
+
 		
 		print(additional_features_df.head())
 		print(additional_features_df.tail())
+		print(additional_features_df.info())
 		print(filtered_onehot_seqs.shape)
 
 		

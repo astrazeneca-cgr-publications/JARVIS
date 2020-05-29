@@ -16,7 +16,8 @@ declare -a genomic_classes=("intergenic" "utr" "lincrna" "intergenic,utr,lincrna
 #declare -a genomic_classes=("ccds" "intron")
 
 # -- Create jarvis_data.pkl to be used in all other runs without conflicts
-python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file structured intergenic 0 $cv_repeats
+#python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file structured intergenic 0 $cv_repeats
+#exit
 
 
 for gen_classes in "${genomic_classes[@]}"; do

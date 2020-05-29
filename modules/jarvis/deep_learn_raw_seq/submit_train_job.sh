@@ -20,16 +20,16 @@ module load libpng/1.6.23-foss-2017a
 # ----------- Structured -----------
 use_fixed_cv_batches=0
 echo -e "\nTraining JARVIS for $genomic_classes using 'structured' features..."
-#python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file structured $genomic_classes $use_fixed_cv_batches $cv_repeats
+python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file structured $genomic_classes $use_fixed_cv_batches $cv_repeats
 
 
 
 # -----------  Sequences & both -----------
 use_fixed_cv_batches=1
 echo -e "\nTraining JARVIS for $genomic_classes using 'sequences' features..."
-#python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file sequences $genomic_classes $use_fixed_cv_batches $cv_repeats 
+python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file sequences $genomic_classes $use_fixed_cv_batches $cv_repeats 
 
-use_fixed_cv_batches=0
+use_fixed_cv_batches=1
 echo -e "\nTraining JARVIS for $genomic_classes using 'both' features..."
 python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file both $genomic_classes $use_fixed_cv_batches $cv_repeats 
 
