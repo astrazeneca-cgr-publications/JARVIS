@@ -56,7 +56,7 @@ def intersect_each_regulatory_feature(gwrvis_features_bed):
 	
 		tmp_feature_gwrvis_intersection = scratch_dir + '/gwrvis_' + regul_elem + '.feature_table.bed'
 		cmd = 'intersectBed -wao -a ' + gwrvis_features_bed + ' -b ' + ensembl_regul_file + """ | awk '!seen[$1"_"$2] {print} {++seen[$1"_"$2]}' | cut -f1,2,3,23 > """ + tmp_feature_gwrvis_intersection
-		#print(cmd)
+		print(cmd)
 		
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		stdout, stderr = p.communicate()
@@ -75,31 +75,33 @@ def aggreate_all_regulatory_features():
 	for regul_elem in regulatory_elements:
 		print(regul_elem)
 		
-		gwrvis_elem_intersection_df = pd.read_csv(scratch_dir + '/gwrvis_' + regul_elem + '.feature_table.bed', sep='\t', header=None)
-		gwrvis_elem_intersection_df.fillna(0, inplace=True)
-		gwrvis_elem_intersection_df.columns = ['chr', 'start', 'end', 'regul_elem']
-		
-		inferred_regul_elem = [x for x in gwrvis_elem_intersection_df['regul_elem'].unique() if x != 0][0]
-		
-		print(inferred_regul_elem)
-		gwrvis_elem_intersection_df.replace({inferred_regul_elem: 1}, inplace=True)
-		gwrvis_elem_intersection_df.rename(columns={'regul_elem': inferred_regul_elem}, inplace=True)
-		
-		#gwrvis_elem_intersection_df.index = gwrvis_elem_intersection_df['chr'].astype(str) + '_' + \
-		#									gwrvis_elem_intersection_df['start'].astype(str) + '_' + \
-		#									gwrvis_elem_intersection_df['end'].astype(str)
-		print(gwrvis_elem_intersection_df.head(10))
-		print('Non zero elements:', sum(gwrvis_elem_intersection_df[inferred_regul_elem]))
-		
-		#all_regul_features_df = pd.concat([all_regul_features_df, gwrvis_elem_intersection_df], axis=1)
-		
-		if all_regul_features_df.shape[0] > 0:
-			all_regul_features_df = pd.merge(all_regul_features_df, gwrvis_elem_intersection_df, how='inner', left_on=['chr', 'start', 'end'], right_on=['chr', 'start', 'end'])
+		cur_df_file = scratch_dir + '/gwrvis_' + regul_elem + '.feature_table.bed'
+
+		if os.stat(cur_df_file).st_size == 0:
+			all_regul_features_df[regul_elem] = 0
+
 		else:
-			all_regul_features_df = gwrvis_elem_intersection_df 
-		
-		print('All regul df:', all_regul_features_df.shape, '\n')
-		
+			gwrvis_elem_intersection_df = pd.read_csv(cur_df_file, sep='\t', header=None)
+			gwrvis_elem_intersection_df.fillna(0, inplace=True)
+			gwrvis_elem_intersection_df.columns = ['chr', 'start', 'end', 'regul_elem']
+			
+			inferred_regul_elem = [x for x in gwrvis_elem_intersection_df['regul_elem'].unique() if x != 0][0]
+			
+			print(inferred_regul_elem)
+			gwrvis_elem_intersection_df.replace({inferred_regul_elem: 1}, inplace=True)
+			gwrvis_elem_intersection_df.rename(columns={'regul_elem': inferred_regul_elem}, inplace=True)
+			
+			print(gwrvis_elem_intersection_df.head(10))
+			print('Non zero elements:', sum(gwrvis_elem_intersection_df[inferred_regul_elem]))
+			
+			#all_regul_features_df = pd.concat([all_regul_features_df, gwrvis_elem_intersection_df], axis=1)
+			
+			if all_regul_features_df.shape[0] > 0:
+				all_regul_features_df = pd.merge(all_regul_features_df, gwrvis_elem_intersection_df, how='inner', left_on=['chr', 'start', 'end'], right_on=['chr', 'start', 'end'])
+			else:
+				all_regul_features_df = gwrvis_elem_intersection_df 
+			
+			print('All regul df:', all_regul_features_df.shape, '\n')
 		
 	print(all_regul_features_df.head())
 	print(all_regul_features_df.shape)
@@ -120,6 +122,7 @@ def merge_all_feature_tables(gwrvis_features_df, all_regul_features_df):
 	print(full_df.head())
 		
 
+
 if __name__ == '__main__':
 	
 	config_file = sys.argv[1]
@@ -139,8 +142,8 @@ if __name__ == '__main__':
 		os.makedirs(full_genome_dir)
 
 		
-	regulatory_elements = ['CTCF_binding_sites', 'Enhancers',
-				'Open_chromatin', 'TF_binding_sites', 'H3K27ac',
+	regulatory_elements = ['CTCF_Binding_Site', 'Enhancer',
+				'Open_chromatin', 'TF_binding_site', 'H3K27ac',
 				'H3K27me3', 'H4K20me1', 'H3K9ac', 'H3K4me1',	
 				'H3K4me2', 'H3K4me3', 'H3K36me3']
 	cell_line = 'Monocytes_CD14plus'
@@ -149,7 +152,6 @@ if __name__ == '__main__':
 	
 	
 	gwrvis_features_df, gwrvis_features_bed = merge_gwrvis_and_feature_tables()
-	#gwrvis_features_bed = '../out/gnomad-regression_beta-winlen_3000.MAF_0.001.varType_snv.Pop_all-PASS_ONLY-NO_SEGDUP-NO_LCR-high_conf_regions/full_genome_out/gwrvis_features_table.bed'
 	
 	intersect_each_regulatory_feature(gwrvis_features_bed)
 	

@@ -1,7 +1,7 @@
 #!/bin/bash 
 #SBATCH -J wgs  # Set name for current job 
-#SBATCH -o out-500.wgs  # Set job output log 
-#SBATCH -e err-500.wgs  # Set job error log 
+#SBATCH -o out.wgs  # Set job output log 
+#SBATCH -e err.wgs  # Set job error log 
 #SBATCH --cpus-per-task=5         # Request 5 CPUs (cores) on a single node 
 #SBATCH --mem=40G          # Request amount of memory 
 #SBATCH -t 24:00:0            # Request 24 hours runtime
@@ -40,16 +40,22 @@ echo "Compile full feature table (gwrvis, primary sequence features and regulato
 
 
 
+
 echo "Merge BED files by genomic class across all chromosomes"
 ./gwrvis_core/annotate_feat_table_w_mut_exl_genomic_class.sh $config_file $input_classes
 
+
+
+
+
+
+
+# ----------------------  DON'T RUN DURING DEBUG/DEV -------------------------
 
 echo "Aggregate gwRVIS scores from all chromosomes"
 #python gwrvis_core/aggregate_gwrvis_scores.py $config_file $input_classes;
 
 
-
-# ----------------------  DON'T RUN DURING DEBUG/DEV -------------------------
 
 # [Ad-hoc] post-processing: enhancers
 ##python gwrvis_core/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
@@ -86,11 +92,23 @@ echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
 
 
 
+
+
+# Update the rest of features with single-nt resolution data!
+python -u jarvis/deep_learn_raw_seq/prepare_data.py $config_file
+
+
+
+exit
+
+
 # Under "jarvis_classification/"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis/variant_classification/) ===="
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
 model_type="RF"
 #python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
+exit
+
 
 
 

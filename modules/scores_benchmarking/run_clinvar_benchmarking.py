@@ -307,6 +307,36 @@ class ScoreBenchmark:
 		pathogenic_df.dropna(inplace=True)
 		benign_df.dropna(inplace=True)
 
+
+		print(pathogenic_df.head())
+		print(pathogenic_df.shape)
+		print(benign_df.head())
+		print(benign_df.shape)
+
+		if self.score == 'gwrvis':
+
+
+			clinvar_table_file = clinvar_feature_table_dir + '/full_feature_table.clinvar_denovodb.bed'
+			clinvar_df = pd.read_csv(clinvar_table_file, sep='\t')
+			print(clinvar_df.head())
+
+			# pathogenic
+			pathogenic_df = clinvar_df.loc[ clinvar_df.clinvar_annot == 'Pathogenic', ['chr', 'start', 'end', 'gwrvis', 'gwrvis', 'genomic_class']]
+			pathogenic_df.columns = ['chr', 'start', 'end', 'score', 'gwrvis', 'genomic_class']
+
+			print(pathogenic_df.head())
+			print(pathogenic_df.shape)
+
+			# benign
+			benign_df = clinvar_df.loc[ clinvar_df.clinvar_annot == 'Benign', ['chr', 'start', 'end', 'gwrvis', 'gwrvis', 'genomic_class']]
+			benign_df.columns = ['chr', 'start', 'end', 'score', 'gwrvis', 'genomic_class']
+
+			print(benign_df.head())
+			print(benign_df.shape)
+
+		
+
+
 		print('===================================')
 		print('pathogenic:', set(pathogenic_df['genomic_class']))
 		print('benign:', set(benign_df['genomic_class']))		
@@ -470,6 +500,7 @@ if __name__ == '__main__':
 	out_dir = create_out_dir(config_file)
 	clinvar_feature_table_dir = out_dir + '/ml_data/clinvar_feature_tables'
 
+
 	out_dir = out_dir + '/full_genome_out'
 	#out_dir = '../' + out_dir + '/full_genome_out'
 
@@ -488,7 +519,7 @@ if __name__ == '__main__':
 	dens_plot_data_per_score = {}
 
 	if hg_version == 'hg19':
-		all_scores = ['ncRVIS', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd', 'gwrvis']
+		all_scores = ['gwrvis', 'ncRVIS', 'phyloP46way', 'phastCons46way', 'orion', 'cadd', 'gwrvis+cadd']
 		#all_scores = ['gwrvis']
 	else:
 		all_scores = ['gwrvis'] # ['cadd']

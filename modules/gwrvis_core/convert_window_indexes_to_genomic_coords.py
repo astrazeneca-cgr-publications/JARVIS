@@ -43,11 +43,13 @@ print(chr_start_coords_multiple_of_winlen)
 full_gwrvis_bed_df = pd.DataFrame()
 
 for chr in chroms:
-	print('Converting window indexes to genomic coordinates for chromosome', chr)
 
 	cur_gwrvis_file = gwrvis_dir + '/studres.chr' + chr + '.txt'
 	if not os.path.exists(cur_gwrvis_file):
 		sys.exit("[Error]: " + cur_gwrvis_file + " does not exist.")
+
+	print('Converting window indexes to genomic coordinates for chromosome', chr)
+	
 
 	def convert_win_coords(row):
 		win_idx = row['win_idx']
@@ -67,14 +69,15 @@ for chr in chroms:
 	cur_gwrvis_array = tmp_concat_str.split()
 	cur_gwrvis_df = pd.DataFrame(cur_gwrvis_array, columns=['gwrvis'])
 	cur_gwrvis_df['win_idx'] = cur_gwrvis_df.index.values
-	#print(cur_gwrvis_df.head())
-	#print(cur_gwrvis_df.tail())
+	print(cur_gwrvis_df.head())
+	print(cur_gwrvis_df.tail())
 
 	tmp_out = cur_gwrvis_df.apply(convert_win_coords , axis=1)
 
 	df = pd.DataFrame(tmp_out, columns=['tmp_out'])
 	df = pd.DataFrame(df.tmp_out.str.split(' ').tolist(),
 			  columns = ['chr', 'start', 'end', 'gwrvis'])
+	print(df.head())
 
 
 	cur_out_fh = gwrvis_dir + '/gwrvis.chr' + str(chr) + '.genomic_coords.bed'
@@ -84,9 +87,12 @@ for chr in chroms:
 	df.reset_index(inplace=True)
 	df.columns.values[0] = 'win_index'
 
+
 	# copy BED file from current chromosome to the global df
 	full_gwrvis_bed_df = pd.concat([full_gwrvis_bed_df, df], axis=0)
 	print(full_gwrvis_bed_df.shape)
 
-	full_gwrvis_out_file =  gwrvis_dir + '/full_genome.all_gwrvis.bed'
-	full_gwrvis_bed_df.to_csv(full_gwrvis_out_file, sep='\t', index=False)
+
+# Save full data frame into file
+full_gwrvis_out_file =  gwrvis_dir + '/full_genome.all_gwrvis.bed'
+full_gwrvis_bed_df.to_csv(full_gwrvis_out_file, sep='\t', index=False)

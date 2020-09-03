@@ -1,4 +1,54 @@
 # Workflow
+
+# Calculate single-nt resolution gwRVIS
+```
+config_file="conf/topmed/config.single_nt_gwrvis.yaml"
+./submit_single_nt_gwrvis.sh $config_file
+
+sbatch ./compile_gwrvis_single_nt_scores.sh $config_file
+
+sbatch ./create_tabix_indexes.sh $config_file
+```
+
+
+# [Plot distributions of single-nt gwRVIS across CCDS or all genomic classes]
+```
+cd modules/ad-hoc/
+```
+
+
+
+# Create single-nt feature table (for calculating the genome-wide single-nt jarvis):
+```
+sbatch ./gwrvis_core/for_prediction_annotate_feat_table_w_mut_exl_genomic_class.sh conf/topmed/config.NEW_genome_wide_scores.yaml static_files/input_classes.txt
+```
+
+
+## Calculate single-nt JARVIS
+```
+for i in `seq 1 22`; do sbatch -o chr${i}.jarvis ./jarvis/deep_learn_raw_seq/submit_prediction_per_chr.sh conf/topmed/config.NEW_genome_wide_scores.yaml both $i; done
+```
+
+
+
+ 
+
+
+
+
+
+## Feature table for Machine Learning / Deep Learning
+This is compiled in `gwrvis_core/full_table_intersect_regulatory_features.sh`
+
+The final feature table (with genomic classes, clinvar annotation and all associated features) is saved into:
+**clinvar_feature_tables/full_feature_table.[pathogenic_set]_[benign_set].bed**
+
+- **phastCons_primate** needs to be imputed with the median in:
+	- jarvis/variant_classification/run_variant_classification.py
+	- jarvis/deep_learn_raw_seq/prepare_data.py
+
+
+
 ### Master script:
 ```
 # all

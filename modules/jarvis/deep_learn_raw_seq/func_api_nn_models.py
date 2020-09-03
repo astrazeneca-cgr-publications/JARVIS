@@ -161,6 +161,7 @@ def cnn2_concat_dnn_fc2(feat_input_dim, nn_arch=[32,32], win_len=1000, num_featu
 	x = concatenate([seq_output, feat_output])
 	x = Dense(64, activation='relu')(x)
 	x = Dense(128, activation='relu')(x)
+	x = Dropout(0.2)(x)
 
 	
 	output = Dense(2, activation='softmax')(x)
