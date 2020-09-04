@@ -1,0 +1,36 @@
+#!/bin/bash 
+#SBATCH -J parse_all_chromosomes	# Set name for current job 
+#SBATCH -o out.parse_all_chromosomes	# Set job output log 
+#SBATCH -e err.parse_all_chromosomes	# Set job error log 
+#SBATCH --cpus-per-task=11         # Request 8 CPUs (cores) on a single node 
+#SBATCH --mem=14G          # Request amount of memory 
+#SBATCH -t 24:0:0            # Request 24 hours runtime
+
+module load libpng/1.6.23-foss-2017a
+
+config_log=$1
+single_nt_offset=$2
+chr=$3
+
+# get path from directory of current script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+
+cnt=0
+# TMP
+for i in `seq 1 22`;
+#for i in `seq $chr $chr`;
+do
+	echo Running parse-job for chr: $i
+	python -u $DIR/single_nt_gwrvis_extractor.py $i $config_log $single_nt_offset &
+
+	if [ $cnt = 10 ]; then
+		wait
+		cnt=0
+	fi
+	cnt=$((cnt + 1))
+
+	sleep 1
+done
+
+wait
