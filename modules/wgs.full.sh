@@ -2,7 +2,7 @@
 #SBATCH -J wgs  # Set name for current job 
 #SBATCH -o out.wgs  # Set job output log 
 #SBATCH -e err.wgs  # Set job error log 
-#SBATCH --cpus-per-task=2 #5         # Request 5 CPUs (cores) on a single node 
+#SBATCH --cpus-per-task=4 #5         # Request 5 CPUs (cores) on a single node 
 #SBATCH --mem=40G          # Request amount of memory 
 #SBATCH -t 24:00:0            # Request 24 hours runtime
 
@@ -51,7 +51,7 @@ python ${gwrvis_core_dir}/aggregate_gwrvis_scores.py $config_file $input_classes
 
 
 # [Ad-hoc] post-processing: enhancers
-python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
+#python ${gwrvis_core_dir}/process_enhancers_bed_rvis_contents.py $config_file $input_classes;
 
 echo "Get gwRVIS distribution by genomic class across the entire genome"
 python ${gwrvis_core_dir}/get_whole_genome_rvis_distr.py $config_file $input_classes;
@@ -81,7 +81,6 @@ echo "> Run benchmark against denovo-db phenotypes (cases/controls)"
 ##python scores_benchmarking/benchmark_against_denovo_db.py $config_file
 
 python scores_benchmarking/benchmark_vs_original_orion.py $config_file
-exit
 
 
 

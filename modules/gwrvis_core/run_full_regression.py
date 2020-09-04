@@ -33,6 +33,7 @@ print('cwd:', cwd)
 chr_type = 'autosomal'
 print("Fitting linear regression for autosomal chromosomes only")
 print('Rscript', 'gwrvis_core/full_genome_r_studres_glm.R', out_dir, all_variants_upper_thres, win_len, chr_type)
+
 call(['Rscript', 'gwrvis_core/full_genome_r_studres_glm.R', out_dir, str(all_variants_upper_thres), str(win_len), chr_type])
 
 # fit linear regression for sex chromosomes (only X in that case) separately

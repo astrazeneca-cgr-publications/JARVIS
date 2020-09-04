@@ -5,16 +5,48 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import subprocess
-from sklearn.preprocessing import LabelEncoder 
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import pickle
 from scipy.io import savemat
 import sys, os
+import re
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 import custom_utils
+
+
+
+def get_mutability_rates(kmer=7):
+	"""
+		Read mutability rates by 7- or 3-nt and return them in a dictionary
+	"""
+	# k-mer = 3
+	mut_3mer_matrix_file = '../other_datasets/mutability_matrices/mutation_rate_by_trinucleotide_matrix.txt'
+	mut_3mer_matrix = pd.read_csv(mut_3mer_matrix_file, sep='\t', header=0, index_col=False)
+
+	mut_3mer_matrix['sum'] = mut_3mer_matrix.loc[:, 'A'] + mut_3mer_matrix.loc[:, 'T'] + mut_3mer_matrix.loc[:, 'C'] + mut_3mer_matrix.loc[:, 'G']
+	mut_3mer_matrix_dict = dict(zip(mut_3mer_matrix['trint'], mut_3mer_matrix['sum']))
+
+
+	# k-mer = 7
+	mut_7mer_matrix_file = '../other_datasets/mutability_matrices/heptamer_mutability_rates.processed_sums.txt'
+	mut_7mer_matrix = pd.read_csv(mut_7mer_matrix_file, sep=',', header=0, index_col=False)
+	#print(mut_7mer_matrix.head())
+	mut_7mer_weighted_sum_dict = dict(zip( mut_7mer_matrix['ref_seq'], mut_7mer_matrix['weighted_sum']))
+	mut_7mer_sum_dict = dict(zip( mut_7mer_matrix['ref_seq'], mut_7mer_matrix['sum']))
+	#print(mut_7mer_sum_dict)
+
+
+	mut_rate_dict = dict()
+	if kmer == 7:
+		mut_rate_dict = mut_7mer_weighted_sum_dict
+	elif kmer == 3:
+		mut_rate_dict = mut_3mer_matrix_dict
+
+	return mut_rate_dict
+	
 
 
 
@@ -35,6 +67,7 @@ class JarvisDataPreprocessing:
 
 		self.patho_benign_sets = pathogenic_set + '_' + benign_set
 		self.win_len = config_params['win_len']
+		#self.win_len = int(config_params['win_len'] / 2)
 		self.Y_label = config_params['Y_label']
 
 		# ==== Define dir structure ====
@@ -60,16 +93,24 @@ class JarvisDataPreprocessing:
 		self.predict_on_test_set = predict_on_test_set
 		self.test_indexes = test_indexes
 		if self.predict_on_test_set:
+
+			# -- Reading full_gwrvis_and_regulatory_features.All_genomic_classes.tsv [Deprecated]
 			# Pre-process full table: add 'clinvar_annot' column with placeholder 'Benign' values for consistent processing
-			tmp_full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv'
-			tmp_df = pd.read_csv(tmp_full_feature_table_file, sep='\t')
-			tmp_df.insert(3, 'clinvar_annot', 'Benign')
-			tmp_df.drop( tmp_df.columns[len(tmp_df.columns)-1], axis=1, inplace=True)
+			#tmp_full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv'
+			#tmp_df = pd.read_csv(tmp_full_feature_table_file, sep='\t')
+			
+			#tmp_df.insert(3, 'clinvar_annot', 'Benign')
+			#tmp_df.drop( tmp_df.columns[len(tmp_df.columns)-1], axis=1, inplace=True)
+
+			# -- NEW (includes clinvar_annot already + phastCons_primate)
+			tmp_df = pd.read_csv(self.full_feature_table_file, sep='\t')
+
+			print(tmp_df.head())
+			print(tmp_df.columns)
+			print(tmp_df.shape)
+
 			
 			tmp_df = tmp_df.iloc[ self.test_indexes[0]:self.test_indexes[1], : ]
-			print(tmp_df.head())
-			print(tmp_df.tail())
-			print(tmp_df.shape)
 			
 			self.full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.for_prediction.' + str(self.test_indexes[0]) + '_' + str(self.test_indexes[1])
 			tmp_df.to_csv(self.full_feature_table_file, sep='\t', header=True, index=False)
@@ -107,6 +148,22 @@ class JarvisDataPreprocessing:
 		onehot_seq = onehot_encoder.fit_transform(integer_encoded_seq) #.tolist()
 		onehot_seq = np.transpose(onehot_seq)
 
+
+		# Fill in rows in onehot encoded array with nts not present in the sequence
+		nt_onehot_index = {'A': 0, 'T': 3, 'G': 2, 'C': 1}
+		
+		all_nts = set(nt_onehot_index.keys())
+		present_nts = set(seq)
+		absent_nts = list(all_nts - present_nts)
+
+		#print('absent_nts:', absent_nts, 'present_nts:', present_nts)
+		
+		for nt, _ in sorted(nt_onehot_index.items(), key=lambda x: x[1]):
+			if nt in absent_nts:
+				#print('nt:', nt, 'nt_onehot_index[nt]:', nt_onehot_index[nt])
+				onehot_seq = np.insert(onehot_seq, nt_onehot_index[nt], [0], axis=0)
+
+
 		return onehot_seq
 
 
@@ -140,7 +197,15 @@ class JarvisDataPreprocessing:
 				# G=[0, 0, 1, 0]
 				# C=[0, 1, 0, 0]
 				onehot_seq = self.onehot_encoded_seq(seq)
-				all_onehot_seqs[tmp_win_id] = onehot_seq
+
+				try:
+					all_onehot_seqs[tmp_win_id] = onehot_seq
+				except:
+					print('all_onehot_seqs:', all_onehot_seqs.shape)
+					print('onehot_seq:', onehot_seq.shape)
+					print(onehot_seq[:, :10])
+					print(seq)
+					sys.exit()
 				# DEBUG
 				#all_onehot_seqs[tmp_win_id] = None
 
@@ -173,49 +238,76 @@ class JarvisDataPreprocessing:
 
 
 
-	def get_raw_seqs_from_variant_windows(self, use_gwrvis_windows=True):
+	# @anchor - use_gwrvis_windows: True or False
+	def get_raw_seqs_from_variant_windows(self, use_gwrvis_windows=False):
+		
+		
+		mut_rate_dict = get_mutability_rates(kmer=7)
 		
 		raw_seq_out_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.raw_seqs.out' 
-		windows_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.windows.txt'
-		out_fh = open(windows_file, 'w')	
 
 
-		if use_gwrvis_windows:
-			seq_coords_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.seq_coords.txt'
-
-			os.system("tail -n+2 " + self.all_gwrvis_bed_file  + """ | awk '{print $2"\t"$3"\t"$4"\t"$1 }' """ + " | sed 's/^chr//' > " + self.all_gwrvis_bed_file+".tmp")
-			os.system("tail -n+2 " + self.full_feature_table_file + " | sed 's/^chr//' > " + self.full_feature_table_file+".tmp")
-			os.system("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut -f1,2,3,4 > " + seq_coords_file)
-
-			#print("tail -n+2 " + self.all_gwrvis_bed_file  + """ | awk '{print $2"\t"$3"\t"$4"\t"$1 }' """ + " | sed 's/^chr//' > " + self.all_gwrvis_bed_file+".tmp")
-			#print("tail -n+2 " + self.full_feature_table_file + " | sed 's/^chr//' > " + self.full_feature_table_file+".tmp")
-			#print("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut -f1,2,3,4 > " + seq_coords_file)
-
-			additional_features_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.additional_features.tsv'
-			os.system("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut --complement -f1,2,3 | rev | cut --complement -f1 | rev > " + additional_features_file)
-			print("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut --complement -f1,2,3 | rev | cut --complement -f1 | rev > " + additional_features_file)
-		else:
-			# Create seq_coords_file with windows centered around each variant
-			# gwrvis_index_df will have just the row number of the original entries, and those having seqs with 'N' will be filtered out eventually
-			pass
-		print('seq_coords_file:', seq_coords_file)
+		gwrvis_seq_coords_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.gwrvis_seq_coords.txt'
 
 
-		seq_coords_df = pd.read_csv(seq_coords_file, sep='\t', header=None)
-		seq_coords_df.columns = ['chr', 'start', 'end', 'win_index']
-		print(seq_coords_df.head())
-		print('seq_coords_df:', seq_coords_df.shape)
+
+		os.system("tail -n+2 " + self.all_gwrvis_bed_file  + """ | awk '{print $2"\t"$3"\t"$4"\t"$1 }' """ + " | sed 's/^chr//' > " + self.all_gwrvis_bed_file+".tmp")
+		os.system("tail -n+2 " + self.full_feature_table_file + " | sed 's/^chr//' > " + self.full_feature_table_file+".tmp")
+		os.system("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut -f1,2,3,4 > " + gwrvis_seq_coords_file)
+		
+
+		
+
+
+		gwrvis_seq_coords_df = pd.read_csv(gwrvis_seq_coords_file, sep='\t', header=None)
+		gwrvis_seq_coords_df.columns = ['chr', 'start', 'end', 'win_index']
 
 		# record window indexes that correspond to each variant entry
-		gwrvis_and_index_df = seq_coords_df[['chr', 'win_index']].copy()
+		gwrvis_and_index_df = gwrvis_seq_coords_df[['chr', 'win_index']].copy()
 		gwrvis_and_index_df.reset_index(drop=True, inplace=True)
 
 
-		seq_coords_df['end'] += 1 # include right-most part of the interval
+		full_feature_df = pd.read_csv(self.full_feature_table_file, sep='\t')
+		
+
+		
+		
+
+		if not use_gwrvis_windows:
+			# Create seq_coords_file with windows centered around each variant
+			# gwrvis_index_df will have just the row number of the original entries, and those having seqs with 'N' will be filtered out eventually
+			seq_coords_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.seq_coords.txt'
+
+			seq_coords_df = full_feature_df[['chr', 'start', 'end']].copy()
+		
+
+
+			seq_coords_df['chr'] = seq_coords_df['chr'].str.replace('chr', '').astype(int)
+			seq_coords_df['start'] = seq_coords_df['start'] - int(self.win_len / 2)
+			seq_coords_df['end'] = seq_coords_df['end'] + int(self.win_len / 2) - 1
+			
+			seq_coords_df.sort_values(by=['chr', 'start'], inplace=True)
+			
+	
+			print(seq_coords_df.head())
+			print('seq_coords_df:', seq_coords_df.shape)
+
+		else:
+			seq_coords_df = gwrvis_seq_coords_df.copy()
+			seq_coords_df['end'] += 1 # include right-most part of the interval  -- redundant
+
+
 		seq_list = seq_coords_df['chr'].map(str) + ':' + seq_coords_df['start'].astype(str) + '-' + seq_coords_df['end'].astype(str)
 
+		
+
+		windows_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.windows.txt'
+		out_fh = open(windows_file, 'w')	
 		out_fh.write("\n".join(seq_list))
 		out_fh.close()	
+
+		print(windows_file)
+		
 
 		print("Extracting raw sequences from reference genome...")
 		awk_fasta_collapser = "awk '/^>/ {printf(\"\\n%s\\n\",$0);next; } { printf(\"%s\",$0);}  END {printf(\"\\n\");}' | tail -n +2"
@@ -225,6 +317,63 @@ class JarvisDataPreprocessing:
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		stdout, stderr = p.communicate()
 		print(str(stderr, "utf-8").rstrip())
+		
+		
+		print(full_feature_df.head())
+		# NEW - Get updated features for mut_rate, gc_content, cpg and cpg_islands
+		
+
+		mut_rate_list = []
+		cpg_list = []
+		cpg_islands_list = []
+		gc_content_list = []
+			
+
+		with open(raw_seq_out_file) as fh:
+			for seq in fh:
+				#print(seq)
+
+				center_index = int(self.win_len / 2)
+
+				center_nt = seq[center_index]
+				
+				# 7-mer mutability rate
+				heptamer_seq = seq[center_index-3: center_index+4]
+				mut_rate = mut_rate_dict[heptamer_seq]
+				mut_rate_list.append(mut_rate)
+
+				# CpG dinucleotides
+				cpg = seq.count('CG')
+				cpg_list.append(cpg)
+			
+
+				# CpG islands (>=2 CpG dinucleotides, e.g.: CGCG, CGCGCGCG, etc.)
+				cpg_islands = len(re.findall(re.compile('CG(CG)+'), seq))
+				cpg_islands_list.append(cpg_islands)
+
+				# GC content (ratio over the entire window size)
+				gc_content = (seq.count('G') + seq.count('C')) / self.win_len
+				gc_content_list.append(gc_content)
+	
+
+
+		# Update full feature table and additional features files	
+		full_feature_df['mut_rate'] = mut_rate_list
+		full_feature_df['cpg'] = cpg_list
+		full_feature_df['cpg_islands'] = cpg_islands_list
+		full_feature_df['gc_content'] = gc_content_list
+		full_feature_df.to_csv(self.full_feature_table_file, index=False, sep='\t')
+
+
+
+
+		# Save into files
+		os.system("tail -n+2 " + self.full_feature_table_file + " | sed 's/^chr//' > " + self.full_feature_table_file+".tmp")
+
+		additional_features_file = self.seq_out_dir + '/' + self.patho_benign_sets + '.additional_features.tsv'
+		os.system("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut --complement -f1,2,3 | rev | cut --complement -f1 | rev > " + additional_features_file)
+
+
 
 
 		return raw_seq_out_file, gwrvis_and_index_df, additional_features_file
@@ -331,10 +480,20 @@ class JarvisDataPreprocessing:
 		additional_features_df.reset_index(drop=True, inplace=True)
 		additional_features_df['global_index'] = additional_features_df.index.values
 
+
+		# Impute NA data with medians
+		cols_to_impute = ['phastCons_primate']
+		for col in cols_to_impute:
+			tmp_median = additional_features_df.loc[ additional_features_df[col] != '.', col].astype(float).tolist()
+			additional_features_df[col] = additional_features_df[col].apply(lambda x: np.median(tmp_median)  if x == '.' else float(x))
+
 		
 		print(additional_features_df.head())
 		print(additional_features_df.tail())
+		print(additional_features_df.info())
 		print(filtered_onehot_seqs.shape)
+
+
 
 		
 		# drop non-informative classes
@@ -364,9 +523,17 @@ class JarvisDataPreprocessing:
 		additional_features_df.drop([self.Y_label], inplace=True, axis=1)
 		print('y:', y)
 
+
+
+
 		# Get main features (X)
 		X = additional_features_df.copy().values
 		print('X:', X)
+
+
+
+		# [Deprecated] - Normalise features
+		#X = MinMaxScaler().fit_transform(X)
 
 
 
@@ -408,7 +575,7 @@ class JarvisDataPreprocessing:
 if __name__ == '__main__':
 
 	config_file = sys.argv[1]
-	run_params = custom_utls.get_config_params(config_file)
+	run_params = custom_utils.get_config_params(config_file)
 
 	data_preprocessor = JarvisDataPreprocessing(config_file)
 

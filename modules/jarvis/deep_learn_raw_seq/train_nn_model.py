@@ -23,6 +23,7 @@ from tensorflow.keras.layers import Convolution1D, MaxPooling1D
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.optimizers import Adam
 
+
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from imblearn.under_sampling import RandomUnderSampler
 import nn_models
@@ -40,6 +41,7 @@ from simple_dnn import create_feedf_dnn, train_feedf_dnn
 
 
 
+
 class JarvisTraining:
 
 	def __init__(self, config_file, include_vcf_features=False):
@@ -49,6 +51,7 @@ class JarvisTraining:
 
 		config_params = custom_utils.get_config_params(config_file)
 		self.win_len = config_params['win_len']
+		#self.win_len = int(config_params['win_len'] / 2)
 
 		self.init_ouput_dirs()
 		print(self.out_dir)
@@ -60,8 +63,8 @@ class JarvisTraining:
 		self.data_dict_file = jarvis_pkl_file
 		
 		
-		# @anchor
-		if not os.path.exists(self.data_dict_file): # or (use_conservation_trained_model or use_pathogenicity_trained_model):
+		# @anchor -- REUNDANT check: already calling the prepara_data.py module prior to training
+		if not os.path.exists(self.data_dict_file): 
 			print("\nPreparing training data - calling JarvisDataPreprocessing object...")
 			data_preprocessor = JarvisDataPreprocessing(config_file, predict_on_test_set=predict_on_test_set, test_indexes=test_indexes)
 			
@@ -182,7 +185,7 @@ class JarvisTraining:
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
 			X, y = rus.fit_resample(X, y)
 			print('Balanced sets:', sorted(Counter(y).items()))
-			print('Sampled indices:', rus.sample_indices_)
+			#print('Sampled indices:', rus.sample_indices_)
 			
 			if seqs is not None:
 				print('Original seqs:', seqs.shape)
@@ -209,6 +212,8 @@ class JarvisTraining:
 			train_inputs = [X, seqs]
 
 
+
+
 		# > Keras functional API
 		if input_features == 'structured':
 			# @ Feed-forward DNN (for structured features input only)
@@ -221,6 +226,7 @@ class JarvisTraining:
 			model = concat_model(X_len, nn_arch=nn_arch, win_len=self.win_len)
 
 		optimizer = 'adam' # Adam(lr=0.0001) #'adam'
+		#model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 		model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 		print(model.summary())
 
@@ -262,6 +268,8 @@ class JarvisTraining:
 			- both: using both structured and sequence features as inputs
 		"""
 		
+
+
 		#if input_features != 'structured':
 		#	verbose = 1
 
@@ -298,7 +306,7 @@ class JarvisTraining:
 
 				
 			if use_conservation_trained_model:
-				self.file_annot = 'D3000.no_zeros'
+				self.file_annot = 'D1000.no_zeros'
 				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
 				print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
 		
@@ -345,6 +353,9 @@ class JarvisTraining:
 			
 		
 		X, y, seqs = self.fix_class_imbalance(X, y, seqs)
+
+		print(y)
+
 		
 		# ------ Custom NN settings for CCDS and introns ------
 		if '_'.join(genomic_classes) == 'ccds':
@@ -380,23 +391,43 @@ class JarvisTraining:
 			with open(fixed_cv_batches_file, 'rb') as handle:
 				cv_data_dict = pickle.load(handle)
 
+
+
+		# NEW Remove TSS_distance
+		#X = X[:, :-1]  
+
+		# Remove only phastCons_primate
+		#X = np.delete(X, -2, axis=1)
+
+		
+		# @anchor
+		# NEW Remove TSS_distance and phastCons_primate
+		X = X[:, :-2]  
+		
+		# remove gwrvis
+		#X = X[:, 1:]
+
+
 			
 			
 		if train_full_model:
-			self.train_full_model(X, y, seqs, input_features, batch_size, epochs, validation_split, patience, data_dict['X'].shape[1], genomic_classes)
+			self.train_full_model(X, y, seqs, input_features, batch_size, epochs, validation_split, patience, X.shape[1], genomic_classes)
 			
 		elif train_with_cv:
+			
+
 			# n-repeated CV
 			for n in range(cv_repeats):
 				print('\n>> CV - Repeat:', str(n+1))
 
 				fold = 0
-				#for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
-				for _ in range(1):
+				for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
+				#for _ in range(1):
 
 					"""
 						> Use that for prediction on a test set
 						-- preceded by: for _ in range(1)
+					"""
 					"""
 					if input_features == 'structured':
 						test_inputs = X
@@ -407,16 +438,23 @@ class JarvisTraining:
 					elif input_features == 'both':
 						test_inputs = [X, seqs]
 						y_test = y
-					
+					"""
+
+
+
 					"""
 						> Use that for generalised performance with cross-validation
 						-- preceded by: for train_index, test_index in skf.split(X, np.argmax(y, axis=1))
 					"""
-					"""
+					#"""
 					if use_fixed_cv_batches:
 						train_index, test_index = cv_data_dict[fold]
 					else:
 						cv_data_dict[fold] = [train_index, test_index]
+
+
+
+
 
 					y_train, y_test = y[train_index], y[test_index]
 					X_train, X_test = X[train_index], X[test_index]
@@ -439,7 +477,7 @@ class JarvisTraining:
 					elif input_features == 'both':
 						train_inputs = [X_train, seqs_train]
 						test_inputs = [X_test, seqs_test]
-					"""
+					#"""
 				
 	
 						
@@ -448,7 +486,7 @@ class JarvisTraining:
 					if use_conservation_trained_model or use_pathogenicity_trained_model:
 						
 						if use_conservation_trained_model:
-							self.file_annot = 'D3000.no_zeros'
+							self.file_annot = 'D1000.no_zeros'
 							model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
 							print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
 					
@@ -467,14 +505,14 @@ class JarvisTraining:
 						# > Keras functional API
 						if input_features == 'structured':
 							# @ Feed-forward DNN (for structured features input only)
-							model = dnn_model(data_dict['X'].shape[1], nn_arch=nn_arch)	
+							model = dnn_model(X.shape[1], nn_arch=nn_arch)	
 						elif input_features == 'sequences':
 							# @ CNN-CNN-FC-FC (for sequence features only)
 							#model = func_api_nn_models.cnn2_fc2(self.win_len)
 							model = sequence_model(self.win_len)
 						elif input_features == 'both':
 							# @ CNN-CNN-_concat_FeedfDNN_FC-FC (structured and sequence features)
-							model = concat_model(data_dict['X'].shape[1], nn_arch=nn_arch, win_len=self.win_len)
+							model = concat_model(X.shape[1], nn_arch=nn_arch, win_len=self.win_len)
 						model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 						print(model.summary())
 
@@ -491,6 +529,9 @@ class JarvisTraining:
 						earlystopper = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
 						# -------------------
 
+						#print('train_input:', train_inputs)
+						#print('y_train:', y_train)
+
 
 
 						history = model.fit(train_inputs, y_train, batch_size=batch_size, epochs=epochs, 
@@ -499,25 +540,26 @@ class JarvisTraining:
 							  callbacks=[checkpointer, earlystopper], 
 							  verbose=verbose)
 						#self.plot_history(history, fold_id=(fold+1))
+
+
 					
-					
-					# Get prediction probabilities per class 				
+
+
+					# - Get prediction probabilities per class 				
 					#probas_ = model.predict_proba(X_test)
 					probas_ = model.predict(test_inputs)  # for Keras functional API
 					
-					print("probas_:", probas_.shape)
-					print("y_test:", y_test.shape)
+
 					
 					# Compute ROC curve and area the curve 				
 					fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
-
 
 					tprs.append(interp(mean_fpr, fpr, tpr)) 
 					tprs[-1][0] = 0.0 
 					roc_auc = round(auc(fpr, tpr), 3) 	
 					print('Fold-', str(fold+1), ' - AUC: ', roc_auc, '\n')
 					aucs.append(roc_auc)
-					plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (fold, roc_auc))
+					plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d (AUC = %0.3f)' % (fold, roc_auc))
 
 
 					# Evaluate predictions on test and get performance metrics
@@ -544,7 +586,7 @@ class JarvisTraining:
 			self.mean_auc = round(auc(mean_fpr, mean_tpr), 3)
 			std_auc = np.std(aucs)
 			plt.plot(mean_fpr, mean_tpr, color='b',
-					 label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
+					 label=r'Mean ROC (AUC = %0.3f $\pm$ %0.2f)' % (self.mean_auc, std_auc),
 					 lw=2, alpha=.8)
 
 			std_tpr = np.std(tprs, axis=0)
@@ -563,7 +605,8 @@ class JarvisTraining:
 			#plt.close()
 			
 			
-			pdf_filename = self.out_dir + '/Jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
+			#pdf_filename = self.out_dir + '/Jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) + '_ROC' + '.AUC_' + str(self.mean_auc)
+			pdf_filename = self.out_dir + '/Jarvis.' + input_features + '_features.' + '-'.join(genomic_classes) 
 			if include_vcf_features:
 				pdf_filename += '.incl_vcf_features'
 			pdf_filename += '.pdf'
@@ -698,25 +741,30 @@ if __name__ == '__main__':
 	test_indexes = []
 
 	# ----------------------
-	train_with_cv = False     # get generalised performance with cross-validation
-	train_full_model = False   # train full model (to later use on an unseen test set)
-	predict_on_test_set = True
+	train_with_cv = False    	# True: get generalised performance with cross-validation
+	train_full_model = True  	# True: train full model (to later use on an unseen test set)
+
+
+	# Set test_indexes to extract genome-wide score with pre-trained model
 	#test_indexes = [0, 200000]
 	#test_indexes = [200001, 400000]
 	#test_indexes = [400001, 600000]
 	#test_indexes = [600001, 800000]
 	#test_indexes = [800001, 1000000]
 	#test_indexes = [1000001, 1200000]
-	test_indexes = [1200001, 1400000]
+	#test_indexes = [1200001, 1400000]
 	
 	
 	
 	# -- Compatible only with: train_with_cv = True
 	# *************************************
-	use_pathogenicity_trained_model=True
+	use_pathogenicity_trained_model=False
 	use_conservation_trained_model=False
 	# *************************************
 	
+	run_params = custom_utils.get_config_params(config_file)
+	predict_on_test_set = bool(run_params['predict_on_test_set'])
+
 	
 	# sanity check
 	if train_full_model:

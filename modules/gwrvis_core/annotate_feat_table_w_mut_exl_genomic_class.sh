@@ -1,4 +1,9 @@
 #!/bin/sh
+#SBATCH -J annot
+#SBATCH --cpus-per-task=5
+#SBATCH --mem=4G
+#SBATCH -t 24:00:00
+
 
 # ==== Read / Infer input arguments ====
 config_file=$1
@@ -9,11 +14,13 @@ out_dir=`python custom_utils.py $config_file`
 printf "Out dir: ${out_dir}\n"
 
 
+win_len=`cat $config_file | grep "win_len:" | sed 's/^[ \t]*win_len: //' | sed 's/[ ]*$//'`
 pathogenic_set=`cat $config_file | grep "pathogenic_set:" | sed 's/^[ \t]*pathogenic_set: //' | sed 's/[ ]*$//'`
 benign_set=`cat $config_file | grep "benign_set:" | sed 's/^[ \t]*benign_set: //' | sed 's/[ ]*$//'`
 hg_version=`cat $config_file | grep "hg_version:" | sed 's/^[ \t]*hg_version: //' | sed 's/[ ]*$//'`
 labelset_size=`cat $config_file | grep "labelset_size:" | sed 's/^[ \t]*labelset_size: //' | sed 's/[ ]*$//'`
 discard_zero_values=`cat $config_file | grep "discard_zero_values:" | sed 's/^[ \t]*discard_zero_values: //' | sed 's/[ ]*$//'`
+echo "win_len: *$win_len*"
 echo "Pathogenic set: *$pathogenic_set*"
 echo "Benign set: *$benign_set*"
 echo "hg version: *$hg_version*"
@@ -100,28 +107,38 @@ function get_feature_table_by_genomic_class {
 		cat ${gwrvis_distr_dir}/BED/gwrvis_scores_chr*.genomic_coords.${class}.bed | sed "s/\$/\t$class/g" > $genomic_class_out_file
 		printf "\n[$class] Total nt length: "`cat $genomic_class_out_file | awk '{sum+=$3-$2} END {print sum}'`
 
+
+
 		# Keep track of interval ranges per genomic class
 		cat $genomic_class_out_file | awk '{print $3-$2"\t"$1"\t"$2"\t"$3}' | sort -V | awk '{print $2"\t"$3"\t"$4"\t"$1}' > ${gwrvis_distr_dir}/interval_ranges.${class}.mutually_excl.bed
 
 
-		printf "\n- Retrieving feature table for $class ..."
+		printf "\n- Retrieving feature table for $class ...\n"
 		full_feature_table_by_genomic_class=${out_feature_table_dir}/full_gwrvis_and_regulatory_features.${class}.tsv
 
-		printf "\n- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value"
-		tail -n +2 $full_feature_table | intersectBed -wao -a $genomic_class_out_file -b stdin| grep $class | grep -v "NaN" | sortBed | cut --complement -f6,7,8,9,37 > ${full_feature_table_by_genomic_class}.tmp
-
-
-		printf "\nAdding header to feature table by class and saving into file"
-		add_header_to_bed_by_genomic_class $full_feature_table_by_genomic_class 0 0
-		printf "\nOutput file: $full_feature_table_by_genomic_class\n\n"
 		
+		printf "\n- Keeping coordinates from the genomic class regions (not the full 3kb windows) -- also removing regions with 'NaN' gwRVIS value"
+		tail -n +2 $full_feature_table | intersectBed -wao -a $genomic_class_out_file -b stdin| grep $class | grep -v "NaN" | sortBed | cut --complement -f6,7,8,9,37 > $full_feature_table_by_genomic_class  
+
+
+		# Input here is: full_gwrvis_and_regulatory_features.ucne.tsv 
+
+		printf "\n- Replacing Ensembl window-based annotation with current BED ranges ..."
+		./gwrvis_core/intersect_regulatory_features.sh $full_feature_table_by_genomic_class 
+
+
+		#printf "\nAdding header to feature table by class and saving into file"
+		cp $full_feature_table_by_genomic_class ${full_feature_table_by_genomic_class}.tmp
+		add_header_to_bed_by_genomic_class $full_feature_table_by_genomic_class 0 0
+
+		printf "\nOutput file: $full_feature_table_by_genomic_class\n\n"
+
 	done
 }
 
 
 function merge_feature_tables_from_all_classes {
 
-	printf "\nMerging feature tables from all genomic classes ..."
 	rm -f $out_full_feature_table 
 
 	# Minor bug: remove a single overlapping small region (between an intron and a lincrna) -- calling awk !seen for that ...
@@ -198,18 +215,205 @@ function add_external_genome_wide_scores {
 
 
 
+
+
+
+
+
+
+function update_single_nt_gwrvis_per_chr {
+
+	chr=$1
+	clinvar_full_feature_table=$2
+
+	single_nt_base_dir="../out/topmed-single-nt-gwrvis-winlen_${win_len}.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/single_nt_gwrvis_per_chr/"
+	single_nt_gwrvis_chr_bed="$single_nt_base_dir/gwrvis_single_nt.chr${chr}.bed.gz"
+
+	
+	tail -n+2 $clinvar_full_feature_table | awk -F '\t' -v ch="$chr" '{if($1 == "chr"ch) print $1"\t"$2"\t"$3}' > "${clinvar_full_feature_table}.chr${chr}.bed"
+
+	tabix $single_nt_gwrvis_chr_bed -B "${clinvar_full_feature_table}.chr${chr}.bed" > "${clinvar_full_feature_table}.chr${chr}.single_nt_gwrvis.bed"
+
+	
+	# cleanup
+	rm -f ${clinvar_full_feature_table}.chr${chr}.bed
+
+	echo "Done (single_nt_gwrvis) - chr: $chr"
+
+}
+
+
+
+
+function update_single_nt_gwrvis {
+
+	clinvar_full_feature_table="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
+
+
+	for chr in `seq 1 22`; do
+	#for chr in 21; do
+		echo "Chr: $chr"
+		update_single_nt_gwrvis_per_chr $chr $clinvar_full_feature_table &
+	done
+	wait
+
+
+	cat  ${clinvar_full_feature_table}.chr*.single_nt_gwrvis.bed > "${clinvar_full_feature_table}.all_chr.single_nt_gwrvis.bed"
+	echo "${clinvar_full_feature_table}.all_chr.single_nt_gwrvis.bed"
+
+	
+}
+
+
+
+
+
+
+
+function subset_phastcons_primate {
+
+	chr=$1
+	clinvar_full_feature_table=$2
+	phastCons_primates_chr_bed="../other_datasets/conservation/phastCons46way_primates/bed/chr${chr}.phastCons46way.primates.high_conf_regions.bed.gz"
+
+	tail -n+2 $clinvar_full_feature_table | awk -F '\t' -v ch="$chr" '{if($1 == "chr"ch) print $1"\t"$2"\t"$3}' > "${clinvar_full_feature_table}.chr${chr}.bed"
+
+	tabix $phastCons_primates_chr_bed -B "${clinvar_full_feature_table}.chr${chr}.bed" > "${clinvar_full_feature_table}.chr${chr}.phastcons_primate.bed"
+
+	echo "${clinvar_full_feature_table}.chr${chr}.phastcons_primate.bed"
+	
+
+	# TODO: Keep NAs to later impute with median
+	tail -n+2 $clinvar_full_feature_table | awk -v ch="$chr" '{if($1 == "chr"ch) print $0}' | intersectBed -wao -a stdin -b "${clinvar_full_feature_table}.chr${chr}.phastcons_primate.bed" | cut -f1-33,37 > "${clinvar_full_feature_table}.chr${chr}.bed"
+
+
+	# cleanup
+	rm "${clinvar_full_feature_table}.chr${chr}.phastcons_primate.bed" 
+	echo "[DONE] subset_phastcons_primate - chr $chr"
+}
+
+
+
+
+function add_conservation_features {
+
+	clinvar_full_feature_table="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
+
+	cat $clinvar_full_feature_table | head -1 > ${clinvar_full_feature_table}.header
+	sed -i 's/$/\tphastCons_primate/' ${clinvar_full_feature_table}.header
+
+
+	for chr in `seq 1 22`; do
+	#for chr in 22; do
+		echo "Chr: $chr"
+		subset_phastcons_primate $chr $clinvar_full_feature_table &
+	done
+	wait
+
+
+	cat ${clinvar_full_feature_table}.chr*.bed > "${clinvar_full_feature_table}.all_chr.bed"
+	#echo "${clinvar_full_feature_table}.all_chr.bed"
+
+	cat ${clinvar_full_feature_table}.header "${clinvar_full_feature_table}.all_chr.bed" > "${clinvar_full_feature_table}.full_with_phastcons.bed"
+	echo -e "Complete.\n${clinvar_full_feature_table}.full_with_phastcons.bed"
+	
+
+	#cp $clinvar_full_feature_table ${clinvar_full_feature_table}.original
+	cp ${clinvar_full_feature_table}.full_with_phastcons.bed $clinvar_full_feature_table
+		
+}
+
+
+
+function add_distance_from_closest_tss {
+	
+	clinvar_full_feature_table="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
+	tail -n+2 $clinvar_full_feature_table | cut -f1,2,3 > ${clinvar_full_feature_table}.tmp
+
+	tss_ref_file="../ensembl/ensembl_genes.hg19.TSS.bed"
+
+
+	echo "TSS_distance" > ${clinvar_full_feature_table}.tmp.tss
+	closest-features --closest --delim '\t' ${clinvar_full_feature_table}.tmp $tss_ref_file | awk 'function abs(v) {return v < 0 ? -v : v} {print abs($5-$2)}' >> ${clinvar_full_feature_table}.tmp.tss
+
+	
+
+	paste $clinvar_full_feature_table ${clinvar_full_feature_table}.tmp.tss > ${clinvar_full_feature_table}.tmp
+
+	mv ${clinvar_full_feature_table}.tmp $clinvar_full_feature_table
+	echo $clinvar_full_feature_table
+
+
+	#cleanup
+	rm ${clinvar_full_feature_table}.tmp.tss
+
+}
+
+
+
+
+
+
+
+
+
+
+
 # =============== MAIN RUN ================
 printf "\n\n------------\nMerging BED files by genomic class and retrieving respective feature table...\n"
 get_feature_table_by_genomic_class
 
+
+
 printf "\n\n------------\nMerging feature tables from all genomic classes...\n"
 merge_feature_tables_from_all_classes
 
-#add_conservation_annotation
 
 printf "\n\n------------\nAnnotating full feature table (already with genomic class annotation) with ClinVar pathogenic/bengign variants...\n"
 add_clinvar_annotation
 
 
+
+
+clinvar_full_feature_table="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
+# -- REDUNDANT
+#printf "\n\n------------\nGetting single-nt Ensembl annotation..."
+#./gwrvis_core/full_table_intersect_regulatory_features.sh $clinvar_full_feature_table
+
+
+
+
 printf "\n\n------------\nAdding external genome-wide scores (phastCons46way, phyloP46way, CADD, Orion)...\n"
 add_external_genome_wide_scores 
+
+
+printf "\n\n------------\nAdding primate-phastCons annotation...\n"
+add_conservation_features
+
+
+printf "\n\n-----------\nAdd distance of each variant from closest TSS as feature...\n"
+add_distance_from_closest_tss
+
+
+
+
+printf "\n\n-----------\nSort clinvar full feature table (patho_benign) set by chr and start coord...\n"
+cat $clinvar_full_feature_table | head -1 > ${clinvar_full_feature_table}.tmp
+tail -n+2 $clinvar_full_feature_table | sort -k1,1V -k2,2n >> ${clinvar_full_feature_table}.tmp
+mv ${clinvar_full_feature_table}.tmp $clinvar_full_feature_table
+
+
+
+# -- REDUNDANT
+#printf "\n\n-----------\nIntersect variants with genomic classes on single-nt level (by-passing window-based gwRVIS approach)...\n"
+#gwrvis_core/intersect_variant_table_with_genomic_classes.sh $config_file $input_classes_file
+
+
+
+printf "\n\n-----------\nGet single-nt gwRVIS values from all intervals in the clinvar_full_feature table...\n"
+update_single_nt_gwrvis
+
+
+
+printf "\n\n-----------\nUpdate clinvar_feature_table with single-nt resoultion gwrvis scores...\n"
+python -u gwrvis_core/update_clinvar_table_with_singlent_gwrvis.py $config_file
