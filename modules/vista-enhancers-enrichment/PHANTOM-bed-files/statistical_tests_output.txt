@@ -1,0 +1,4 @@
+
+[Fisher's exact test] odds-ratio: 0.19424424570349938, P-value: 1.8529825767674737e-62
+Enrichment of ubiquitous enhancers with low RVIS values: 414.74%
+Fold-change: x5.147368421052631
