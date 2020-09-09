@@ -1,10 +1,12 @@
 ### QC for intervals distribution
 
-# Get genomic annotation files:
+## Get genomic annotation files:
 ```
 ./get_annotations.sh
 ```
-# Based on: https://davetang.org/muse/2013/01/18/defining-genomic-regions/
+
+- Based on: 
+https://davetang.org/muse/2013/01/18/defining-genomic-regions/
 
 
 #### Get total region length from BED files:
