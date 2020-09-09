@@ -1,0 +1,17 @@
+# Process original de-novo tsv files into BED files with selected columns
+
+```
+zcat < denovo-db.non-ssc-samples.variants.tsv.gz | grep -v '#' | awk '{ print "chr"$9"\t"$10-1"\t"$10"\t"$7"\t"$22 "\t"$3"=>"$4"=>"$5"=>"$6"=>"$19"=>"$20"=>"$21"=>"$26"=>"$27"=>"$28"=>"$29"=>"$30"=>"$31 }' > bed/denovo-db.non-ssc-samples.variants.bed
+
+zcat < denovo-db.ssc-samples.variants.tsv.gz | grep -v '#' | awk '{ print "chr"$9"\t"$10-1"\t"$10"\t"$7"\t"$22 "\t"$3"=>"$4"=>"$5"=>"$6"=>"$19"=>"$20"=>"$21"=>"$26"=>"$27"=>"$28"=>"$29"=>"$30"=>"$31 }' > bed/denovo-db.ssc-samples.variants.bed
+```
+
+> Get header of output BED files:
+```
+zcat < denovo-db.non-ssc-samples.variants.tsv.gz | grep -v '##' | grep '#' | awk '{ print "chr"$9"\t"$10-1"\t"$10"\t"$7"\t"$22 "\t"$3"=>"$4"=>"$5"=>"$6"=>"$19"=>"$20"=>"$21"=>"$26"=>"$27"=>"$28"=>"$29"=>"$30"=>"$31 }'
+# Result:
+#chrChr  -1      Position        PrimaryPhenotype        FunctionClass   PubmedID=>NumProbands=>NumControls=>SequenceType=>Transcript=>codingDnaSize=>Gene=>PolyPhen(HDiv)=>PolyPhen(HVar)=>SiftScore=>CaddScore=>LofScore=>LrtScore
+
+# (First three columns are: chrChr  -1      Position  --> chr	star	end)
+```
+
