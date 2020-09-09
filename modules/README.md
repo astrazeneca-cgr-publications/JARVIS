@@ -1,6 +1,6 @@
 # Workflow
 
-# Calculate single-nt resolution gwRVIS
+## Calculate single-nt resolution gwRVIS
 ```
 config_file="conf/topmed/config.single_nt_gwrvis.yaml"
 ./submit_single_nt_gwrvis.sh $config_file
@@ -11,14 +11,14 @@ sbatch ./create_tabix_indexes.sh $config_file
 ```
 
 
-# [Plot distributions of single-nt gwRVIS across CCDS or all genomic classes]
+### Plot distributions of single-nt gwRVIS across CCDS or all genomic classes
 ```
 cd modules/ad-hoc/
 ```
 
 
 
-# Create single-nt feature table (for calculating the genome-wide single-nt jarvis):
+## Create single-nt feature table (for calculating the genome-wide single-nt jarvis):
 ```
 sbatch ./gwrvis_core/for_prediction_annotate_feat_table_w_mut_exl_genomic_class.sh conf/topmed/config.NEW_genome_wide_scores.yaml static_files/input_classes.txt
 ```
