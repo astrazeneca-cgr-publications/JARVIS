@@ -1,9 +1,21 @@
-# Prepare train, validation and test sets for a given config file and top_ratio (of tolerant/intolerant windows)
+### Training JARVIS for $genomic_classes using 'structured' features..."
 ```
-python prepare_data.py ../conf/config.yaml
+use_fixed_cv_batches=0
+python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file structured $genomic_classes $use_fixed_cv_batches $cv_repeats
 ```
 
-# Train model
+
+(Sequences & both features)
+--------------------------
+### Training JARVIS for $genomic_classes using 'sequences' features..."
 ```
-python train_nn_model.py ../config.yaml 0.001 0
+use_fixed_cv_batches=1
+python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file sequences $genomic_classes $use_fixed_cv_batches $cv_repeats
+```
+
+
+### Training JARVIS for $genomic_classes using 'both' features..."
+```
+use_fixed_cv_batches=1
+python -u jarvis/deep_learn_raw_seq/train_nn_model.py $config_file both $genomic_classes $use_fixed_cv_batches $cv_repeats
 ```
