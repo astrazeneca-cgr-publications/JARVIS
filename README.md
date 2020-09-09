@@ -1,14 +1,18 @@
 # JARVIS
 
+## Overview
 - **JARVIS** ("Junk" Annotation genome-wide Residual Variation Intolerance Score): a comprehensive deep learning framework to prioritise non-coding variants in whole genomes, using human-lineage purifying selection features and primary sequence context.
 
 - gwRVIS (genome-wide Residual Variation Intolerance Score): genome-wide intolerance to variation score
 
 
-**Data availability**: genome-wide JARVIS and gwRVIS scores will be publicly available upon publication in a peer-reviewed journal.
+<br><br>
+
+## Data availability
+genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon publication in a peer-reviewed journal.
 
 
-
+<br><br>
 
 
 ## Installation instruction for JARVIS/gwRVIS modules
