@@ -16,6 +16,8 @@ genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon pub
 
 
 ## Installation instruction for JARVIS/gwRVIS modules
+
+- Python dependencies
 ```
 conda create -n jarvis python=3.7 r r-devtools r-tidyverse 
 conda config --add channels bioconda
@@ -26,6 +28,6 @@ conda activate jarvis
 conda install --file requirements.txt  
 ```
 
-# R dependencies 
+- R dependencies 
 > install.packages(c("glm2", "glmnet", "lmridge", "plotmo", "pRoc", "ggplot2", "ggridges", "RColorBrewer")) 
 > devtools::install_github("thomasp85/patchwork")
