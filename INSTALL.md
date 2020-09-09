@@ -1,4 +1,4 @@
-Installation instruction for gwRVIS/JARVIS
+Installation instruction for JARVIS/gwRVIS
 ------------------------------------------
 
 conda create -n jarvis python=3.7 r r-devtools r-tidyverse 
