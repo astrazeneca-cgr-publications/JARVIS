@@ -8,11 +8,6 @@
 
 <br><br>
 
-## Data availability
-genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon publication in a peer-reviewed journal.
-
-
-<br><br>
 
 
 ## Installation instruction for JARVIS/gwRVIS modules
@@ -31,3 +26,18 @@ conda install --file requirements.txt
 - R dependencies 
 > install.packages(c("glm2", "glmnet", "lmridge", "plotmo", "pRoc", "ggplot2", "ggridges", "RColorBrewer")) 
 > devtools::install_github("thomasp85/patchwork")
+
+
+
+## Run
+- Instructions to generate the JARVIS and gwRVIS scores are available in the [README.md](modules/README.md) file within `modules`.
+- Subsequent sub-folders may also contain their own README files with instructions to run them independently or for ad-hoc analyses.
+- Other folders and theri sub-folders (such as `ensembl/`, `gnomad/` and `other_datasets/`) are accompanied with README files and scripts to download and pre-process any other required datafiles that are not available in the JARVIS GitHub repositoy.
+
+
+
+## Data availability
+genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon publication in a peer-reviewed journal.
+
+
+<br><br>
