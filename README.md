@@ -28,6 +28,7 @@ conda install --file requirements.txt
 > devtools::install_github("thomasp85/patchwork")
 
 
+<br><br>
 
 ## Run
 - Instructions to generate the JARVIS and gwRVIS scores are available in the [README.md](modules/README.md) file within `modules`.
@@ -35,6 +36,7 @@ conda install --file requirements.txt
 - Other folders and theri sub-folders (such as `ensembl/`, `gnomad/` and `other_datasets/`) are accompanied with README files and scripts to download and pre-process any other required datafiles that are not available in the JARVIS GitHub repositoy.
 
 
+<br><br>
 
 ## Data availability
 genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon publication in a peer-reviewed journal.
