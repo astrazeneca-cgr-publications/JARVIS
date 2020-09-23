@@ -10,7 +10,7 @@
 
 
 
-## Installation instruction for JARVIS/gwRVIS modules
+## Installation instructions for JARVIS/gwRVIS modules
 
 - Python dependencies
 ```
