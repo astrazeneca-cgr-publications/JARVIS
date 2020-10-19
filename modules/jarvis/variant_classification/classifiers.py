@@ -212,6 +212,11 @@ class Classifier:
 		mean_fpr = np.linspace(0, 1, 100)
 		metrics_list = []
 		
+
+		y_label_lists = []
+		y_proba_lists = []
+	
+
 		fig, ax = plt.subplots(figsize=(10, 10))
 
 
@@ -222,49 +227,7 @@ class Classifier:
 
 
 
-
 	
-		# ----- THIS PART MAY BE REDUNDANT -----
-		"""
-		if self.predict_on_test_set:
-
-			full_out_models_dir = self.out_dir + '/../../models/intergenic_utr_lincrna_ucne_vista/' 
-
-			#model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
-			model_out_file = full_out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
-			print('model_out_file:', model_out_file)
-
-
-			with open(model_out_file, 'rb') as fh:
-				self.model = pickle.load(fh)
-
-
-			probas_ = self.model.predict(self.X)
-			print("probas_:", probas_.shape)
-
-			# Compute ROC curve and area the curve
-			fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
-				
-			
-			tprs.append(interp(mean_fpr, fpr, tpr))
-			tprs[-1][0] = 0.0
-			roc_auc = round(auc(fpr, tpr), 3)
-			aucs.append(roc_auc)
-			plt.plot(fpr, tpr, lw=1, alpha=0.3,
-					 label='ROC fold %d (AUC = %0.2f)' % (fold, roc_auc))
-
-			
-			# Evaluate predictions on test and get performance metrics
-			metrics = self.test_and_evaluate_model(probas_, self.y[test])
-			metrics['auc'] = roc_auc
-			metrics_list.append(metrics)		 
-					 
-			return
-		"""
-
-
-
-
 	
 		# n-repeated CV
 		for n in range(cv_repeats):
@@ -277,30 +240,7 @@ class Classifier:
 					probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 					
 				else:
-					# BETA
-					if self.use_conservation_trained_model:
-					
-						self.file_annot = 'D1000.no_zeros' # -- file_annot is used only when loading/saving conservation-trained models
-						if self.score_print_name in ['gwRVIS']: 
-
-							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.' + self.file_annot + '.model'
-							print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
-							
-							# scikit-learn model
-							with open(model_out_file, 'rb') as fh:     
-								self.model = pickle.load(fh)	
-							probas_ = self.model.predict_proba(self.X[test])
-
-						elif self.score_print_name == 'JARVIS':
-							input_features = 'structured' 
-							model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + input_features + '.' + self.file_annot + '.model'
-							print(model_out_file)
-							
-							# keras
-							self.model = load_model(model_out_file)	
-							probas_ = self.model.predict(self.X[test])
-
-					elif self.use_pathogenicity_trained_model:
+					if self.use_pathogenicity_trained_model:
 							
 							# -- At the moment use RF-based model for JARVIS (and LR for gwRVIS anyway)
 							#model_out_file = self.out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
@@ -358,6 +298,12 @@ class Classifier:
 							probas_ = self.model.fit(self.X[train], self.y[train]).predict_proba(self.X[test])
 						
 
+
+
+				y_label_lists.append(self.y[test].tolist())
+				y_proba_lists.append(probas_[:, 1].tolist())
+	
+
 				# Compute ROC curve and area the curve
 				fpr, tpr, thresholds = roc_curve(self.y[test], probas_[:, 1])
 					
@@ -381,6 +327,11 @@ class Classifier:
 				if self.predict_on_test_set:
 					break
 		
+
+		self.y_label_lists = y_label_lists
+		self.y_proba_lists = y_proba_lists
+
+
 		
 		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
 
@@ -421,8 +372,6 @@ class Classifier:
 		
 		
 		if self.model_type in ['RF', 'GB', 'Logistic']:
-			# BETA -- pass when using DL model
-			#pass
 			self.get_feature_importances()
 
 		self.mean_tpr = mean_tpr

@@ -16,7 +16,9 @@ declare -a genomic_classes=("intergenic,utr,lincrna,ucne,vista")
 #declare -a genomic_classes=("ccds" "intron")
 
 
-# REDUNDANT -- now part of wgs.sh - to be called before RF/GB classifications
+
+# [REDUNDANT] 
+# -- now part of wgs.sh - to be called before RF/GB classifications
 # -- Create jarvis_data.pkl to be used in all other runs without conflicts
 #python -u jarvis/deep_learn_raw_seq/prepare_data.py $config_file
 

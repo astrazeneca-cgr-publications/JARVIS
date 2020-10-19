@@ -63,7 +63,7 @@ class JarvisTraining:
 		
 		
 		# @anchor
-		if not os.path.exists(self.data_dict_file): # or (use_conservation_trained_model or use_pathogenicity_trained_model):
+		if not os.path.exists(self.data_dict_file): # or use_pathogenicity_trained_model):
 			print("\nPreparing training data - calling JarvisDataPreprocessing object...")
 			data_preprocessor = JarvisDataPreprocessing(config_file, predict_on_test_set=predict_on_test_set, test_indexes=test_indexes)
 			
@@ -262,12 +262,7 @@ class JarvisTraining:
 			
 
 				
-			if use_conservation_trained_model:
-				self.file_annot = 'D1000.no_zeros'
-				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
-				print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
-		
-			elif use_pathogenicity_trained_model:
+			if use_pathogenicity_trained_model:
 
 				model_out_file = "../out/topmed-NEW_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista/JARVIS-" + input_features + ".model"
 				#model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
@@ -435,6 +430,11 @@ class JarvisTraining:
 			probas_ = model.predict(test_inputs)  # for Keras functional API
 			
 
+			print(probas_)
+			print(np.argmax(y_test, axis=1))
+			sys.exit()
+
+			
 			
 			# Compute ROC curve and area the curve 				
 			fpr, tpr, thresholds = roc_curve(np.argmax(y_test, axis=1), probas_[:, 1])
@@ -632,7 +632,7 @@ if __name__ == '__main__':
 
 	run_params = custom_utils.get_config_params(config_file)
 	
-	# Note: predict_on_test_set is redundant and deprecated
+	# [Note]: predict_on_test_set is __redundant__ and __deprecated__
 	#predict_on_test_set = bool(run_params['predict_on_test_set'])
 	predict_on_test_set = False
 
@@ -646,7 +646,7 @@ if __name__ == '__main__':
 	
 	
 	# sanity check
-	if use_pathogenicity_trained_model or use_conservation_trained_model:
+	if use_pathogenicity_trained_model:
 		train_with_cv = True
 		
 	if predict_on_test_set:

@@ -267,6 +267,9 @@ class ClassificationWrapper:
 		
 		self.metrics_list = classifier.metrics_list
 
+		self.y_label_lists = classifier.y_label_lists
+		self.y_proba_lists = classifier.y_proba_lists
+
 		plt.close()
 		
 
@@ -386,7 +389,7 @@ if __name__ == '__main__':
 
 
 	# *************************************
-	use_pathogenicity_trained_model = True   #True  # Set to True to predict on a test set
+	use_pathogenicity_trained_model = False   #True  # Set to True to predict on a test set
 	use_conservation_trained_model = False
 	# *************************************
 
@@ -411,9 +414,9 @@ if __name__ == '__main__':
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		#all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']	# 'ncER_10bp'
+		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']	# 'ncER_10bp'
 		# @anchor-3
-		all_base_scores = ['jarvis'] 
+		#all_base_scores = ['jarvis'] 
 	else:
 		all_base_scores = ['gwrvis', 'jarvis']
 
@@ -462,10 +465,24 @@ if __name__ == '__main__':
 			metrics_per_score[base_score] = clf_wrapper.metrics_list
 			#except:
 			#	print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
+
+			# TODO: save y_lab and y_prob per score in a dictionary
+			delong_test_dir = clf_wrapper.clinvar_ml_out_dir + '/delong_test'
+			if not os.path.exists(delong_test_dir):
+				os.makedirs(delong_test_dir)
+
+			with open(delong_test_dir + '/' + base_score + '.y_label_lists.txt', 'w') as fh:
+				for tmp_list in clf_wrapper.y_label_lists:
+ 					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+			
+			with open(delong_test_dir + '/' + base_score + '.y_proba_lists.txt', 'w') as fh:
+				for tmp_list in clf_wrapper.y_proba_lists:
+ 					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+
+
+
+
 		
 		plot_roc_curve(score_list, fpr_list, tpr_list, auc_list, genomic_classes, clf_wrapper.clinvar_ml_out_dir, all_base_scores)
 		
 		check_and_save_performance_metrics(metrics_per_score, genomic_classes, clf_wrapper.clinvar_feature_table_dir)
-
-				#auc_list.append(clf_wrapper.mean_auc)
-		

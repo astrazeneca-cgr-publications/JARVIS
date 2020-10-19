@@ -104,7 +104,7 @@ python -u jarvis/deep_learn_raw_seq/prepare_data.py $config_file
 # Under "jarvis_classification/"
 printf "\n\n==== Classification with JARVIS, integrating gwRVIS and external annotations (jarvis/variant_classification/) ===="
 filter_ccds_overlapping_variants=0 # set to 1 to remove non-coding variants falling into windows that also contain coding variants
-model_type="RF"
+model_type="GB"
 python jarvis/variant_classification/run_variant_classification.py $config_file $filter_ccds_overlapping_variants $model_type
 
 

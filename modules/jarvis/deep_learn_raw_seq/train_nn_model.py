@@ -140,6 +140,7 @@ class JarvisTraining:
 		return data_dict
 
 
+
 	def filter_data_by_genomic_class(self, data_dict, genomic_classes=None):
 		
 		print('Retaining only variants for class:', ', '.join(genomic_classes)) 
@@ -291,70 +292,10 @@ class JarvisTraining:
 			
 			
 			
-		if predict_on_test_set:
-
-			if input_features == 'structured':
-				test_inputs = X
-				y_test = y
-			elif input_features == 'sequences':
-				test_inputs = seqs
-				y_test = y
-			elif input_features == 'both':
-				test_inputs = [X, seqs]
-				y_test = y
-			
-
-				
-			if use_conservation_trained_model:
-				self.file_annot = 'D1000.no_zeros'
-				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
-				print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
-		
-			elif use_pathogenicity_trained_model:
-				model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
-				print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
-		
-			model = load_model(model_out_file)
-			print("Loaded saved model:", model_out_file)
-			
-			
-			# Get prediction probabilities per class 				
-			#probas_ = model.predict_proba(X_test)
-			probas_ = model.predict(test_inputs)  # for Keras functional API
-			
-			print("probas_:", probas_.shape)
-			print("y_test:", y_test.shape)
-			
-			
-			pred_scores = probas_[:, 1]
-			print(pred_scores[:20])
-			
-			
-			valid_full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.valid_windows.' + str(test_indexes[0]) + '_' + str(test_indexes[1])
-			tmp_df = pd.read_csv(valid_full_feature_table_file, sep='\t')
-			tmp_df = tmp_df[['chr', 'start', 'end', 'genomic_class', 'gwrvis']]
-			tmp_df['jarvis'] = pred_scores
-			
-			# Save full feature table (valid windows only) with JARVIS scores into a file
-			jarvis_scores_out_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.jarvis_prediction_scores.' + str(test_indexes[0]) + '_' + str(test_indexes[1])
-			tmp_df.to_csv(jarvis_scores_out_file, sep='\t', header=True, index=False)
-			
-			#with open(pred_scores_out_file, 'w') as fh:
-			#	for score in pred_scores:
-			#		fh.write(str(score) + '\n')
-			
-			print("Saved full feature table with JARVIS prediction scores into: ", jarvis_scores_out_file)
-			
-			return
-			
-			
-			
-			
 			
 		
 		X, y, seqs = self.fix_class_imbalance(X, y, seqs)
 
-		print(y)
 
 		
 		# ------ Custom NN settings for CCDS and introns ------
@@ -376,6 +317,14 @@ class JarvisTraining:
 		tprs = [] 
 		aucs = [] 
 		metrics_list = []
+
+		# output dir for test_label/test_probas_ results (input for DeLong's test)
+		delong_test_dir = self.ml_data_dir + '/clinvar-out/delong_test'
+		if not os.path.exists(delong_test_dir):
+			os.makedirs(delong_test_dir)	
+		y_label_lists = []
+		y_proba_lists = []
+
 
 		mean_fpr = np.linspace(0, 1, 100)  		
 		fig, ax = plt.subplots(figsize=(10, 10))
@@ -422,31 +371,7 @@ class JarvisTraining:
 
 				fold = 0
 				for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
-				#for _ in range(1):
 
-					"""
-						> Use that for prediction on a test set
-						-- preceded by: for _ in range(1)
-					"""
-					"""
-					if input_features == 'structured':
-						test_inputs = X
-						y_test = y
-					elif input_features == 'sequences':
-						test_inputs = seqs
-						y_test = y
-					elif input_features == 'both':
-						test_inputs = [X, seqs]
-						y_test = y
-					"""
-
-
-
-					"""
-						> Use that for generalised performance with cross-validation
-						-- preceded by: for train_index, test_index in skf.split(X, np.argmax(y, axis=1))
-					"""
-					#"""
 					if use_fixed_cv_batches:
 						train_index, test_index = cv_data_dict[fold]
 					else:
@@ -483,22 +408,14 @@ class JarvisTraining:
 						
 					
 		
-					if use_conservation_trained_model or use_pathogenicity_trained_model:
+					if use_pathogenicity_trained_model:
 						
-						if use_conservation_trained_model:
-							self.file_annot = 'D1000.no_zeros'
-							model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + "." + self.file_annot + '.model'
-							print("\n>> Loading CONSERVATION-trained model from file:", model_out_file)
-					
-						elif use_pathogenicity_trained_model:
-							model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
-							print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
+						model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
+						print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
 					
 						model = load_model(model_out_file)
 						print("Loaded saved model:", model_out_file)
 
-						#y_test = y
-					
 					
 					else:
 						# -- Create new/clean model instance for each fold
@@ -549,6 +466,8 @@ class JarvisTraining:
 					#probas_ = model.predict_proba(X_test)
 					probas_ = model.predict(test_inputs)  # for Keras functional API
 					
+					y_label_lists.append(np.argmax(y_test, axis=1))
+					y_proba_lists.append(probas_[:, 1])					
 
 					
 					# Compute ROC curve and area the curve 				
@@ -569,6 +488,17 @@ class JarvisTraining:
 					
 					fold += 1
 					
+			'_'.join(genomic_classes)
+			# Save X-test and proba results across all folds - Input to DeLong's test
+			with open(delong_test_dir + '/JARVIS-' + input_features + '.' + '_'.join(genomic_classes) + '.y_label_lists.txt', 'w') as fh:
+				for tmp_list in y_label_lists:
+					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+
+			with open(delong_test_dir + '/JARVIS-' + input_features + '.' + '_'.join(genomic_classes) + '.y_proba_lists.txt', 'w') as fh:
+				for tmp_list in y_proba_lists:
+					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')	
+
+
 					
 			# Save CV batches to a pickle file
 			if not use_fixed_cv_batches:
@@ -745,15 +675,6 @@ if __name__ == '__main__':
 	train_full_model = True  	# True: train full model (to later use on an unseen test set)
 
 
-	# Set test_indexes to extract genome-wide score with pre-trained model
-	#test_indexes = [0, 200000]
-	#test_indexes = [200001, 400000]
-	#test_indexes = [400001, 600000]
-	#test_indexes = [600001, 800000]
-	#test_indexes = [800001, 1000000]
-	#test_indexes = [1000001, 1200000]
-	#test_indexes = [1200001, 1400000]
-	
 	
 	
 	# -- Compatible only with: train_with_cv = True

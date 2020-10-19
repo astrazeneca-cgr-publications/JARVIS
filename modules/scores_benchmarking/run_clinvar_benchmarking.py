@@ -190,6 +190,7 @@ class ScoreBenchmark:
 		pathogenic_df['pathogenic'] = 1
 		benign_df['pathogenic'] = 0
 
+
 		df = pd.concat([pathogenic_df, benign_df], axis=0)
 
 		
@@ -212,9 +213,19 @@ class ScoreBenchmark:
 		aucs = []
 		mean_fpr = np.linspace(0, 1, 100)
 
-		
+
+		# output dir for test_label/test_probas_ results (input for DeLong's test)
+		all_bennchmark_dir = self.out_dir + '/clinvar_scores_benchmarking/all-scores'
+		delong_test_dir = all_bennchmark_dir + '/delong_test-' + genomic_class
+		if not os.path.exists(delong_test_dir):
+			os.makedirs(delong_test_dir)
+		y_label_lists = []
+		y_proba_lists = []
+
+
 		roc_fig, ax = plt.subplots(figsize=(10, 10))
 	
+
 		i = 0
 		for train, test in cv.split(X, y):
 			probas_ = classifier.fit(X[train], y[train]).predict_proba(X[test])
@@ -227,7 +238,11 @@ class ScoreBenchmark:
 			plt.plot(fpr, tpr, lw=1, alpha=0.3,
 					 label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
 
+			y_label_lists.append(y[test])
+			y_proba_lists.append(probas_[:, 1])
+
 			i += 1
+
 		plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
 				 label='Chance', alpha=.8)
 
@@ -257,8 +272,16 @@ class ScoreBenchmark:
 		
 		print('Mean AUC:', mean_auc)
 		self.roc_curve_data_per_class[genomic_class] = [mean_auc, mean_fpr, mean_tpr]
-		
-		
+
+		# Save X-test and proba results across all folds - Input to DeLong's test
+		with open(delong_test_dir + '/' + self.score + '.y_label_lists.txt', 'w') as fh:
+			for tmp_list in y_label_lists:
+				fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+
+		with open(delong_test_dir + '/' + self.score + '.y_proba_lists.txt', 'w') as fh:
+			for tmp_list in y_proba_lists:
+				fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+	
 		
 		print('==============================')
 

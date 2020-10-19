@@ -30,6 +30,27 @@ for i in `seq 1 22`; do sbatch -o chr${i}.jarvis ./jarvis/deep_learn_raw_seq/sub
 ```
 
 
+----
+
+
+## JARVIS Training 
+```
+# example config file: config.NEW_ClinVar_pathogenic.yaml
+
+python jarvis/deep_learn_raw_seq/prepare_data.py conf/topmed/config.NEW_ClinVar_pathogenic.yaml
+
+./submit_all_jarvis_jobs.sh conf/topmed/config.NEW_ClinVar_pathogenic.yaml 1
+```
+
+
+
+## JARVIS prediction on test set
+```
+# example config file: config.NEW_ncER-GWAS-testing.yaml
+python jarvis/deep_learn_raw_seq/prepare_data.py conf/topmed/config.NEW_ncER-GWAS-testing.yaml
+
+python -u jarvis/deep_learn_raw_seq/test_jarvis_model.py conf/topmed/config.NEW_ncER-GWAS-testing.yaml both intergenic,utr,lincrna,ucne,vista 0 1
+```
 
  
 
@@ -50,6 +71,12 @@ The final feature table (with genomic classes, clinvar annotation and all associ
 
 
 ### Master script:
+#### Main config file:
+```
+conf/topmed/config.NEW_ClinVar_pathogenic.yaml
+```
+
+
 ```
 # all
 [sbatch] ./wgs.sh config.yaml input_classes.txt
