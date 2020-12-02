@@ -3,7 +3,7 @@
 #SBATCH -n 4
 #SBATCH --mem=4G
 
-declare -a scores=('gwrvis') #('jarvis' 'ncER_10bp' 'linsight' 'orion')
+declare -a scores=('eigen')   #('cadd' 'gwrvis' 'jarvis' 'ncER_10bp' 'linsight' 'orion')
 declare -a pathogenic_classes=('intergenic' 'lof' 'dup_lof' 'inv_span' 'dup_partial' 'utr' 'copy_gain' 'promoter' 'intronic')
 
 
