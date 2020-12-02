@@ -1,0 +1,51 @@
+
+
+
+>>> [Base score]: JARVIS-both.NEW_ncER-generalization_ncRNA
+ deepsea 
+[1] "deepsea < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.561128909693242"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < deepsea : 0.438871090306758"
+
+ eigenPC 
+[1] "eigenPC < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.00518050090561085"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < eigenPC : 0.994819499094389"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.645235946666409"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < ncER_10bp : 0.354764053333591"
+
+ cdts 
+[1] "cdts < JARVIS-both.NEW_ncER-generalization_ncRNA : 2.35075928748474e-06"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < cdts : 0.999997649240713"
+
+ linsight 
+[1] "linsight < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.658616109372581"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < linsight : 0.341383890627419"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-both.NEW_ncER-generalization_ncRNA : 5.38995770976057e-06"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < gwrvis : 0.99999461004229"
+
+ jarvis 
+[1] "jarvis < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.0197295513415323"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < jarvis : 0.980270448658468"
+
+ cadd 
+[1] "cadd < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.311814128820495"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < cadd : 0.688185871179505"
+
+ dann 
+[1] "dann < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.00111176307165557"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < dann : 0.998888236928344"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.151272827233326"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < phyloP46way : 0.848727172766674"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.00387689435760661"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < phastCons46way : 0.996123105642393"
+
+ orion 
+[1] "orion < JARVIS-both.NEW_ncER-generalization_ncRNA : 0.00171137370460173"
+[1] "JARVIS-both.NEW_ncER-generalization_ncRNA < orion : 0.998288626295398"

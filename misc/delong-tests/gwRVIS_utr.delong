@@ -1,0 +1,44 @@
+
+
+
+>>> cadd 
+[1] "cadd < gwrvis : 0.997140221058366"
+[1] "gwrvis < cadd : 0.00285977894163415"
+
+>>> phyloP46way 
+[1] "phyloP46way < gwrvis : 0.952572871947248"
+[1] "gwrvis < phyloP46way : 0.0474271280527522"
+
+>>> phastCons46way 
+[1] "phastCons46way < gwrvis : 0.00410443642646898"
+[1] "gwrvis < phastCons46way : 0.995895563573531"
+
+>>> orion 
+[1] "orion < gwrvis : 0.000470826663579486"
+[1] "gwrvis < orion : 0.99952917333642"
+
+>>> gwrvis+cadd 
+[1] "gwrvis+cadd < gwrvis : 0.999999999997344"
+[1] "gwrvis < gwrvis+cadd : 2.65623811730654e-12"
+
+
+
+>>> cadd 
+[1] "cadd < cadd : 0.5"
+[1] "cadd < cadd : 0.5"
+
+>>> phyloP46way 
+[1] "phyloP46way < cadd : 0.205146602214511"
+[1] "cadd < phyloP46way : 0.794853397785489"
+
+>>> phastCons46way 
+[1] "phastCons46way < cadd : 1.56333378549355e-09"
+[1] "cadd < phastCons46way : 0.999999998436666"
+
+>>> orion 
+[1] "orion < cadd : 9.37727185255085e-12"
+[1] "cadd < orion : 0.999999999990623"
+
+>>> gwrvis+cadd 
+[1] "gwrvis+cadd < cadd : 1"
+[1] "cadd < gwrvis+cadd : 4.17961042492396e-23"

@@ -90,6 +90,16 @@ class JarvisDataPreprocessing:
 		self.all_gwrvis_bed_file = gwrvis_scores_dir + '/full_genome.all_gwrvis.bed'
 		self.full_feature_table_file = self.feature_tables_dir + '/full_feature_table.' + self.patho_benign_sets + '.bed'
 
+
+
+		# =============  Ad-hoc analysis: match TSS distance of control variants with pathogenic ones  =============
+		"""
+		self.full_feature_table_file = self.feature_tables_dir + '/full_feature_table.' + self.patho_benign_sets + '.matched.bed'
+		"""
+
+
+
+
 		self.predict_on_test_set = predict_on_test_set
 		self.test_indexes = test_indexes
 		if self.predict_on_test_set:
@@ -114,8 +124,8 @@ class JarvisDataPreprocessing:
 			
 			self.full_feature_table_file = self.ml_data_dir + '/feature_tables/full_gwrvis_and_regulatory_features.All_genomic_classes.tsv.for_prediction.' + str(self.test_indexes[0]) + '_' + str(self.test_indexes[1])
 			tmp_df.to_csv(self.full_feature_table_file, sep='\t', header=True, index=False)
-		
-		print("Succesfully created new JarvisDataPreprocessing object!")
+			
+			print("Succesfully created new JarvisDataPreprocessing object!")
 
 
 
@@ -252,7 +262,9 @@ class JarvisDataPreprocessing:
 
 
 		os.system("tail -n+2 " + self.all_gwrvis_bed_file  + """ | awk '{print $2"\t"$3"\t"$4"\t"$1 }' """ + " | sed 's/^chr//' > " + self.all_gwrvis_bed_file+".tmp")
+		print(self.all_gwrvis_bed_file+".tmp")
 		os.system("tail -n+2 " + self.full_feature_table_file + " | sed 's/^chr//' > " + self.full_feature_table_file+".tmp")
+		print(self.full_feature_table_file+".tmp")
 		os.system("intersectBed -wo -a " + self.all_gwrvis_bed_file+".tmp" + " -b " + self.full_feature_table_file+".tmp" + " | cut -f1,2,3,4 > " + gwrvis_seq_coords_file)
 		
 
@@ -419,6 +431,9 @@ class JarvisDataPreprocessing:
 
 		# Read feature table with variant positions, gwRVIS, GC-related features and external annotations
 		full_feature_table = pd.read_csv(self.full_feature_table_file, sep='\t', low_memory=False)
+		full_feature_table.dropna(inplace=True)
+		full_feature_table.to_csv(self.full_feature_table_file, sep='\t', header=True, index=False)
+
 		print('full_feature_table:', full_feature_table.shape)
 		print(full_feature_table.head())
 
@@ -498,6 +513,8 @@ class JarvisDataPreprocessing:
 		
 		# drop non-informative classes
 		cols_to_drop = ['win_index', 'chr', 'start', 'end']
+		coords_df = additional_features_df[['chr', 'start']].values
+		print('coords_df:', coords_df)
 		additional_features_df.drop(cols_to_drop, inplace=True, axis=1)
 		
 		# Get genomic classes
@@ -525,11 +542,9 @@ class JarvisDataPreprocessing:
 
 
 
-
 		# Get main features (X)
 		X = additional_features_df.copy().values
 		print('X:', X)
-
 
 
 		# [Deprecated] - Normalise features
@@ -545,12 +560,14 @@ class JarvisDataPreprocessing:
 		# Integrate data into a dictionary
 		data_dict = {'X': X, 'y': y, 'seqs': filtered_onehot_seqs, 
 			     'vcf_features': vcf_features_df, 'genomic_classes': genomic_classes, 'global_index': global_index,
-			     'X_cols': additional_features_df.columns.values, 'vcf_features_cols': vcf_based_features }
+			     'X_cols': additional_features_df.columns.values, 'vcf_features_cols': vcf_based_features, 'coords_df': coords_df }
 		
 
 		out_file = self.save_data_to_files(data_dict)
 
 		return out_file
+
+
 
 			
 

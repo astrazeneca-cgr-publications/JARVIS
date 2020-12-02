@@ -1,8 +1,8 @@
 #!/bin/sh
-#SBATCH -J annot
+##SBATCH -J annot
 #SBATCH --cpus-per-task=5
 #SBATCH --mem=4G
-#SBATCH -t 24:00:00
+#SBATCH -t 4:00:00
 
 
 # ==== Read / Infer input arguments ====
@@ -196,11 +196,13 @@ function add_external_genome_wide_scores {
 
 	clinvar_feature_table_bed="$clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.bed"
 
-	for score in ncER_10bp cdts linsight phastCons46way phyloP46way cadd dann orion ncRVIS; do
+	for score in deepsea eigenPC ncER_10bp cdts linsight phastCons46way phyloP46way cadd dann orion ncRVIS; do
 		echo $score
 
 		# compile on the fly table with pathogenic and benign variants per score based on the defined pathogenic/benign sets
-		cat ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_pathogenic.bed ../other_datasets/genome-wide-scores/${score}/${score}.${benign_set}_benign.bed > ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed
+		if [ $score != deepsea ]; then  # pre-compiled for DeepSEA
+			cat ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_pathogenic.bed ../other_datasets/genome-wide-scores/${score}/${score}.${benign_set}_benign.bed > ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed
+		fi
 
 		tail -n+2 $clinvar_feature_table_bed | intersectBed -wo -a stdin -b ../other_datasets/genome-wide-scores/${score}/${score}.${pathogenic_set}_${benign_set}.bed | cut --complement -f34,35,36,38 > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp
 		
@@ -209,6 +211,9 @@ function add_external_genome_wide_scores {
 		cat $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp > $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed
 		rm $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.header $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp
 	done
+
+	#echo $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.header 
+	#echo $clinvar_feature_table_dir/full_feature_table.${pathogenic_set}_${benign_set}.${score}.bed.tmp 
 
 	printf "\nOutput file: $clinvar_feature_table_bed\n"
 }
@@ -382,9 +387,10 @@ clinvar_full_feature_table="$clinvar_feature_table_dir/full_feature_table.${path
 
 
 
-
 printf "\n\n------------\nAdding external genome-wide scores (phastCons46way, phyloP46way, CADD, Orion)...\n"
 add_external_genome_wide_scores 
+
+
 
 
 printf "\n\n------------\nAdding primate-phastCons annotation...\n"
@@ -410,10 +416,12 @@ mv ${clinvar_full_feature_table}.tmp $clinvar_full_feature_table
 
 
 
+:'
 printf "\n\n-----------\nGet single-nt gwRVIS values from all intervals in the clinvar_full_feature table...\n"
 update_single_nt_gwrvis
 
 
 
-printf "\n\n-----------\nUpdate clinvar_feature_table with single-nt resoultion gwrvis scores...\n"
+printf "\n\n-----------\nUpdate clinvar_feature_table with single-nt resolution gwrvis scores...\n"
 python -u gwrvis_core/update_clinvar_table_with_singlent_gwrvis.py $config_file
+'

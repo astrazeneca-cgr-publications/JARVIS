@@ -1,0 +1,51 @@
+
+
+
+>>> [Base score]: JARVIS-both.NEW_ncER-generalization_other
+ deepsea 
+[1] "deepsea < JARVIS-both.NEW_ncER-generalization_other : 0.164154769832316"
+[1] "JARVIS-both.NEW_ncER-generalization_other < deepsea : 0.835845230167684"
+
+ eigenPC 
+[1] "eigenPC < JARVIS-both.NEW_ncER-generalization_other : 1.21600726375478e-05"
+[1] "JARVIS-both.NEW_ncER-generalization_other < eigenPC : 0.999987839927363"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-both.NEW_ncER-generalization_other : 0.411443956364019"
+[1] "JARVIS-both.NEW_ncER-generalization_other < ncER_10bp : 0.588556043635981"
+
+ cdts 
+[1] "cdts < JARVIS-both.NEW_ncER-generalization_other : 1.11873333137011e-09"
+[1] "JARVIS-both.NEW_ncER-generalization_other < cdts : 0.999999998881267"
+
+ linsight 
+[1] "linsight < JARVIS-both.NEW_ncER-generalization_other : 0.677032707598067"
+[1] "JARVIS-both.NEW_ncER-generalization_other < linsight : 0.322967292401933"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-both.NEW_ncER-generalization_other : 1.4497657744182e-08"
+[1] "JARVIS-both.NEW_ncER-generalization_other < gwrvis : 0.999999985502342"
+
+ jarvis 
+[1] "jarvis < JARVIS-both.NEW_ncER-generalization_other : 0.000327328307734109"
+[1] "JARVIS-both.NEW_ncER-generalization_other < jarvis : 0.999672671692266"
+
+ cadd 
+[1] "cadd < JARVIS-both.NEW_ncER-generalization_other : 0.3820390724727542"
+[1] "JARVIS-both.NEW_ncER-generalization_other < cadd : 0.44796092752725"
+
+ dann 
+[1] "dann < JARVIS-both.NEW_ncER-generalization_other : 2.21255165162475e-07"
+[1] "JARVIS-both.NEW_ncER-generalization_other < dann : 0.999999778744835"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-both.NEW_ncER-generalization_other : 0.0011024093907143"
+[1] "JARVIS-both.NEW_ncER-generalization_other < phyloP46way : 0.998897590609286"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-both.NEW_ncER-generalization_other : 0.00166467921018329"
+[1] "JARVIS-both.NEW_ncER-generalization_other < phastCons46way : 0.998335320789817"
+
+ orion 
+[1] "orion < JARVIS-both.NEW_ncER-generalization_other : 9.29405218789698e-05"
+[1] "JARVIS-both.NEW_ncER-generalization_other < orion : 0.999907059478121"

@@ -86,7 +86,16 @@ class ScoreBenchmarking:
 			start = x['start'] + 1
 			end = x['end']
   
-			elem_scores_df = self.score_df.loc[ start:end ]		
+
+			elem_scores_df = self.score_df.loc[ start:end ].copy()
+			#print(elem_scores_df)
+			#print(elem_scores_df.info())
+			#print(elem_scores_df.dropna().info())
+
+
+			elem_scores_df = elem_scores_df.loc[ elem_scores_df['score'] != '.', :]
+			elem_scores_df['score'] = pd.to_numeric(elem_scores_df['score'], downcast="float")
+			
 
 			mean_score = elem_scores_df['score'].mean(skipna=True)
 		
@@ -94,22 +103,29 @@ class ScoreBenchmarking:
 			median = elem_scores_df['score'].quantile(q=0.50)
 			third_quartile = elem_scores_df['score'].quantile(q=0.75)
 			#print('mean:', mean_score)
+			
 
 			return pd.Series([mean_score, first_quartile, median, third_quartile])
+
 
 
 		def process_scores_per_chr(chrom):
 
 			chrom = str(chrom)
 
-			self.score_df = pd.read_csv(self.score_bed_dir + '/' + self.base_score + '.SV.' + self.genomic_class + 
-										'.with_coords.chr' + str(chrom) + '.1_based', 
-										sep='\t', header=None, low_memory=False, index_col=0)
+			try:
+				self.score_df = pd.read_csv(self.score_bed_dir + '/' + self.base_score + '.SV.' + self.genomic_class + '.with_coords.chr' + str(chrom) + '.1_based', sep='\t', header=None, low_memory=False, index_col=0)
+			except:
+				print('[Warning]: No data found for chromosome', chrom)
+				return
+
+	
+
 			self.score_df.columns = ['score']
 
 
 			chr_sv_df = sv_df.loc[ sv_df['chr'] == chrom, :]
-			#print('\n\n', chr_sv_df.head())
+			print(chr_sv_df.shape)
 
 
 			chr_mean_scores_df = chr_sv_df.apply(lambda x: get_scores_per_interval(x), axis=1) 
@@ -117,11 +133,16 @@ class ScoreBenchmarking:
 			
 			#print('chr', chrom, ' - chr_mean_scores df:', chr_mean_scores_df.shape)
 			chr_mean_scores_df.dropna(inplace=True)
-			#print('chr_mean_scores df (withouth NAs):', chr_mean_scores_df.shape)
+			#print('chr_mean_scores df (without NAs):', chr_mean_scores_df.shape)
+			print(chr_mean_scores_df.head())
+			print(chr_mean_scores_df.shape)
+
 			
-			chr_mean_scores_df.to_csv(self.tmp_dir + '/' + self.base_score + '.SV.' + self.genomic_class + 
-										'.chr' + str(chrom) + '.processed_scores', sep='\t', index=False)
+			chr_mean_scores_df.to_csv(self.tmp_dir + '/' + self.base_score + '.SV.' + self.genomic_class + '.chr' + str(chrom) + '.processed_scores', sep='\t', index=False)
 			
+			print(self.tmp_dir + '/' + self.base_score + '.SV.' + self.genomic_class + '.chr' + str(chrom) + '.processed_scores')
+
+
 		
 		process_jobs = []
 		for chrom in range(1,23):
@@ -137,11 +158,17 @@ class ScoreBenchmarking:
 			p.join()
 		
 
+
 		# Concatenate processed SV scores from all chromosomes
 		total_df = pd.DataFrame()
 		for chrom in range(1,23):
 			cur_file = self.tmp_dir + '/' + self.base_score + '.SV.' + self.genomic_class + '.chr' + str(chrom) + '.processed_scores'
+	
+			if not os.path.exists(cur_file):
+				continue
+				
 			print(cur_file)
+	
 			cur_df = pd.read_csv(cur_file, sep='\t')
 
 			if total_df.shape[0] > 0:
@@ -150,7 +177,7 @@ class ScoreBenchmarking:
 				total_df = cur_df
 
 		total_df.to_csv(self.processed_scores_file, index=False, header=True, sep='\t')
-
+		print('Saved concatenated results to:', self.processed_scores_file)
 
 
 

@@ -6,7 +6,7 @@
 #SBATCH --mem=8G
 
 
-win_len=$1
+win_len=3000 #$1
 
 sv_bed_dir="sv-bed"
 sv_classes=('utr' 'intergenic' 'lof' 'promoter' 'copy_gain' 'dup_partial' 'inv_span' 'dup_lof' 'intronic')
@@ -165,24 +165,31 @@ intersect_wrapper () {
 	score=$5	
 	
 	no_chr_str=""
-	if [ $score == "cadd" ] || [ $score == "orion" ]; then
+	if [ $score == "cadd" ] || [ $score == "orion" ] || [ $score == "eigen" ]; then
 		no_chr_str="no_chr."
 	fi	
 
 
 	tabix $score_ref_file -B $sv_bed_dir/SV.${cl}.${no_chr_str}bed > $out_scores_dir/${score}.SV.${cl}.bed.tmp
-	return 0  # TEMP
+	
 
 
 	if [ $score == "linsight" ] || [ $score == "ncER_10bp" ]; then
 		mv $out_scores_dir/${score}.SV.${cl}.bed.tmp $out_scores_dir/${score}.SV.${cl}.with_coords.bed
 
-		intersectBed -wo -a $out_scores_dir/${score}.SV.${cl}.bed.tmp -b $sv_bed_dir/SV.${cl}.${no_chr_str}bed | awk '{print $8"\t"$4}' > $out_scores_dir/${score}.SV.${cl}.bed
+		# redundant
+		#intersectBed -wo -a $out_scores_dir/${score}.SV.${cl}.bed.tmp -b $sv_bed_dir/SV.${cl}.${no_chr_str}bed | awk '{print $8"\t"$4}' > $out_scores_dir/${score}.SV.${cl}.bed
 
 	elif [ $score == "cadd" ]; then
-		cat $out_scores_dir/${score}.SV.${cl}.bed.tmp | awk '{print $1"\t"$2-1"\t"$2"\t"$5}' > $out_scores_dir/${score}.SV.${cl}.bed.tmp2; mv $out_scores_dir/${score}.SV.${cl}.bed.tmp2 $out_scores_dir/${score}.SV.${cl}.bed.tmp
+		cat $out_scores_dir/${score}.SV.${cl}.bed.tmp | awk '{print $1"\t"$2-1"\t"$2"\t"$5}' > $out_scores_dir/${score}.SV.${cl}.with_coords.bed; 
 
-		intersectBed -wo -a $out_scores_dir/${score}.SV.${cl}.bed.tmp -b $sv_bed_dir/SV.${cl}.${no_chr_str}bed | awk '{print $8"\t"$4}' > $out_scores_dir/${score}.SV.${cl}.bed
+		# redundant
+		#intersectBed -wo -a $out_scores_dir/${score}.SV.${cl}.with_coords.bed -b $sv_bed_dir/SV.${cl}.${no_chr_str}bed | awk '{print $8"\t"$4}' > $out_scores_dir/${score}.SV.${cl}.bed
+
+	elif [ $score == "eigen" ]; then
+		# keeping Eigen-PC (instead of Eigen)
+		cat $out_scores_dir/${score}.SV.${cl}.bed.tmp | awk '{print $1"\t"$2-1"\t"$2"\t"$6}' > $out_scores_dir/${score}.SV.${cl}.with_coords.bed; 
+
 
 	elif [ $score == "orion" ]; then
 		intersectBed -wo -a $out_scores_dir/${score}.SV.${cl}.bed.tmp -b $sv_bed_dir/SV.${cl}.${no_chr_str}bed | awk '{print $9"\t"$4}' > $out_scores_dir/${score}.SV.${cl}.bed
@@ -231,6 +238,20 @@ subset_cadd () {
 }
 
 
+
+subset_eigen () {
+	echo -e "\n> eigen"
+	score_ref_file="/projects/cgr/users/kclc950/JARVIS/other_datasets/genome-wide-scores/eigen/eigen-vcf/eigen.All_chroms.vcf.bgz"
+	out_scores_dir="eigen-sv-bed"
+	mkdir -p $out_scores_dir
+
+	for cl in "${sv_classes[@]}"; do
+		intersect_wrapper $score_ref_file $cl $sv_bed_dir $out_scores_dir eigen &
+	done
+}
+
+
+
 subset_orion () {
 	echo -e "\n>orion"
 	score_ref_file="../../other_datasets/genome-wide-scores/orion/orion.1001.masked.new.txt.gz"
@@ -245,12 +266,14 @@ subset_orion () {
 
 #subset_jarvis
 #add_af_to_jarvis
-subset_gwrvis
+#subset_gwrvis
 
 #subset_phastcons_primate
 #subset_linsight
 #subset_ncER_10bp
 #subset_cadd
 #subset_orion
+
+subset_eigen
 
 wait

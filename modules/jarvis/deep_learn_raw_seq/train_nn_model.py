@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import pickle
+import random
+import textwrap
 import uuid
 
 from scipy import interp
@@ -76,13 +78,17 @@ class JarvisTraining:
 		
 
 
-	def init_ouput_dirs(self):
 
+	def init_ouput_dirs(self):
 		# Init output dir structure
 		self.out_dir = custom_utils.create_out_dir(self.config_file)
 		self.ml_data_dir = self.out_dir + '/ml_data'
 		self.clinvar_feature_table_dir = self.ml_data_dir + '/clinvar_feature_tables'
 		self.out_models_dir = self.ml_data_dir + '/models'
+
+		self.raw_seq_dir = self.ml_data_dir + '/raw_seq'
+		if not os.path.exists(self.raw_seq_dir):
+			os.makedirs(self.raw_seq_dir)
 		
 
 
@@ -119,6 +125,8 @@ class JarvisTraining:
 		print('genomic_classes:', data_dict['genomic_classes'])
 		print('genomic_classes:', type(data_dict['genomic_classes']))
 		print('genomic_classes:', data_dict['genomic_classes'].shape)
+		print('coords_df:', data_dict['coords_df'].shape)
+
 
 
 
@@ -167,7 +175,7 @@ class JarvisTraining:
 
 
 	
-	def fix_class_imbalance(self, X, y, seqs, pos_neg_ratio=1/1):
+	def fix_class_imbalance(self, X, y, seqs, X_chr, pos_neg_ratio=1/1):
 	
 		"""
 			Fix class imbalance (with over/under-sampling minority/majority class)
@@ -188,14 +196,20 @@ class JarvisTraining:
 			print('Balanced sets:', sorted(Counter(y).items()))
 			#print('Sampled indices:', rus.sample_indices_)
 			
+			print('Original X_chr:', X_chr.shape)
+			X_chr = X_chr[rus.sample_indices_]
+			print('Sampled X_chr:', X_chr.shape)
+
+
 			if seqs is not None:
 				print('Original seqs:', seqs.shape)
 				seqs = seqs[rus.sample_indices_]
 				print('Sampled seqs:', seqs.shape)
-			
+				
+
 		y = tf.keras.utils.to_categorical(y)
 		
-		return X, y, seqs
+		return X, y, seqs, X_chr
 	
 		
 	
@@ -257,7 +271,70 @@ class JarvisTraining:
 		print("Saved full model into:", model_out_file, '\n')
 		
 		
+
+
 		
+	def get_fold_indexes_by_chrom_split(self, X_chr, kfold=5):
+		"""
+		    Get indexes of validation sets, stratified by chromosome
+		"""
+
+		all_chroms = list(range(1, 23))
+		chroms_in_val_set = []
+		indexes_in_test_set = []
+		indexes_in_train_set = []
+
+		kfold = 5
+		for k in range(kfold):
+			print('fold:', k+1)
+			tmp_chroms_in_val_set = random.sample(all_chroms, 3)
+			all_chroms = list(set(all_chroms) - set(tmp_chroms_in_val_set))
+
+			chroms_in_val_set.append(tmp_chroms_in_val_set)
+
+			# find indexes of data points that belong to certain chromosomes
+			tmp_indexes_in_test_set = []
+			for chrom in tmp_chroms_in_val_set:
+				cur_indexes = [i for i,x in enumerate(X_chr) if x == chrom]
+				tmp_indexes_in_test_set.extend(cur_indexes)
+
+			print(len(tmp_indexes_in_test_set))
+
+			# get complement of indexes for train set
+			tmp_train_indexes = set(range(len(X_chr))) - set(tmp_indexes_in_test_set)
+			#print('full list:', len(X_chr))
+			#print('train size:', len(tmp_train_indexes))
+			#print('test size:', len(tmp_indexes_in_test_set))
+
+
+			indexes_in_train_set.append(tmp_train_indexes)
+			indexes_in_test_set.append(tmp_indexes_in_test_set)
+
+		return indexes_in_train_set, indexes_in_test_set
+
+
+
+
+	def convert_onehot_to_raw_seq(self, onehot_seq):
+		#print(onehot_seq)
+		onehot_index_to_nt = {0: 'A', 3: 'T', 2: 'G', 1: 'C'}
+		raw_seq = ''
+	
+		cnt = 0
+		for cur_nt in onehot_seq:
+			#print(cur_nt)
+
+			t = np.where(cur_nt == 1)[0][0]
+			#print(t)
+			#print(onehot_index_to_nt[t])
+			raw_seq += onehot_index_to_nt[t]
+
+		return raw_seq
+
+
+
+
+
 
 	def train_with_cv(self, data_dict, include_vcf_features, genomic_classes,
 			  n_splits=5, batch_size=16, epochs=40, validation_split=0, patience=10,
@@ -293,8 +370,17 @@ class JarvisTraining:
 			
 			
 			
+
+
 		
-		X, y, seqs = self.fix_class_imbalance(X, y, seqs)
+		X_chr = data_dict['coords_df'][:, 0]
+		X, y, seqs, X_chr = self.fix_class_imbalance(X, y, seqs, X_chr)
+
+
+		# Get indexes of validation sets, stratified by chromosome (to be used in A-hoc analysis later on)
+		self.indexes_in_train_set, self.indexes_in_test_set = self.get_fold_indexes_by_chrom_split(X_chr)
+
+
 
 
 		
@@ -357,6 +443,45 @@ class JarvisTraining:
 		#X = X[:, 1:]
 
 
+		y_col = np.array(np.argmax(y, axis=1))
+		patho_indexes = np.where(y_col == 1)[0]
+		benign_indexes = np.where(y_col == 0)[0]
+
+
+
+
+		# Save training set raw sequences for motif analysis
+		if input_features != 'structured':
+			patho_raw_seqs = []
+			for p_i in patho_indexes:
+				cur_onehot_seq = seqs[p_i]
+				cur_raw_seq = self.convert_onehot_to_raw_seq(cur_onehot_seq)
+			
+				patho_raw_seqs.append(cur_raw_seq)
+
+			benign_raw_seqs = []
+			for b_i in benign_indexes:
+				cur_onehot_seq = seqs[b_i]
+				cur_raw_seq = self.convert_onehot_to_raw_seq(cur_onehot_seq)
+			
+				benign_raw_seqs.append(cur_raw_seq)
+
+			
+			# Write sequences to files (in 500bp chunks)
+			seq_chunk_len = 500
+			with open(self.raw_seq_dir + '/Training_set.pathogenic_variant_sequences.txt', 'w') as fh:
+				for p_seq in patho_raw_seqs:
+					for subseq in textwrap.wrap(p_seq, seq_chunk_len):
+						fh.write(subseq + '\n')
+
+			with open(self.raw_seq_dir + '/Training_set.benign_variant_sequences.txt', 'w') as fh:
+				for b_seq in benign_raw_seqs:
+					for subseq in textwrap.wrap(b_seq, seq_chunk_len):
+						fh.write(subseq + '\n')
+
+
+		
+
 			
 			
 		if train_full_model:
@@ -370,13 +495,16 @@ class JarvisTraining:
 				print('\n>> CV - Repeat:', str(n+1))
 
 				fold = 0
-				for train_index, test_index in skf.split(X, np.argmax(y, axis=1)): #argmax used as SK-fold requires non one-hot encoded y-data
+				for train_index, test_index in skf.split(X, np.argmax(y, axis=1)):
+				# ===== Ad-hoc analysis: Get indexes of validation sets, stratified by chromosome =====
+				#for k in range(len(self.indexes_in_test_set)):
+					#train_index = list(self.indexes_in_train_set[k])
+					#test_index = list(self.indexes_in_test_set[k])
 
 					if use_fixed_cv_batches:
 						train_index, test_index = cv_data_dict[fold]
 					else:
 						cv_data_dict[fold] = [train_index, test_index]
-
 
 
 
@@ -488,7 +616,8 @@ class JarvisTraining:
 					
 					fold += 1
 					
-			'_'.join(genomic_classes)
+
+			#'_'.join(genomic_classes)
 			# Save X-test and proba results across all folds - Input to DeLong's test
 			with open(delong_test_dir + '/JARVIS-' + input_features + '.' + '_'.join(genomic_classes) + '.y_label_lists.txt', 'w') as fh:
 				for tmp_list in y_label_lists:
@@ -671,8 +800,8 @@ if __name__ == '__main__':
 	test_indexes = []
 
 	# ----------------------
-	train_with_cv = False    	# True: get generalised performance with cross-validation
-	train_full_model = True  	# True: train full model (to later use on an unseen test set)
+	train_with_cv = True    	# True: get generalised performance with cross-validation
+	train_full_model = False  	# True: train full model (to later use on an unseen test set)
 
 
 	
@@ -719,9 +848,14 @@ if __name__ == '__main__':
 	if not predict_on_test_set:
 		filtered_data_dict = jarvis_trainer.filter_data_by_genomic_class(data_dict, genomic_classes)
 		print(filtered_data_dict)
+	
+		print('Data dict after filtering by genomic classes (:')
+		jarvis_trainer.inspect_input_data(filtered_data_dict)
 	else:
 		filtered_data_dict = data_dict
 		
+
+
 
 	# [Deprecated] Train using only structured features (i.e. without raw sequence data)	
 	#model = create_feedf_dnn(filtered_data_dict['X'].shape[1], nn_arch=[32, 32]) 

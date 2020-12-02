@@ -1,0 +1,35 @@
+>>> ncER_10bp 
+[1] "other-score < jarvis: 0.999999981777043"
+[1] "jarvis < other-score: 1.82229572569254e-08"
+
+>>> cdts 
+[1] "other-score < jarvis: 9.71287253976753e-92"
+[1] "jarvis < other-score: 1"
+
+>>> linsight 
+[1] "other-score < jarvis: 0.99970297377448"
+[1] "jarvis < other-score: 0.000297026225519638"
+
+>>> gwrvis 
+[1] "other-score < jarvis: 1.18292585238409e-23"
+[1] "jarvis < other-score: 1"
+
+>>> cadd 
+[1] "other-score < jarvis: 0.127339464648385"
+[1] "jarvis < other-score: 0.872660535351615"
+
+>>> dann 
+[1] "other-score < jarvis: 8.94993016932259e-17"
+[1] "jarvis < other-score: 1"
+
+>>> phyloP46way 
+[1] "other-score < jarvis: 4.26967117875391e-13"
+[1] "jarvis < other-score: 0.999999999999573"
+
+>>> phastCons46way 
+[1] "other-score < jarvis: 1.71228631214533e-33"
+[1] "jarvis < other-score: 1"
+
+>>> orion 
+[1] "other-score < jarvis: 2.94266677991264e-11"
+[1] "jarvis < other-score: 0.999999999970573"

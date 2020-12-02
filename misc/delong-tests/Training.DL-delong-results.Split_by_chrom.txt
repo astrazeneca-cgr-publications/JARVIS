@@ -1,0 +1,141 @@
+
+
+
+>>> [Base score]: JARVIS-structured.intergenic_utr_lincrna_ucne_vista
+ deepsea 
+[1] "deepsea < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 0.0050253788891997"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < deepsea : 0.9949746211108"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 0.925032919279871"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < ncER_10bp : 0.0749670807201293"
+
+ cdts 
+[1] "cdts < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 4.07113763628901e-71"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < cdts : 1"
+
+ linsight 
+[1] "linsight < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 1.66832804954052e-41"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < linsight : 1"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 3.0182536656321e-10"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < gwrvis : 0.999999999698175"
+
+ jarvis 
+[1] "jarvis < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 0.00815658959797454"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < jarvis : 0.991843410402026"
+
+ cadd 
+[1] "cadd < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 1.87464169843584e-49"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < cadd : 1"
+
+ dann 
+[1] "dann < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 6.86237495349031e-22"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < dann : 1"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 1.48261856391861e-40"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < phyloP46way : 1"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 5.94998021589463e-54"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < phastCons46way : 1"
+
+ orion 
+[1] "orion < JARVIS-structured.intergenic_utr_lincrna_ucne_vista : 1.5925500599502e-26"
+[1] "JARVIS-structured.intergenic_utr_lincrna_ucne_vista < orion : 1"
+
+
+
+>>> [Base score]: JARVIS-sequences.intergenic_utr_lincrna_ucne_vista
+ deepsea 
+[1] "deepsea < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 0.999999958768431"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < deepsea : 4.12315686908259e-08"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 0.999999999999968"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < ncER_10bp : 3.19305936107253e-14"
+
+ cdts 
+[1] "cdts < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 1.29553572102504e-42"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < cdts : 1"
+
+ linsight 
+[1] "linsight < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 1.28839190092533e-18"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < linsight : 1"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 0.731622866657066"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < gwrvis : 0.268377133342934"
+
+ jarvis 
+[1] "jarvis < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 0.99996352156557"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < jarvis : 3.64784344297343e-05"
+
+ cadd 
+[1] "cadd < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 0.000355771943350956"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < cadd : 0.999644228056649"
+
+ dann 
+[1] "dann < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 0.457510411058936"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < dann : 0.542489588941064"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 4.88861811030836e-12"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < phyloP46way : 0.999999999995111"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 3.43951332237524e-22"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < phastCons46way : 1"
+
+ orion 
+[1] "orion < JARVIS-sequences.intergenic_utr_lincrna_ucne_vista : 1.00386948413258e-05"
+[1] "JARVIS-sequences.intergenic_utr_lincrna_ucne_vista < orion : 0.999989961305159"
+
+
+
+>>> [Base score]: JARVIS-both.intergenic_utr_lincrna_ucne_vista
+ deepsea 
+[1] "deepsea < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 0.993616617057792"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < deepsea : 0.0063833829422081"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 0.999999908980948"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < ncER_10bp : 9.1019051880765e-08"
+
+ cdts 
+[1] "cdts < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 1.89409409412105e-56"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < cdts : 1"
+
+ linsight 
+[1] "linsight < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 1.25295328250567e-28"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < linsight : 1"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 0.0105805865117011"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < gwrvis : 0.989419413488299"
+
+ jarvis 
+[1] "jarvis < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 0.906196618170324"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < jarvis : 0.0938033818296758"
+
+ cadd 
+[1] "cadd < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 5.8535617579061e-15"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < cadd : 0.999999999999994"
+
+ dann 
+[1] "dann < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 7.66384523708146e-05"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < dann : 0.999923361547629"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 4.79766163180288e-23"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < phyloP46way : 1"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 1.11861304321768e-35"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < phastCons46way : 1"
+
+ orion 
+[1] "orion < JARVIS-both.intergenic_utr_lincrna_ucne_vista : 4.02181133781819e-13"
+[1] "JARVIS-both.intergenic_utr_lincrna_ucne_vista < orion : 0.999999999999598"

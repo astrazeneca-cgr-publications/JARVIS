@@ -33,7 +33,7 @@ conda install --file requirements.txt
 ## Run
 - Instructions to generate the JARVIS and gwRVIS scores are available in the [README.md](modules/README.md) file within `modules`.
 - Subsequent sub-folders may also contain their own README files with instructions to run them independently or for ad-hoc analyses.
-- Other folders and theri sub-folders (such as `ensembl/`, `gnomad/` and `other_datasets/`) are accompanied with README files and scripts to download and pre-process any other required datafiles that are not available in the JARVIS GitHub repositoy.
+- Other folders and their sub-folders (such as `ensembl/`, `gnomad/` and `other_datasets/`) are accompanied with README files and scripts to download and pre-process any other required datafiles that are not available in the JARVIS GitHub repositoy.
 
 
 <br><br>

@@ -1,6 +1,7 @@
 #!/bin/bash
-#SBATCH --mem=100G
+#SBATCH --mem=100G    #250G for CADD
 #SBATCH -n 4
+#SBATCH -t 24:0:0
 
 score=$1
 

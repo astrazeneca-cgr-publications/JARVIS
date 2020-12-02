@@ -1,0 +1,47 @@
+
+
+
+>>> [Base score]: JARVIS-both.NEW_ncER-mendelian
+ deepsea 
+[1] "deepsea < JARVIS-both.NEW_ncER-mendelian : 0.00347696656079286"
+[1] "JARVIS-both.NEW_ncER-mendelian < deepsea : 0.996523033439207"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-both.NEW_ncER-mendelian : 0.918800875089375"
+[1] "JARVIS-both.NEW_ncER-mendelian < ncER_10bp : 0.0811991249106245"
+
+ cdts 
+[1] "cdts < JARVIS-both.NEW_ncER-mendelian : 2.35606208861226e-24"
+[1] "JARVIS-both.NEW_ncER-mendelian < cdts : 1"
+
+ linsight 
+[1] "linsight < JARVIS-both.NEW_ncER-mendelian : 0.00670215179572476"
+[1] "JARVIS-both.NEW_ncER-mendelian < linsight : 0.993297848204275"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-both.NEW_ncER-mendelian : 3.61746747539913e-06"
+[1] "JARVIS-both.NEW_ncER-mendelian < gwrvis : 0.999996382532525"
+
+ jarvis 
+[1] "jarvis < JARVIS-both.NEW_ncER-mendelian : 0.0308777712481261"
+[1] "JARVIS-both.NEW_ncER-mendelian < jarvis : 0.969122228751874"
+
+ cadd 
+[1] "cadd < JARVIS-both.NEW_ncER-mendelian : 5.91610250503399e-05"
+[1] "JARVIS-both.NEW_ncER-mendelian < cadd : 0.99994083897495"
+
+ dann 
+[1] "dann < JARVIS-both.NEW_ncER-mendelian : 2.30160202864178e-11"
+[1] "JARVIS-both.NEW_ncER-mendelian < dann : 0.999999999976984"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-both.NEW_ncER-mendelian : 9.7177565874311e-08"
+[1] "JARVIS-both.NEW_ncER-mendelian < phyloP46way : 0.999999902822434"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-both.NEW_ncER-mendelian : 1.26403124461246e-08"
+[1] "JARVIS-both.NEW_ncER-mendelian < phastCons46way : 0.999999987359688"
+
+ orion 
+[1] "orion < JARVIS-both.NEW_ncER-mendelian : 0.000807190162647533"
+[1] "JARVIS-both.NEW_ncER-mendelian < orion : 0.999192809837352"

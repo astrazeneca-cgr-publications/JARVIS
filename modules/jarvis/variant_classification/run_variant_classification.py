@@ -81,9 +81,34 @@ class ClassificationWrapper:
 		else:
 			self.full_feature_table = pd.read_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.' + self.base_score + '.bed', sep='\t', low_memory=False)
 
-		#print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
-		#print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
-		#print(self.full_feature_table.head())
+		print('>All features (prior to pre-processing):\n', self.full_feature_table.columns)
+		print(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.bed')
+		print(self.full_feature_table.head())
+		print(self.full_feature_table.shape)
+
+
+
+		# =============  Ad-hoc analysis: match TSS distance of control variants with pathogenic ones  =============
+		#"""
+		matched_control_df = pd.read_csv('../other_datasets/refTSS/matched_control_dataset.50000bp.tsv', sep='\t')
+		print(matched_control_df.head())
+
+
+		self.full_feature_table['aux_id'] = self.full_feature_table['chr'] + '_' + self.full_feature_table['start'].astype(str) + '_' + self.full_feature_table['end'].astype(str)
+		# Retain only the matched contorl variants in the full feature table
+		selected_control_df = self.full_feature_table.loc[ self.full_feature_table['aux_id'].isin(matched_control_df['control_uniq_id']) | (self.full_feature_table['clinvar_annot'] == 'Pathogenic'), :]
+		print('selected_control_df:', selected_control_df.shape)
+		print(selected_control_df.loc[selected_control_df.clinvar_annot == 'Benign', :].shape)
+
+		self.full_feature_table = selected_control_df.copy()
+		self.full_feature_table.drop(['aux_id'], axis=1, inplace=True)
+		print(self.full_feature_table.head())
+
+		# To be used in the DL models too
+		self.full_feature_table.dropna().to_csv(self.clinvar_feature_table_dir + '/full_feature_table.' + patho_benign_sets + '.matched.bed', sep='\t', header=True, index=False)
+		#"""
+
+
 
 
 
@@ -109,15 +134,6 @@ class ClassificationWrapper:
 		self.df.dropna(inplace=True)
 		
 
-		# BETA
-		#if base_score == 'linsight':
-		#	linsight_start_coords = self.df['start'].values
-		
-		#else:
-		#	self.df = self.df.loc[ self.df['start'].isin(linsight_start_coords) ]
-		#print(self.df.head())
-		#print(self.df.shape)
-			
 		
 		
 
@@ -414,11 +430,12 @@ if __name__ == '__main__':
 	
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
-		all_base_scores = ['ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']	# 'ncER_10bp'
+		#all_base_scores = ['deepsea', 'eigenPC', 'ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']
+		all_base_scores = ['deepsea', 'ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']
 		# @anchor-3
+		#all_base_scores = ['jarvis', 'gwrvis'] 
 		#all_base_scores = ['jarvis'] 
-	else:
-		all_base_scores = ['gwrvis', 'jarvis']
+
 
 	# Ad-hoc: exclude 'lincrna' when running for ncRVIS
 	#genomic_classes_lists =  [ ['intergenic'], ['utr'], ['utr', 'intergenic', 'lincrna', 'vista', 'ucne'], ['ccds'], ['intron'] ] 
@@ -445,15 +462,9 @@ if __name__ == '__main__':
 		for base_score in all_base_scores:
 
 			print('>>>>>>>  ' + base_score + '\n')
+			#try:  # 29 lines in try
+			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, genomic_classes=genomic_classes,	Y_label=Y_label, include_vcf_extracted_features=False, exclude_base_score=False, filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
 
-			#try:  # 16 lines in try
-			clf_wrapper = ClassificationWrapper(config_file, base_score=base_score, model_type=model_type, 
-												genomic_classes=genomic_classes,
-												Y_label=Y_label, 
-												include_vcf_extracted_features=False, 
-												exclude_base_score=False,
-												filter_ccds_overlapping_variants=filter_ccds_overlapping_variants)
-												
 			clf_wrapper.run()
 		
 			if clf_wrapper.mean_auc is not None:
@@ -463,23 +474,27 @@ if __name__ == '__main__':
 				auc_list[base_score] = clf_wrapper.mean_auc
 
 			metrics_per_score[base_score] = clf_wrapper.metrics_list
-			#except:
-			#	print("\n\n[Exception] in " + ','.join(genomic_classes) + " for score: " + base_score + "\n") 
 
-			# TODO: save y_lab and y_prob per score in a dictionary
+
+
+			# Save y_lab and y_prob per score in a dictionary
 			delong_test_dir = clf_wrapper.clinvar_ml_out_dir + '/delong_test'
 			if not os.path.exists(delong_test_dir):
 				os.makedirs(delong_test_dir)
 
 			with open(delong_test_dir + '/' + base_score + '.y_label_lists.txt', 'w') as fh:
 				for tmp_list in clf_wrapper.y_label_lists:
- 					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
 			
 			with open(delong_test_dir + '/' + base_score + '.y_proba_lists.txt', 'w') as fh:
 				for tmp_list in clf_wrapper.y_proba_lists:
- 					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+					fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
 
 
+			print("Saved Delong's test input at:", delong_test_dir + '/' + base_score + '.y_label_lists.txt')
+			
+			#except:
+			#	print("\n\n[Warning] in " + ','.join(genomic_classes) + " for score: " + base_score + " did not complete successfully.\n") 
 
 
 		

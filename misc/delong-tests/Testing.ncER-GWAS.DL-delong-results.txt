@@ -1,0 +1,47 @@
+
+
+
+>>> [Base score]: JARVIS-both.NEW_ncER-GWAS-testing
+ deepsea 
+[1] "deepsea < JARVIS-both.NEW_ncER-GWAS-testing : 5.55640293154444e-08"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < deepsea : 0.999999944435971"
+
+ ncER_10bp 
+[1] "ncER_10bp < JARVIS-both.NEW_ncER-GWAS-testing : 7.65194805422646e-07"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < ncER_10bp : 0.999999234805195"
+
+ cdts 
+[1] "cdts < JARVIS-both.NEW_ncER-GWAS-testing : 3.38857119309888e-39"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < cdts : 1"
+
+ linsight 
+[1] "linsight < JARVIS-both.NEW_ncER-GWAS-testing : 1.24745547547247e-11"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < linsight : 0.999999999987525"
+
+ gwrvis 
+[1] "gwrvis < JARVIS-both.NEW_ncER-GWAS-testing : 6.21453362665817e-47"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < gwrvis : 1"
+
+ jarvis 
+[1] "jarvis < JARVIS-both.NEW_ncER-GWAS-testing : 4.5956697446885e-21"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < jarvis : 1"
+
+ cadd 
+[1] "cadd < JARVIS-both.NEW_ncER-GWAS-testing : 3.6701735091287e-23"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < cadd : 1"
+
+ dann 
+[1] "dann < JARVIS-both.NEW_ncER-GWAS-testing : 3.49463674392576e-50"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < dann : 1"
+
+ phyloP46way 
+[1] "phyloP46way < JARVIS-both.NEW_ncER-GWAS-testing : 1.83383241960865e-24"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < phyloP46way : 1"
+
+ phastCons46way 
+[1] "phastCons46way < JARVIS-both.NEW_ncER-GWAS-testing : 7.42524706849067e-42"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < phastCons46way : 1"
+
+ orion 
+[1] "orion < JARVIS-both.NEW_ncER-GWAS-testing : 2.44466950246683e-35"
+[1] "JARVIS-both.NEW_ncER-GWAS-testing < orion : 1"
