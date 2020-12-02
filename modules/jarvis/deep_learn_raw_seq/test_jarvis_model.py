@@ -6,6 +6,7 @@ import pandas as pd
 from collections import Counter
 import pickle
 import uuid
+import re
 
 from scipy import interp
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
@@ -247,7 +248,7 @@ class JarvisTraining:
 		# remove gwrvis
 		#X = X[:, 1:]
 			
-			
+		"""	
 		if predict_on_test_set:
 
 			if input_features == 'structured':
@@ -301,6 +302,7 @@ class JarvisTraining:
 			
 			return
 			
+		"""
 			
 			
 			
@@ -329,6 +331,14 @@ class JarvisTraining:
 		tprs = [] 
 		aucs = [] 
 		metrics_list = []
+
+		# output dir for test_label/test_probas_ results (input for DeLong's test)
+		delong_test_dir = self.ml_data_dir + '/clinvar-out/delong_test'
+		if not os.path.exists(delong_test_dir):
+			os.makedirs(delong_test_dir)
+		y_label_lists = []
+		y_proba_lists = []
+
 
 		mean_fpr = np.linspace(0, 1, 100)  		
 		fig, ax = plt.subplots(figsize=(10, 10))
@@ -370,7 +380,7 @@ class JarvisTraining:
 
 			if use_pathogenicity_trained_model:
 				#model_out_file = self.out_models_dir + '/' + '_'.join(genomic_classes) + '/JARVIS-' + input_features + '.model'
-				model_out_file = "../out/topmed-NEW_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista/JARVIS-" + input_features + ".model"
+				model_out_file = "../out/topmed-NEW_X_unscaled_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista/JARVIS-" + input_features + ".model"
 
 				print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
 			
@@ -432,7 +442,9 @@ class JarvisTraining:
 
 			print(probas_)
 			print(np.argmax(y_test, axis=1))
-			sys.exit()
+			y_label_lists.append(np.argmax(y_test, axis=1))
+			y_proba_lists.append(probas_[:, 1])
+			#sys.exit()
 
 			
 			
@@ -460,6 +472,20 @@ class JarvisTraining:
 			with open(fixed_cv_batches_file, 'wb') as handle:
 				pickle.dump(cv_data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 	
+
+
+		# Save X-test and proba results across all folds - Input to DeLong's test
+		with open(delong_test_dir + '/JARVIS-' + input_features + '.' + config_suffix + '.y_label_lists.txt', 'w') as fh:
+			for tmp_list in y_label_lists:
+				fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+
+		with open(delong_test_dir + '/JARVIS-' + input_features + '.' + config_suffix + '.y_proba_lists.txt', 'w') as fh:
+			for tmp_list in y_proba_lists:
+				fh.write(', '.join([str(i) for i in tmp_list]) + '\n')
+
+
+
+		print(">> Saved Delong's test input at:", delong_test_dir + '/JARVIS-' + input_features + '.' + config_suffix + '.y_label_lists.txt')
 
 
 		plt.plot([0, 1], [0, 1], linestyle='--', lw=1, color='r', label='Chance', alpha=.8)
@@ -627,6 +653,9 @@ if __name__ == '__main__':
 
 	# ----------------------
 	train_with_cv = True #False     # get generalised performance with cross-validation
+	
+	config_suffix = re.split("\.", config_file.split('/')[-1])[1]
+	print('config_suffix:', config_suffix)
 	
 	
 

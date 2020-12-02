@@ -45,11 +45,16 @@ python jarvis/deep_learn_raw_seq/prepare_data.py conf/topmed/config.NEW_ClinVar_
 
 
 ## JARVIS prediction on test set
+
+- Main trained model: 
+```../out/topmed-NEW_X_unscaled_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista/JARVIS-both.model
+```
+
 ```
 # example config file: config.NEW_ncER-GWAS-testing.yaml
 python jarvis/deep_learn_raw_seq/prepare_data.py conf/topmed/config.NEW_ncER-GWAS-testing.yaml
 
-python -u jarvis/deep_learn_raw_seq/test_jarvis_model.py conf/topmed/config.NEW_ncER-GWAS-testing.yaml both intergenic,utr,lincrna,ucne,vista 0 1
+python -u jarvis/deep_learn_raw_seq/test_jarvis_model.py conf/topmed/config.NEW_ncER-GWAS-testing.yaml both intergenic,utr,lincrna,ucne,vista 1 1
 ```
 
  

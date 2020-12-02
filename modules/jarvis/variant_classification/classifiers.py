@@ -3,6 +3,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import random
 import seaborn as sns
 from collections import Counter
 from tensorflow.keras import Sequential
@@ -18,6 +19,7 @@ from sklearn.metrics import roc_curve, auc, accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler
 
 import warnings
 warnings.filterwarnings("error")
@@ -121,11 +123,13 @@ class Classifier:
 		# =======================================================================
 
 
+	
+		df.reset_index(drop=True, inplace=True)
+	
 
 		self.X = df[self.feature_cols].values
 		self.y = df[self.Y_label].astype(int).values
 
-		print(self.X[0])
 		# Standardise features -- [Deprecated - distorts feature importance and decreases AUC performance]
 		#self.X = stats.zscore(self.X, axis=1)
 		
@@ -133,9 +137,12 @@ class Classifier:
 		min_max_scaler = preprocessing.MinMaxScaler()
 		self.X = min_max_scaler.fit_transform(self.X)
 
-		print(self.X[0])
 
 		
+		# add chrom col in X to allow cross-validation fold selection by chromosome location
+		chr_arr = np.array(df['chr']).reshape(len(df['chr']), 1)
+		self.X = np.concatenate((self.X, chr_arr), axis=1)
+
 		
 		# Fix class imbalance (with over/under-sampling minority/majority class)
 		positive_set_size = (self.y == 1).sum()
@@ -144,13 +151,72 @@ class Classifier:
 
 		
 		
+		"""
 		if (positive_set_size / negative_set_size < pos_neg_ratio) or (negative_set_size / positive_set_size < pos_neg_ratio):
 			print('\n> Fixing class imbalance ...')
 			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
 			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
 			self.X, self.y = rus.fit_resample(self.X, self.y)
 			print('Balanced sets:', sorted(Counter(self.y).items()))
-				
+		"""		
+		if positive_set_size / negative_set_size < pos_neg_ratio: 
+			print('\n> Fixing class imbalance (Negative set Undersampling) ...')
+			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
+			rus = RandomUnderSampler(random_state=0, sampling_strategy=pos_neg_ratio)
+			self.X, self.y = rus.fit_resample(self.X, self.y)
+			print('Balanced sets:', sorted(Counter(self.y).items()))
+
+		elif negative_set_size / positive_set_size < pos_neg_ratio:
+			print('\n> Fixing class imbalance (Positive set Upsampling)...')
+			print('Imbalanced sets: ', sorted(Counter(self.y).items()))
+			ros = RandomOverSampler(random_state=0, sampling_strategy=pos_neg_ratio)
+			self.X, self.y = ros.fit_resample(self.X, self.y)
+			print('Balanced sets:', sorted(Counter(self.y).items()))
+			
+
+		X_chr = [int(c.replace('chr','')) for c in self.X[:, -1]]
+		print(Counter(X_chr))
+		self.X = self.X[:, :-1]
+
+
+		# ===== Ad-hoc analysis: Get indexes of validation sets, stratified by chromosome =====
+		#"""
+		all_chroms = list(range(1, 23))
+		chroms_in_val_set = []
+		self.indexes_in_test_set = []
+		self.indexes_in_train_set = []
+
+		kfold = 5
+		for k in range(kfold):
+			print('fold:', k+1)
+			tmp_chroms_in_val_set = random.sample(all_chroms, 3)
+			all_chroms = list(set(all_chroms) - set(tmp_chroms_in_val_set))
+
+			chroms_in_val_set.append(tmp_chroms_in_val_set)
+
+			# find indexes of data points that belong to certain chromosomes
+			tmp_indexes_in_test_set = []
+			for chrom in tmp_chroms_in_val_set:
+				cur_indexes = [i for i,x in enumerate(X_chr) if x == chrom]
+				tmp_indexes_in_test_set.extend(cur_indexes)
+
+			print(len(tmp_indexes_in_test_set))
+			
+			# get complement of indexes for train set			
+			tmp_train_indexes = set(range(len(X_chr))) - set(tmp_indexes_in_test_set)
+			#print('full list:', len(X_chr))
+			#print('train size:', len(tmp_train_indexes))
+			#print('test size:', len(tmp_indexes_in_test_set))
+
+
+			self.indexes_in_test_set.append(tmp_indexes_in_test_set)
+			self.indexes_in_train_set.append(tmp_train_indexes)
+		#"""
+
+		
+
+		
+
 				
 		
 	
@@ -233,7 +299,12 @@ class Classifier:
 		for n in range(cv_repeats):
 			print('CV - Repeat:', str(n+1))
 			fold = 0
+			
 			for train, test in cv.split(self.X, self.y):
+			# ===== Ad-hoc analysis: Get indexes of validation sets, stratified by chromosome =====
+			#for k in range(len(self.indexes_in_test_set)):
+			#	train = list(self.indexes_in_train_set[k])
+			#	test = list(self.indexes_in_test_set[k])
 
 			
 				if self.base_score not in ['gwrvis', 'jarvis']:
@@ -257,13 +328,10 @@ class Classifier:
 					else:
 					
 					
-						if self.predict_on_test_set:
-						
+						if self.predict_on_test_set:   # [Deprecated]
 							# Predict on full X dataset, without cross-validation splits
 							print("Predicting on test set...")
-							#full_out_models_dir = self.out_dir + '/../../models/intergenic_utr_lincrna_ucne_vista/' 
 							
-							#full_out_models_dir = "/projects/cgr/users/kclc950/JARVIS/out/topmed-ClinVar_pathogenic-denovodb_benign-winlen_1000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intron_intergenic_utr_lincrna_ucne_vista/"
 							full_out_models_dir = "../out/topmed-NEW_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista"
 							
 							model_out_file = full_out_models_dir + '/' + self.score_print_name + '-' + self.model_type + '.model'
