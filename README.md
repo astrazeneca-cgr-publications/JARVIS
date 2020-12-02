@@ -41,6 +41,6 @@ conda install --file requirements.txt
 ## Data availability
 genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon publication in a peer-reviewed journal.
 
-__All scores have been calculated for the *hg19* human assembly version.__
+_All scores have been calculated for the **hg19** human assembly version._
 
 <br><br>
