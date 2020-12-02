@@ -1,0 +1,9 @@
+Intergenic: gwrvis+cadd
+[1] "gwrvis+cadd < cadd : 0.930427570436987"
+[1] "cadd < gwrvis+cadd : 0.069572429563013"
+lincRNAs: gwrvis+cadd
+[1] "gwrvis+cadd < cadd : 0.964165464497494"
+[1] "cadd < gwrvis+cadd : 0.035834535502506"
+UTRs: gwrvis+cadd
+[1] "gwrvis+cadd < cadd : 1"
+[1] "cadd < gwrvis+cadd : 4.17961042492396e-23"

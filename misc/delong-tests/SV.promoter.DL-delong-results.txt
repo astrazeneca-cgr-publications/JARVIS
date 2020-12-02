@@ -1,0 +1,27 @@
+
+
+
+>>> [Base score]: jarvis
+ ncER_10bp 
+[1] "ncER_10bp < jarvis : 1.35558063796113e-32"
+[1] "jarvis < ncER_10bp : 1"
+
+ linsight 
+[1] "linsight < jarvis : 1.2201308621147e-104"
+[1] "jarvis < linsight : 1"
+
+ gwrvis 
+[1] "gwrvis < jarvis : 6.58784600067073e-64"
+[1] "jarvis < gwrvis : 1"
+
+ cadd 
+[1] "cadd < jarvis : 4.75633768446703e-49"
+[1] "jarvis < cadd : 1"
+
+ eigen 
+[1] "eigen < jarvis : 9.61467480853737e-29"
+[1] "jarvis < eigen : 1"
+
+ orion 
+[1] "orion < jarvis : 1.50480525151526e-18"
+[1] "jarvis < orion : 1"
