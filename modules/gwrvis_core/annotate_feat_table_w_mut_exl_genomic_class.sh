@@ -362,8 +362,6 @@ function add_distance_from_closest_tss {
 
 
 
-
-
 # =============== MAIN RUN ================
 printf "\n\n------------\nMerging BED files by genomic class and retrieving respective feature table...\n"
 get_feature_table_by_genomic_class
@@ -416,7 +414,7 @@ mv ${clinvar_full_feature_table}.tmp $clinvar_full_feature_table
 
 
 
-:'
+#:'
 printf "\n\n-----------\nGet single-nt gwRVIS values from all intervals in the clinvar_full_feature table...\n"
 update_single_nt_gwrvis
 
@@ -424,4 +422,4 @@ update_single_nt_gwrvis
 
 printf "\n\n-----------\nUpdate clinvar_feature_table with single-nt resolution gwrvis scores...\n"
 python -u gwrvis_core/update_clinvar_table_with_singlent_gwrvis.py $config_file
-'
+#'

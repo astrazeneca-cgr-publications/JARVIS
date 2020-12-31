@@ -9,12 +9,13 @@ win_len=3000
 base_jarvis_dir="/projects/cgr/users/kclc950/JARVIS/out/topmed-genome_wide_scores_v2-winlen_${win_len}.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/jarvis_predictions"
 
 
+declare -a complete_chroms=(16 17 18 20 21 22)
 
 
 function concat_jarvis_files {
 	echo "Concatenating jarvis files per chrom..."
 	
-	for chrom in `seq 1 22`; do
+	for chrom in "${complete_chroms[@]}"; do
 		echo "Chr: $chrom"
 		jarvis_chrom_dir="${base_jarvis_dir}/chr${chrom}"
 
@@ -29,7 +30,7 @@ function sort_jarvis_files {
 	echo "Sorting jarvis files per chrom..."
 
 	cnt=1
-	for chrom in `seq 1 22`; do
+	for chrom in "${complete_chroms[@]}"; do
 		echo "Chr: $chrom"
 		jarvis_chrom_dir="${base_jarvis_dir}/chr${chrom}"
 
@@ -50,7 +51,7 @@ function bgzip_sorted_jarvis_files {
 	echo "Bgzip sorted jarvis files per chrom..."
 
 	cnt=1
-	for chrom in `seq 1 22`; do
+	for chrom in "${complete_chroms[@]}"; do
 		echo "Chr: $chrom"
 		jarvis_chrom_dir="${base_jarvis_dir}/chr${chrom}"
 
@@ -72,7 +73,7 @@ function build_tabix_for_jarvis_files {
 	echo "Build tabix for jarvis files per chrom..."
 
 	cnt=1
-	for chrom in `seq 1 22`; do
+	for chrom in "${complete_chroms[@]}"; do
 		echo "Chr: $chrom"
 		jarvis_chrom_dir="${base_jarvis_dir}/chr${chrom}"
 

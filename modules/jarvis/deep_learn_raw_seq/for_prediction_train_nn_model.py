@@ -60,14 +60,14 @@ def train_with_cv(X, input_features='structured', seqs=None, X_unscaled=True):
 	"""
 	
 	if X_unscaled:
-		pre_trained_model_path = '/projects/cgr/users/kclc950/JARVIS/out/topmed-NEW_X_unscaled_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista'
+		pre_trained_model_path = '../out/topmed-NEW_X_unscaled_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista'
 
+		print('====>> pre_trained_model_path:', pre_trained_model_path)
 		print('\nX: unscaled')
 		
-	else:
-		pre_trained_model_path = '/projects/cgr/users/kclc950/JARVIS/out/topmed-NEW_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista'
-
-		print('\nX: normalised')
+	#else:
+	#	pre_trained_model_path = '../out/topmed-NEW_ClinVar_pathogenic-denovodb_benign-winlen_3000.MAF_0.001.varType_snv.Pop_SNV_only-FILTERED/ml_data/models/intergenic_utr_lincrna_ucne_vista'
+	#	print('\nX: normalised')
 
 		
 	pre_trained_model_file = pre_trained_model_path + '/JARVIS-' + input_features + '.model'

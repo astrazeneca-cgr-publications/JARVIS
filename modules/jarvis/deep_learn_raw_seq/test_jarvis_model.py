@@ -385,7 +385,7 @@ class JarvisTraining:
 				print("\n>> Loading PATHOGENICITY-trained model from file:", model_out_file)
 			
 				model = load_model(model_out_file)
-				print("Loaded saved model:", model_out_file)
+				print("\n\nLoaded saved model:", model_out_file)
 
 				#y_test = y
 			
@@ -442,6 +442,7 @@ class JarvisTraining:
 
 			print(probas_)
 			print(np.argmax(y_test, axis=1))
+			sys.exit()
 			y_label_lists.append(np.argmax(y_test, axis=1))
 			y_proba_lists.append(probas_[:, 1])
 			#sys.exit()
@@ -652,7 +653,7 @@ if __name__ == '__main__':
 	test_indexes = []
 
 	# ----------------------
-	train_with_cv = True #False     # get generalised performance with cross-validation
+	train_with_cv = False     # get generalised performance with cross-validation
 	
 	config_suffix = re.split("\.", config_file.split('/')[-1])[1]
 	print('config_suffix:', config_suffix)

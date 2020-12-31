@@ -507,6 +507,8 @@ class JarvisDataPreprocessing:
 		print(additional_features_df.tail())
 		print(additional_features_df.info())
 		print(filtered_onehot_seqs.shape)
+		additional_features_df.to_csv('prepared_data.ncER-mendelian.tsv', sep='\t', index=False)
+		sys.exit()
 
 
 
@@ -539,6 +541,7 @@ class JarvisDataPreprocessing:
 		y = tf.keras.utils.to_categorical(y)
 		additional_features_df.drop([self.Y_label], inplace=True, axis=1)
 		print('y:', y)
+
 
 
 

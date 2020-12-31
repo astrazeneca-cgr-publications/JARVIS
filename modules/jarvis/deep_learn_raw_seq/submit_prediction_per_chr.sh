@@ -1,13 +1,14 @@
 #!/bin/bash 
-#SBATCH -t 24:0:0           
-#SBATCH --mem=200G	
+#SBATCH -t 48:0:0           
+##SBATCH --mem=150G
+#SBATCH --mem=200G  
 
 ## CPU
-#SBATCH --cpus-per-task=20	
+##SBATCH --cpus-per-task=20
 
 ## GPU
-##SBATCH --partition=gpu
-##SBATCH --gres=gpu:volta:4
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:volta:4
 
 
 

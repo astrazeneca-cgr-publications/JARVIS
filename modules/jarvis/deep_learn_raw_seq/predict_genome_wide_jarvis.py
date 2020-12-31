@@ -376,7 +376,7 @@ class JarvisDataPreprocessing:
 		print(feature_df.head())
 		print(feature_df.columns)
 		print(feature_df.shape)		
-		
+
 
 		# Get X, y, seqs arrays and run through pre-trained model		
 		X = feature_df.values
@@ -439,9 +439,16 @@ class JarvisDataPreprocessing:
 
 		
 		data_batch_size = 50000
-		
 		global_start_index = full_feature_df.index[0]
 		global_end_index = full_feature_df.index[-1]
+
+
+		# ======= TEMP - DEBUG =======
+		#data_batch_size = 5
+		#global_start_index = 50656165
+		#global_end_index = 50656170
+		
+
 		
 		print('global_start_index:', global_start_index)
 		print('global_end_index:', global_end_index)
@@ -464,12 +471,14 @@ class JarvisDataPreprocessing:
 			pred_out_file = self.jarvis_predictions_per_chr_dir + '/chr' + self.chrom + '.' + self.input_features + '-features.' + str(cur_start_index) + '_' + str(cur_end_index) + '.jarvis'
 			
 			# DEBUG
-			#self.prepare_input_table_and_predict(subset_feature_df, cur_start_index, cur_end_index)
-			
+			#self.prepare_input_table_and_predict(subset_feature_df, cur_start_index, cur_end_index, pred_out_file)
+
+
 			if os.path.exists(pred_out_file):
 				continue
 			else:
 				print('> Missing jarvis file:', pred_out_file)
+
 
 			
 			# Prepare input table (including raw sequences) and predict jarvis scores
@@ -504,5 +513,4 @@ if __name__ == '__main__':
 	
 	# Extract raw sequences from input variant windows and combine with original feature set
 	data_preprocessor.compile_feature_table_incl_raw_seqs()
-	
 	

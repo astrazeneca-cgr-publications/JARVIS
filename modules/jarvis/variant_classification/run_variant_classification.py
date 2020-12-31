@@ -133,6 +133,12 @@ class ClassificationWrapper:
 		# Drop NAs
 		self.df.dropna(inplace=True)
 		
+		# Ad-hoc - Save training set for post-hoc processing
+		out_id = 'ncER-mendelian'
+		#print(self.df.head())
+		#print(self.df.shape)
+		self.df.to_csv('jarvis_clinvar_training_set.' + out_id + '.tsv', sep='\t', index=False)
+		sys.exit()
 
 		
 		
@@ -431,10 +437,10 @@ if __name__ == '__main__':
 	hg_version = run_params['hg_version']
 	if hg_version == 'hg19':
 		#all_base_scores = ['deepsea', 'eigenPC', 'ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']
-		all_base_scores = ['deepsea', 'ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']
+		#all_base_scores = ['deepsea', 'ncER_10bp', 'cdts', 'linsight', 'gwrvis', 'jarvis', 'cadd', 'dann', 'phyloP46way', 'phastCons46way', 'orion']
 		# @anchor-3
 		#all_base_scores = ['jarvis', 'gwrvis'] 
-		#all_base_scores = ['jarvis'] 
+		all_base_scores = ['jarvis'] 
 
 
 	# Ad-hoc: exclude 'lincrna' when running for ncRVIS
