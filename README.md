@@ -5,8 +5,16 @@
 
 - gwRVIS (genome-wide Residual Variation Intolerance Score): genome-wide intolerance to variation score
 
+|Publication: |
+| :---- |
+|[Prioritizing non-coding regions based on human genomic constraint and sequence context with deep learning](https://www.nature.com/articles/s41467-021-21790-4). <br/>
+Vitsios et al., __Nature Communications__, March 8, 2021 https://doi.org/10.1038/s41467-021-21790-4  |
 
-<br><br>
+<br>
+
+![](misc/JARVIS-DNN-network.jpg?raw=true)
+
+<br>
 
 
 
@@ -39,8 +47,9 @@ conda install --file requirements.txt
 <br><br>
 
 ## Data availability
-genome-wide **JARVIS** and **gwRVIS** scores will be publicly available upon publication in a peer-reviewed journal.
+**JARVIS** and **gwRVIS** scores, across the whole genome, are publicly available at the following location:
+[http://jarvis.public.cgr.astrazeneca.com](http://jarvis.public.cgr.astrazeneca.com)
 
-_All scores have been calculated for the **hg19** human assembly version._
+All scores have been generated based on the **hg19** human assembly version.
 
 <br><br>
